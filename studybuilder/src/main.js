@@ -15,7 +15,13 @@ import vuetify from '@/plugins/vuetify'
 // Filters
 import filters from '@/filters'
 
+// PocketBase
+import { restoreAuth } from '@/utils/pocketbase'
+
 let globalConfig
+
+// Restore PocketBase authentication from localStorage
+restoreAuth()
 
 /*
  * Convert some string values to more appropriate ones

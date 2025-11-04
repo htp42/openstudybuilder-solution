@@ -87,6 +87,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useFeatureFlagsStore } from '@/stores/feature-flags'
 import RedirectHandler from '@/components/tools/RedirectHandler.vue'
+import { currentUser } from '@/utils/pocketbase'
 
 const appStore = useAppStore()
 const featureFlagsStore = useFeatureFlagsStore()
@@ -134,8 +135,17 @@ function transitionEnd() {
   }
 }
 function checkFeatureFlag(item) {
-  if (!item.featureFlag) return true
-  return featureFlagsStore.getFeatureFlag(item.featureFlag) !== false
+  // Check feature flag
+  if (item.featureFlag && featureFlagsStore.getFeatureFlag(item.featureFlag) === false) {
+    return false
+  }
+  
+  // Check admin role requirement
+  if (item.requiresAdminRole && currentUser.value?.role !== 1) {
+    return false
+  }
+  
+  return true
 }
 </script>
 

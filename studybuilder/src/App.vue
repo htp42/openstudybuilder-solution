@@ -1,16 +1,13 @@
 <template>
   <v-app full-height>
     <TopBar
+      v-if="layoutTemplate !== 'empty' && layoutTemplate !== 'error'"
       :hide-app-bar-nav-icon="layoutTemplate === 'empty'"
       @back-to-root="navigateToRoot"
     />
 
     <template v-if="layoutTemplate === 'empty'">
-      <v-main class="bg-primary white-text">
-        <SystemAnnouncement
-          v-if="systemAnnouncement"
-          :announcement="systemAnnouncement"
-        />
+      <v-main style="min-height: 100vh;">
         <router-view />
       </v-main>
     </template>
@@ -126,6 +123,12 @@ const notificationTimeout = ref(-1)
 const defaultNotificationTimeout = 3000
 
 const layoutTemplate = computed(() => {
+  // During redirects (like / -> /login), route.name is undefined
+  // In that case, use 'empty' layout to avoid showing TopBar/SideBar briefly
+  if (!route.name && route.path === '/') {
+    return 'empty'
+  }
+  
   return route.meta.layoutTemplate || '2cols'
 })
 
