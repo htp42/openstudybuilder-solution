@@ -3,6 +3,9 @@ from typing import Any
 from clinical_mdr_api.domain_repositories.concepts.concept_generic_repository import (
     ConceptGenericRepository,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.compounds import CompoundRoot
 from clinical_mdr_api.domain_repositories.models.concepts import (
     NumericValueWithUnitRoot,
@@ -35,6 +38,7 @@ from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryVO,
 )
 from clinical_mdr_api.models.concepts.medicinal_product import MedicinalProduct
+from common.config import settings
 from common.utils import convert_to_datetime
 
 
@@ -53,19 +57,41 @@ class MedicinalProductRepository(ConceptGenericRepository):
             )
 
         if ar.concept_vo.dose_frequency_uid is not None:
-            value_node.has_dose_frequency.connect(
-                CTTermRoot.nodes.get(uid=ar.concept_vo.dose_frequency_uid)
+            dose_frequency_node = CTTermRoot.nodes.get(
+                uid=ar.concept_vo.dose_frequency_uid
             )
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    dose_frequency_node,
+                    codelist_submission_value=settings.dose_frequency_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            value_node.has_dose_frequency.connect(selected_term_node)
 
         if ar.concept_vo.delivery_device_uid is not None:
-            value_node.has_delivery_device.connect(
-                CTTermRoot.nodes.get(uid=ar.concept_vo.delivery_device_uid)
+            delivery_device_node = CTTermRoot.nodes.get(
+                uid=ar.concept_vo.delivery_device_uid
             )
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    delivery_device_node,
+                    codelist_submission_value=settings.delivery_device_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            value_node.has_delivery_device.connect(selected_term_node)
 
         if ar.concept_vo.dispenser_uid is not None:
-            value_node.has_dispenser.connect(
-                CTTermRoot.nodes.get(uid=ar.concept_vo.dispenser_uid)
+            dispenser_node = CTTermRoot.nodes.get(uid=ar.concept_vo.dispenser_uid)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    dispenser_node,
+                    codelist_submission_value=settings.compound_dispensed_in_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
             )
+            value_node.has_dispenser.connect(selected_term_node)
 
         for uid in ar.concept_vo.pharmaceutical_product_uids:
             value_node.has_pharmaceutical_product.connect(
@@ -82,14 +108,20 @@ class MedicinalProductRepository(ConceptGenericRepository):
         was_parent_data_modified = super()._has_data_changed(ar=ar, value=value)
 
         old_dose_freq = value.has_dose_frequency.get_or_none()
+        if old_dose_freq is not None:
+            old_dose_freq = old_dose_freq.has_selected_term.get_or_none()
         old_dose_freq_uid = old_dose_freq.uid if old_dose_freq else None
 
         old_delivery_device = value.has_delivery_device.get_or_none()
+        if old_delivery_device is not None:
+            old_delivery_device = old_delivery_device.has_selected_term.get_or_none()
         old_delivery_device_uid = (
             old_delivery_device.uid if old_delivery_device else None
         )
 
         old_dispenser = value.has_dispenser.get_or_none()
+        if old_dispenser is not None:
+            old_dispenser = old_dispenser.has_selected_term.get_or_none()
         old_dispenser_uid = old_dispenser.uid if old_dispenser else None
 
         are_rels_changed = (
@@ -172,6 +204,12 @@ class MedicinalProductRepository(ConceptGenericRepository):
         dose_frequency = value.has_dose_frequency.get_or_none()
         delivery_device = value.has_delivery_device.get_or_none()
         dispenser = value.has_dispenser.get_or_none()
+        if dose_frequency is not None:
+            dose_frequency = dose_frequency.has_selected_term.get_or_none()
+        if delivery_device is not None:
+            delivery_device = delivery_device.has_selected_term.get_or_none()
+        if dispenser is not None:
+            dispenser = dispenser.has_selected_term.get_or_none()
 
         ar = MedicinalProductAR.from_repository_values(
             uid=root.uid,

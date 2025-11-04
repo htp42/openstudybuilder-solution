@@ -13,9 +13,13 @@ from clinical_mdr_api.domains.study_selections.study_selection_cohort import (
 from clinical_mdr_api.models.study_selections.study_selection import (
     StudyDesignClass,
     StudyDesignClassInput,
+    StudySourceVariableInput,
 )
 from clinical_mdr_api.services._meta_repository import MetaRepository
 from clinical_mdr_api.services._utils import ensure_transaction
+from clinical_mdr_api.services.studies.study_source_variable import (
+    StudySourceVariableService,
+)
 from common import exceptions
 from common.auth.user import user
 
@@ -145,6 +149,16 @@ class StudyDesignClassService:
                         study_cohort.study_selection_uid
                     )
                 self._repos.study_cohort_repository.save(cohort_aggregate, self.author)
+                if self._repos.study_source_variable_repository.source_variable_exists(
+                    study_uid=study_uid
+                ):
+                    study_source_variable_service = StudySourceVariableService()
+                    study_source_variable_service.edit(
+                        study_uid=study_uid,
+                        study_source_variable_input=StudySourceVariableInput(
+                            source_variable=None, source_variable_description=None
+                        ),
+                    )
         else:
             study_design_class_node = previous_node
         return StudyDesignClass.model_validate(study_design_class_node)

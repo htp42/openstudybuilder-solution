@@ -125,12 +125,12 @@ export default {
   },
   getXml(params) {
     return repository.post(
-      `${resource}/metadata/xmls/export?target_uid=${params.target_uid}&target_type=${params.target_type}&export_to=${params.export_to}&stylesheet=${params.selectedStylesheet}&status=${params.status}${params.allowed_namespaces}`
+      `${resource}/metadata/xmls/export?${params.target_uids}target_type=${params.target_type}&export_to=${params.export_to}&stylesheet=${params.selectedStylesheet}&status=${params.status}${params.allowed_namespaces}`
     )
   },
   getPdf(params) {
     return repository.post(
-      `${resource}/metadata/xmls/export?target_uid=${params.target_uid}&target_type=${params.target_type}&export_to=${params.export_to}&stylesheet=${params.selectedStylesheet}&pdf=true&status=${params.status}${params.allowed_namespaces}`,
+      `${resource}/metadata/xmls/export?${params.target_uids}&target_type=${params.target_type}&export_to=${params.export_to}&stylesheet=${params.selectedStylesheet}&pdf=true&status=${params.status}${params.allowed_namespaces}`,
       {},
       {
         responseType: 'arraybuffer',

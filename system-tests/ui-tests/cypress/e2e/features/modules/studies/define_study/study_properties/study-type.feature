@@ -1,15 +1,17 @@
+@REQ_ID:xxx
 Feature: Studies - Define Study - Study Properties - Study Type
 
     Background: User is logged in and study has been selected
         Given The user is logged in
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to Study Type page using side menu
         Given A test study is selected
         And The '/studies' page is opened
         When The 'Study Properties' submenu is clicked in the 'Define Study' section
         Then The current URL is '/study_properties/type'
 
-    @REQ_ID:987736
+    @REQ_ID:987736 @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the Study Type table with following columns
         Given The test study '/study_properties/type' page is opened
         Then A table is visible with following headers
@@ -44,6 +46,7 @@ Feature: Studies - Define Study - Study Properties - Study Type
     Scenario: [Actions][Edit] Editing the study type
         Given The test study '/study_properties/type' page is opened
         When The study type is fully defined
+        And Form save button is clicked
         Then The study type data is reflected in the table
 
     Scenario: [Actions][Edit][Stop rule][None] User must be able to use NONE value for study stop rule
@@ -61,6 +64,7 @@ Feature: Studies - Define Study - Study Properties - Study Type
         Given The test study '/study_properties/type' page is opened
         And Another study with study type defined exists
         When The study type is partially defined
+        And Form save button is clicked
         And The study type is copied from another study without overwriting
         Then Only the missing information is filled from another study in the study type form
 
@@ -69,6 +73,7 @@ Feature: Studies - Define Study - Study Properties - Study Type
         Given The test study '/study_properties/type' page is opened
         And Another study with study type defined exists
         When The study type is fully defined
+        And Form save button is clicked
         And The study type is copied from another study with overwriting
         Then All the informations are overwritten in the study type
 

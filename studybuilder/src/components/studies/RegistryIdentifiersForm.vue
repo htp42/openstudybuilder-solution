@@ -78,6 +78,8 @@ study.getStudy(studiesGeneralStore.studyUid, false).then((resp) => {
     resp.data.current_metadata.identification_metadata.registry_identifiers
 })
 
+studiesGeneralStore.fetchNullValues()
+
 function getIdentifierNullValueKey(identifier) {
   return `${identifier}_null_value_code`
 }
@@ -88,8 +90,11 @@ function clear(identifier) {
   if (form.value[nullValueKey]) {
     form.value[nullValueKey] = null
   } else {
+    const termUid = this.studiesGeneralStore.nullValues.find(
+      (el) => el.submission_value === studyConstants.TERM_NOT_APPLICABLE_SUBMVAL
+    ).term_uid
     form.value[nullValueKey] = {
-      term_uid: i18n.t('_global.na_uid'),
+      term_uid: termUid,
       name: i18n.t('_global.not_applicable_full_name'),
     }
   }

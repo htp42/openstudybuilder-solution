@@ -2,10 +2,8 @@
 
 import os
 import string
-import urllib.parse
 from typing import Any
 
-from neomodel import config as neomodel_config
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -67,7 +65,8 @@ class Settings(BaseSettings):
     # Database Configuration
     neo4j_database: str | None = None  # deprecated, include database name in NEO4J_DSN
     neo4j_dsn: str
-    neo4j_connection_lifetime: int = 29 * 60
+    neo4j_connection_lifetime: float = 29 * 60
+    neo4j_liveness_check_timeout: float = 5 * 60
 
     # Cache Configuration
     cache_max_size: int = 1000
@@ -102,7 +101,7 @@ class Settings(BaseSettings):
 
     # Tracing & Monitoring
     uvicorn_log_config: str = ""
-    tracing_enabled: bool = False
+    tracing_enabled: bool = True
     tracing_metrics_header: bool = False
     trace_request_body: bool = False
     trace_request_body_min_status_code: int = 400
@@ -200,10 +199,11 @@ class Settings(BaseSettings):
     adam_ct_catalogue_name: str = "ADAM CT"
     requested_library_name: str = "Requested"
     cdisc_library_name: str = "CDISC"
-    ct_uid_boolean_yes: str = "C49488_Y"
-    ct_uid_boolean_no: str = "C49487_N"
-    ct_uid_na_value: str = "C48660_NA"
-    ct_uid_positive_infinity: str = "CTTerm_000097"
+    ct_uid_boolean_yes: str = "C49488"
+    ct_uid_boolean_no: str = "C49487"
+    ct_uid_boolean_codelist: str = "C66742"
+    ct_uid_na_value: str = "C48660"
+    ct_submval_positive_infinity: str = "PINF"
     study_objective_level_name: str = "Objective Level"
     study_epoch_type_name: str = "Epoch Type"
     study_epoch_subtype_name: str = "Epoch Sub Type"
@@ -267,20 +267,48 @@ class Settings(BaseSettings):
     sponsor_model_prefix: str = "mastermodel"
     sponsor_model_version_number_prefix: str = "NN"
 
+    # Codelist submission values
+    unit_cl_submval: str = "UNIT"
+    unit_dimension_cl_submval: str = "UNITDIM"
+    unit_subset_cl_submval: str = "UNITSUBS"
+    syntax_objective_category_cl_submval: str = "OBJTCAT"
+    syntax_endpoint_category_cl_submval: str = "ENDPCAT"
+    syntax_endpoint_sub_category_cl_submval: str = "ENDPSCAT"
+    syntax_criteria_category_cl_submval: str = "CRITCAT"
+    syntax_criteria_sub_category_cl_submval: str = "CRITSCAT"
+    syntax_criteria_type_cl_submval: str = "CRITRTP"
+    syntax_footnote_type_cl_submval: str = "FTNTTP"
+    study_arm_type_cl_submval: str = "ARMTTP"
+    study_epoch_cl_submval: str = "EPOCH"
+    study_epoch_type_cl_submval: str = "EPOCHTP"
+    study_epoch_subtype_cl_submval: str = "EPOCHSTP"
+    null_flavor_cl_submval: str = "NULLFLVR"
+    study_visit_type_cl_submval: str = "TIMELB"
+    repeating_visit_frequency_cl_submval: str = "REPEATING_VISIT_FREQUENCY"
+    study_visit_contact_mode_cl_submval: str = "VISCNTMD"
+    epoch_allocation_cl_submval: str = "EPCHALLC"
+    stdm_domain_cl_submval: str = "DOMAIN"
+    stdm_odm_data_type_cl_submval: str = "DATATYPE"
+    stdm_role_cl_submval: str = "ROLE"
+    study_endpoint_level_cl_submval: str = "ENDPLEVL"
+    study_endpoint_sublevel_cl_submval: str = "ENDPSBLV"
+    study_element_type_cl_submval: str = "ELEMTP"
+    study_element_subtype_cl_submval: str = "ELEMSTP"
+    study_objective_level_cl_submval: str = "OBJTLEVL"
+    type_of_treatment_cl_submval: str = "TPOFTRT"
+    delivery_device_cl_submval: str = "DLVRDVC"
+    compound_dispensed_in_cl_submval: str = "COMPDISP"
+    route_of_administration_cl_submval: str = "ROUTE"
+    dosage_form_cl_submval: str = "FRM"
+    dose_frequency_cl_submval: str = "FREQ"
+    time_ref_cl_submval: str = "TIMEREF"
+    disease_milestone_cl_submval: str = "MIDSTYPE"
+    flowchart_group_cl_submval: str = "FLWCRTGRP"
+    data_supplier_type_cl_submval: str = "DATA_SUPPLIER_TYPE"
+    origin_source_cl_submval: str = "ORIGINS"
+    origin_type_cl_submval: str = "ORIGINT"
+
     # endregion
 
 
 settings = Settings()  # type: ignore[call-arg]
-
-# Teach urljoin that Neo4j DSN URLs like bolt:// and neo4j:// semantically similar to http://
-for scheme in ("bolt", "bolt+s", "neo4j", "neo4j+s"):
-    urllib.parse.uses_relative.append(scheme)
-    urllib.parse.uses_netloc.append(scheme)
-
-neomodel_config.DATABASE_URL = settings.neo4j_dsn
-if settings.neo4j_database:
-    neomodel_config.DATABASE_URL = urllib.parse.urljoin(
-        settings.neo4j_dsn, f"/{settings.neo4j_database}"
-    )
-
-neomodel_config.MAX_CONNECTION_LIFETIME = settings.neo4j_connection_lifetime

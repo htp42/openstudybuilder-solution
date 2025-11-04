@@ -224,8 +224,8 @@ def jsonprint(data):
 class MockdataJson(BaseImporter):
     logging_name = "mockdata_json"
 
-    def __init__(self, api=None, metrics_inst=None, cache=None):
-        super().__init__(api=api, metrics_inst=metrics_inst, cache=cache)
+    def __init__(self, api=None, metrics_inst=None):
+        super().__init__(api=api, metrics_inst=metrics_inst)
         self.log.info("Preparing lookup tables")
 
         self.import_dir = IMPORT_DIR
@@ -1485,6 +1485,10 @@ class MockdataJson(BaseImporter):
             epoch_sub_name = imported_epoch["epoch_subtype_name"]
 
             uid = self.lookup_ct_term_uid(CODELIST_EPOCH_SUBTYPE, epoch_sub_name)
+            if not uid and not epoch_sub_name.endswith(" Epoch"):
+                # Try again with an "Epoch" suffix
+                epoch_sub_name_edited = epoch_sub_name + " Epoch"
+                uid = self.lookup_ct_term_uid(CODELIST_EPOCH_SUBTYPE, epoch_sub_name_edited)
             if uid:
                 self.log.info(
                     f"Found epoch subtype '{epoch_sub_name}' with uid '{uid}'"
@@ -1571,6 +1575,12 @@ class MockdataJson(BaseImporter):
             else:
                 epoch_name = imported_visit["study_epoch"]["sponsor_preferred_name"]
             data["study_epoch_uid"] = self.lookup_study_epoch_uid(study_uid, epoch_name)
+            if data["study_epoch_uid"] is None and not epoch_name.endswith(" Epoch"):
+                # Try again with an "Epoch" suffix
+                epoch_name_edited = epoch_name + " Epoch"
+                data["study_epoch_uid"] = self.lookup_study_epoch_uid(
+                    study_uid, epoch_name_edited
+                )
             if data["study_epoch_uid"] is not None:
                 self.log.info(
                     f"Found study epoch {epoch_name} with uid {data['study_epoch_uid']}"
@@ -2738,10 +2748,10 @@ class MockdataJson(BaseImporter):
     def handle_ct_extensions(self, jsonfile, codelist_name):
         self.log.info(f"======== CT extensions for {codelist_name} ========")
         imported = json.load(jsonfile)
-        codelist_uid = self.lookup_ct_codelist_uid(codelist_name)
-        existing_terms = self.fetch_codelist_terms(CODELIST_UNIT)
+        codelist_uid = self.get_codelist_uid_from_submval("UNIT")
+        existing_terms = self.fetch_terms_for_codelist_submval("UNIT")
         existing_names = [
-            term["name"]["sponsor_preferred_name"] for term in existing_terms
+            term["sponsor_preferred_name"] for term in existing_terms
         ]
         for term in imported:
             name = term.get("name", {}).get("sponsor_preferred_name")
@@ -2749,27 +2759,29 @@ class MockdataJson(BaseImporter):
                 self.log.info(f"Skipping existing term '{name}'")
                 continue
             data = dict(import_templates.ct_term)
-            data["catalogue_name"] = term.get("catalogue_name")
-            data["codelist_uid"] = codelist_uid
-            data["code_submission_value"] = term.get("attributes", {}).get(
-                "code_submission_value"
-            )
-            data["name_submission_value"] = term.get("attributes", {}).get(
-                "name_submission_value"
-            )
-            data["nci_preferred_name"] = term.get("attributes", {}).get(
-                "nci_preferred_name"
-            )
-            data["definition"] = term.get("attributes", {}).get("definition")
-            data["sponsor_preferred_name"] = term.get("name", {}).get(
-                "sponsor_preferred_name"
-            )
-            data["sponsor_preferred_name_sentence_case"] = term.get("name", {}).get(
-                "sponsor_preferred_name_sentence_case"
-            )
-            data["order"] = term.get("name", {}).get("order")
-            data["library_name"] = term.get("library_name")
-
+            if "attributes" in term:
+                data["catalogue_names"] = [term.get("catalogue_name")]
+                data["codelists"][0]["codelist_uid"] = codelist_uid
+                data["codelists"][0]["submission_value"] = term.get("attributes", {}).get(
+                    "code_submission_value"
+                )
+                data["codelists"][0]["order"] = term.get("name", {}).get("order")
+                # TODO remove this, should not exist
+                data["order"] = term.get("name", {}).get("order")
+                data["nci_preferred_name"] = term.get("attributes", {}).get(
+                    "nci_preferred_name"
+                )
+                data["definition"] = term.get("attributes", {}).get("definition")
+                data["sponsor_preferred_name"] = term.get("name", {}).get(
+                    "sponsor_preferred_name"
+                )
+                data["sponsor_preferred_name_sentence_case"] = term.get("name", {}).get(
+                    "sponsor_preferred_name_sentence_case"
+                )
+                data["library_name"] = term.get("library_name")
+            else:
+                self.log.warning("Skipping term '{}' that is in a new format, please update this script!")
+                continue
             path = "/ct/terms"
             self.log.info(
                 f"Adding term '{name}' to codelist '{codelist_name}' with uid '{codelist_uid}'"

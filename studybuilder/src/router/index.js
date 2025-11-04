@@ -77,7 +77,7 @@ const routes = [
             },
           },
           {
-            path: ':catalogue_name/:codelist_id/terms/:term_id',
+            path: '/terms/:term_id',
             name: 'CodelistTermDetail',
             component: () => import('../views/library/CodelistTermDetail.vue'),
             meta: {
@@ -164,6 +164,14 @@ const routes = [
         path: 'sponsor-ct-packages/:catalogue_name?/:package_name?',
         name: 'SponsorCtPackages',
         component: () => import('../views/library/SponsorCtPackages.vue'),
+        meta: {
+          authRequired: true,
+        },
+      },
+      {
+        path: 'terms/:tab?',
+        name: 'TermsPage',
+        component: () => import('../views/library/TermsPage.vue'),
         meta: {
           authRequired: true,
         },
@@ -268,9 +276,17 @@ const routes = [
         },
       },
       {
-        path: 'crfs/:tab?/:type?/:uid?',
-        name: 'Crfs',
-        component: () => import('../views/library/CrfsPage.vue'),
+        path: 'crfviewer/:tab?',
+        name: 'CrfViewer',
+        component: () => import('../views/library/CrfViewer.vue'),
+        meta: {
+          authRequired: true,
+        },
+      },
+      {
+        path: 'crfbuilder/:tab?/:type?/:uid?',
+        name: 'CrfBuilder',
+        component: () => import('../views/library/CrfBuilder.vue'),
         meta: {
           authRequired: true,
         },
@@ -507,6 +523,14 @@ const routes = [
         path: 'projects',
         name: 'Projects',
         component: () => import('../views/library/ProjectList.vue'),
+        meta: {
+          authRequired: true,
+        },
+      },
+      {
+        path: 'data-suppliers',
+        name: 'DataSuppliers',
+        component: () => import('../views/library/DataSuppliersPage.vue'),
         meta: {
           authRequired: true,
         },

@@ -72,6 +72,13 @@ def get_directory_name(parameter_index: int, suffix: str = ""):
         return default_directory
 
 
+def get_catalogue_filter(parameter_index: int):
+    try:
+        return str(sys.argv[parameter_index])
+    except IndexError as e:
+        return None
+
+
 def get_effective_date(parameter_index: int):
     try:
         return str(sys.argv[parameter_index])
@@ -116,7 +123,9 @@ def get_ordered_package_dates(json_data_directory: str):
     return package_dates
 
 
-def get_ordered_data_model_versions(json_data_directory: str):
+def get_ordered_data_model_versions(
+    json_data_directory: str, catalogue_filter: str = None
+):
     """
     Gets an ordered list of available model versions from the JSON package files on disc.
 
@@ -128,6 +137,8 @@ def get_ordered_data_model_versions(json_data_directory: str):
     existing_versions = {}
     # List all the directories, ignoring potential hidden files
     for catalogue in [f for f in listdir(json_data_directory) if not f.startswith(".")]:
+        if catalogue_filter is not None and not catalogue.startswith(catalogue_filter):
+            continue
         if catalogue in ["FBDE", "NN-VEEVA-EDC"]:
             _existing_versions = listdir(path.join(json_data_directory, catalogue))
         else:

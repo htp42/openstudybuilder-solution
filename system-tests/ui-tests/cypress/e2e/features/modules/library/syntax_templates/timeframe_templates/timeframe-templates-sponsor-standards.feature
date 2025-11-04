@@ -5,12 +5,14 @@ Feature: Library - Syntax Templates - Time Frames - Parent
   Background: User must be logged in
     Given The user is logged in
 
+  @smoke_test
   Scenario: [Navigation] User must be able to navigate to the Timeframe template under the Syntax template Library
     Given The '/library' page is opened
     When The 'Time Frames' submenu is clicked in the 'Syntax Templates' section
     And The 'Parent' tab is selected
     Then The current URL is '/library/timeframe_templates/parent'
 
+  @smoke_test
   Scenario: [Table][Columns][Names] User must be able to see the table with correct columns
     Given The '/library/timeframe_templates/parent' page is opened
     Then A table is visible with following headers
@@ -35,6 +37,7 @@ Feature: Library - Syntax Templates - Time Frames - Parent
     And The timeframe template is found
     Then Sequence number is incremented
 
+  @smoke_test
   Scenario: [Create][Positive case] User must be able to create Timeframe template
     Given The '/library/timeframe_templates/parent' page is opened
     When The Add template button is clicked
@@ -277,6 +280,7 @@ Feature: Library - Syntax Templates - Time Frames - Parent
     And The item actions button is clicked
     Then Only actions that should be avaiable for the Retired item are displayed
 
+  @smoke_test
   Scenario: [Table][Search][Postive case] User must be able to search created Timeframe template
     When [API] Search Test - Create first timeframe template
     And [API] Search Test - Create second timeframe template

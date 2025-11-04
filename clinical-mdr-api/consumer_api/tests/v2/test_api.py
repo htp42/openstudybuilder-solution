@@ -45,7 +45,7 @@ def test_data():
     """Initialize test data"""
     db_name = "consumer-api-v2"
     set_db(db_name)
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
 
     global rand
     global studies

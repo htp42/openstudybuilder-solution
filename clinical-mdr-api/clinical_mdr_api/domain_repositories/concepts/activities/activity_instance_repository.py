@@ -8,6 +8,9 @@ from clinical_mdr_api.domain_repositories.concepts.activities.activity_repositor
 from clinical_mdr_api.domain_repositories.concepts.concept_generic_repository import (
     ConceptGenericRepository,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models._utils import ListDistinct
 from clinical_mdr_api.domain_repositories.models.activities import (
     ActivityGrouping,
@@ -41,7 +44,7 @@ from clinical_mdr_api.domains.concepts.activities.activity_instance import (
 )
 from clinical_mdr_api.domains.concepts.activities.activity_item import (
     ActivityItemVO,
-    LibraryItem,
+    CTTermItem,
 )
 from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryItemMetadataVO,
@@ -146,7 +149,13 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
 
             for term in item.ct_terms:
                 ct_term_root = CTTermRoot.nodes.get_or_none(uid=term.uid)
-                activity_item_node.has_ct_term.connect(ct_term_root)
+                selected_term_node = (
+                    CTCodelistAttributesRepository().get_or_create_selected_term(
+                        ct_term_root,
+                        codelist_uid=term.codelist_uid,
+                    )
+                )
+                activity_item_node.has_ct_term.connect(selected_term_node)
 
             for unit in item.unit_definitions:
                 unit_definition = UnitDefinitionRoot.nodes.get_or_none(uid=unit.uid)
@@ -180,7 +189,7 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
                     "is_adam_param_specific": item.is_adam_param_specific,
                     "class": item.activity_item_class_uid,
                     "units": {unit.uid for unit in item.unit_definitions},
-                    "terms": {term.uid for term in item.ct_terms},
+                    "terms": {(term.uid, term.codelist_uid) for term in item.ct_terms},
                     "odm_forms": {odm_form.uid for odm_form in item.odm_forms},
                     "odm_item_groups": {
                         odm_item_group.uid for odm_item_group in item.odm_item_groups
@@ -193,7 +202,13 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
         for activity_item_node in value_item_nodes:
             item_class_uid = activity_item_node.has_activity_item_class.get().uid
             unit_nodes = activity_item_node.has_unit_definition.all()
-            ct_term_nodes = activity_item_node.has_ct_term.all()
+            ct_terms = [
+                {
+                    "uid": term_context.has_selected_term.single().uid,
+                    "codelist_uid": term_context.has_selected_codelist.single().uid,
+                }
+                for term_context in activity_item_node.has_ct_term.all()
+            ]
             odm_form_nodes = activity_item_node.has_odm_form.all()
             odm_item_group_nodes = activity_item_node.has_odm_item_group.all()
             odm_item_nodes = activity_item_node.has_odm_item.all()
@@ -202,7 +217,10 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
                     "is_adam_param_specific": activity_item_node.is_adam_param_specific,
                     "class": item_class_uid,
                     "units": {unit_node.uid for unit_node in unit_nodes},
-                    "terms": {ct_term_node.uid for ct_term_node in ct_term_nodes},
+                    "terms": {
+                        (ct_term["uid"], ct_term["codelist_uid"])
+                        for ct_term in ct_terms
+                    },
                     "odm_forms": {
                         odm_form_node.has_root.single().uid
                         for odm_form_node in odm_form_nodes
@@ -377,7 +395,11 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
                             "activity_item_class_name"
                         ),
                         ct_terms=[
-                            LibraryItem(uid=term["uid"], name=term["name"])
+                            CTTermItem(
+                                uid=term["uid"],
+                                name=term["name"],
+                                codelist_uid=term["codelist_uid"],
+                            )
                             for term in activity_item.get("ct_terms")
                         ],
                         unit_definitions=[
@@ -458,7 +480,11 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
             odm_item_groups = []
             odm_items = []
             for unit in activity_item.has_unit_definition.all():
-                if ct_dimension := unit.has_version.single().has_ct_dimension.single():
+                if (
+                    ct_dimension := unit.has_version.single()
+                    .has_ct_dimension.single()
+                    .has_selected_term.single()
+                ):
                     dimension_name = (
                         ct_dimension.has_name_root.single()
                         .has_latest_value.single()
@@ -474,11 +500,13 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
                         dimension_name=dimension_name,
                     )
                 )
-            for term in activity_item.has_ct_term.all():
+            for term_context in activity_item.has_ct_term.all():
+                term_root = term_context.has_selected_term.single()
                 ct_terms.append(
-                    LibraryItem(
-                        uid=term.uid,
-                        name=term.has_name_root.single().has_version.single().name,
+                    CTTermItem(
+                        uid=term_root.uid,
+                        name=term_root.has_name_root.single().has_version.single().name,
+                        codelist_uid=term_context.has_selected_codelist.single().uid,
                     )
                 )
             for odm_form in activity_item.has_odm_form.all():
@@ -643,9 +671,10 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
                 )
             for term in activity_item["ct_terms"]:
                 ct_terms.append(
-                    LibraryItem(
+                    CTTermItem(
                         uid=term["uid"],
                         name=term["name"],
+                        codelist_uid=term["codelist_uid"],
                     )
                 )
             for odm_form in activity_item.get("odm_forms", []):
@@ -776,7 +805,14 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
                 | {
                     activity_item_class_uid: activity_item_class_root.uid,
                     activity_item_class_name: activity_item_class_value.name,
-                    ct_terms: [(activity_item)-[:HAS_CT_TERM]->(term_root:CTTermRoot)-[:HAS_NAME_ROOT]->(term_name_root:CTTermNameRoot)-[:LATEST]->(term_name_value:CTTermNameValue) | {uid: term_root.uid, name: term_name_value.name}],
+                    ct_terms: COLLECT {
+                        MATCH (activity_item)-[:HAS_CT_TERM]->(ct_term_context:CTTermContext)
+                        -[:HAS_SELECTED_TERM]->(term_root:CTTermRoot)
+                        -[:HAS_NAME_ROOT]->(term_name_root:CTTermNameRoot)
+                        -[:LATEST]->(term_name_value:CTTermNameValue)
+                        MATCH (ct_term_context)-[:HAS_SELECTED_CODELIST]->(codelist_root:CTCodelistRoot)
+                        RETURN {uid: term_root.uid, name: term_name_value.name, codelist_uid: codelist_root.uid}
+                    },
                     unit_definitions: [(activity_item)-[:HAS_UNIT_DEFINITION]->(unit_definition_root:UnitDefinitionRoot)-[:LATEST]->(unit_definition_value:UnitDefinitionValue)-[:HAS_CT_DIMENSION]-(:CTTermRoot)-[:HAS_NAME_ROOT]->(CTTermNamesRoot)-[:LATEST]->(dimension_value:CTTermNameValue) | {uid: unit_definition_root.uid, name: unit_definition_value.name, dimension_name: dimension_value.name}],
                     is_adam_param_specific: activity_item.is_adam_param_specific,
                     odm_forms: apoc.coll.toSet([(activity_item)-[:HAS_ODM_FORM]->(odm_form_value:OdmFormValue)<-[:HAS_VERSION]-(odm_form_root:OdmFormRoot) | {uid: odm_form_root.uid, oid: odm_form_value.oid, name: odm_form_value.name}]),
@@ -957,13 +993,20 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
             <-[HAS_ACTIVITY_ITEM]-(activity_item_class_root)-[:LATEST]->(activity_item_class_value) | 
             {
                 activity_item_class: activity_item_class_value,
-                activity_item_class_role: head([(activity_item_class_value)-[:HAS_ROLE]->()-[:HAS_NAME_ROOT]->()-[:LATEST]->(role_value) | role_value.name]),
-                activity_item_class_data_type: head([(activity_item_class_value)-[:HAS_DATA_TYPE]->()-[:HAS_NAME_ROOT]->()-[:LATEST]->(data_type_value) | data_type_value.name]),
+                activity_item_class_role: head([(activity_item_class_value)-[:HAS_ROLE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(role_value) | role_value.name]),
+                activity_item_class_data_type: head([(activity_item_class_value)-[:HAS_DATA_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(data_type_value) | data_type_value.name]),
                 activity_item: activity_item,
-                ct_terms: [(activity_item)-[:HAS_CT_TERM]->(term_root:CTTermRoot)-[:HAS_NAME_ROOT]->(term_name_root:CTTermNameRoot)-[:LATEST]->(term_name_value:CTTermNameValue) | {uid: term_root.uid, name: term_name_value.name}],
+                ct_terms: COLLECT {
+                    MATCH (activity_item)-[:HAS_CT_TERM]->(ct_term_context:CTTermContext)
+                    -[:HAS_SELECTED_TERM]->(term_root:CTTermRoot)
+                    -[:HAS_NAME_ROOT]->(term_name_root:CTTermNameRoot)
+                    -[:LATEST]->(term_name_value:CTTermNameValue)
+                    MATCH (ct_term_context)-[:HAS_SELECTED_CODELIST]->(codelist_root:CTCodelistRoot)
+                    RETURN {uid: term_root.uid, name: term_name_value.name, codelist_uid: codelist_root.uid}
+                },
                 unit_definitions: [
                     (activity_item)-[:HAS_UNIT_DEFINITION]->(unit_definition_root:UnitDefinitionRoot)-[:LATEST]->(unit_definition_value:UnitDefinitionValue)
-                    -[:HAS_CT_DIMENSION]-(:CTTermRoot)-[:HAS_NAME_ROOT]->(CTTermNamesRoot)-[:LATEST]->(dimension_value:CTTermNameValue)
+                    -[:HAS_CT_DIMENSION]-(:CTTermContext)-[:HAS_SELECTED_TERM]-(:CTTermRoot)-[:HAS_NAME_ROOT]->(CTTermNamesRoot)-[:LATEST]->(dimension_value:CTTermNameValue)
                     | {uid: unit_definition_root.uid, name: unit_definition_value.name, dimension_name: dimension_value.name}
                 ],
                 is_adam_param_specific: activity_item.is_adam_param_specific,
@@ -972,7 +1015,7 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
                 odm_items: apoc.coll.toSet([(activity_item)-[:HAS_ODM_ITEM]->(odm_item_value:OdmItemValue)<-[:HAS_VERSION]-(odm_item_root:OdmItemRoot) | {uid: odm_item_root.uid, oid: odm_item_value.oid, name: odm_item_value.name}])
             }
             ]) AS activity_items
-        WITH DISTINCT 
+        WITH DISTINCT
             activity_instance_root,
             activity_instance_value,
             instance_library_name,
@@ -1086,7 +1129,7 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
             {
                 nci_concept_id: activity_item_class_value.nci_concept_id,
                 name: activity_item_class_value.name,
-                type: head([(activity_item_class_value)-[:HAS_DATA_TYPE]->()-[:HAS_NAME_ROOT]->()-[:LATEST]->(data_type_value) | data_type_value.name]),
+                type: head([(activity_item_class_value)-[:HAS_DATA_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(data_type_value) | data_type_value.name]),
                 example_set: [(activity_item)-[:HAS_CT_TERM]->(term_root:CTTermRoot)-[:HAS_NAME_ROOT]->(term_name_root:CTTermNameRoot)-[:LATEST]->(term_name_value:CTTermNameValue) | {uid: term_root.uid, name: term_name_value.name}] + [(activity_item)-[:HAS_UNIT_DEFINITION]->(unit_definition_root:UnitDefinitionRoot)-[:LATEST]->(unit_definition_value:UnitDefinitionValue) | {uid: unit_definition_root.uid, name: unit_definition_value.name}]
             }
             ]) AS activity_items
@@ -1175,3 +1218,24 @@ class ActivityInstanceRepository(ConceptGenericRepository[ActivityInstanceAR]):
                 return defaulted_instances
             return other_instances
         return all_instances
+
+    def specific_header_match_clause_lite(self, field_name: str) -> str | None:
+        """This is a lightweight version of the header match clause.
+        It should fetch only the required field, without supporting wildcard filtering.
+        """
+
+        if field_name == "activity_name":
+            return """
+                WITH concept_value,
+                     head([(concept_value)-[:HAS_ACTIVITY]->(activity_grouping)<-[:HAS_GROUPING]-(activity_value) | activity_value.name]) as activity_name
+                """
+
+        if field_name == "activity_instance_class.name":
+            return """
+                WITH concept_value,
+                     head([(concept_value)-[:ACTIVITY_INSTANCE_CLASS]->
+                            (activity_instance_class_root:ActivityInstanceClassRoot)-[:LATEST]->(activity_instance_class_value:ActivityInstanceClassValue)
+                            | activity_instance_class_value.name]) AS activity_instance_class_name
+                """
+
+        return None

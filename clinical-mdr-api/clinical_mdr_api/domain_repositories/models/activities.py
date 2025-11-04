@@ -21,7 +21,7 @@ from clinical_mdr_api.domain_repositories.models.concepts import (
     UnitDefinitionRoot,
 )
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
-    CTTermRoot,
+    CTTermContext,
 )
 from clinical_mdr_api.domain_repositories.models.generic import (
     ClinicalMdrNode,
@@ -178,7 +178,7 @@ class ActivityItem(ClinicalMdrNode):
         model=ClinicalMdrRel,
     )
     has_ct_term = RelationshipTo(
-        CTTermRoot, "HAS_CT_TERM", model=ClinicalMdrRel, cardinality=ZeroOrMore
+        CTTermContext, "HAS_CT_TERM", model=ClinicalMdrRel, cardinality=ZeroOrMore
     )
     has_unit_definition = RelationshipTo(
         UnitDefinitionRoot,

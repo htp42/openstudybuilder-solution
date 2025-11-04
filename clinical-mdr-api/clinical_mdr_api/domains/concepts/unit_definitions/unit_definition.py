@@ -188,7 +188,7 @@ class UnitDefinitionValueVO(ConceptVO):
             master_unit=master_unit,
             si_unit=si_unit,
             us_conventional_unit=us_conventional_unit,
-            use_complex_unit_conversion=use_complex_unit_conversion,
+            use_complex_unit_conversion=use_complex_unit_conversion is True,
             legacy_code=legacy_code,
             use_molecular_weight=use_molecular_weight,
             conversion_factor_to_master=conversion_factor_to_master,

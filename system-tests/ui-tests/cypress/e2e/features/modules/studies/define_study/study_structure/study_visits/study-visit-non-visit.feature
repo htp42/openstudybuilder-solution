@@ -6,7 +6,7 @@ Feature: Studies - Define Study - Study Structure - Study Visits - Non Visit
     Background: User is logged in and study has been selected
         Given The user is logged in
         And The study with uid 'Study_000003' is selected
-        And [API] The epoch with type 'Pre Treatment' and subtype 'Screening' exists in selected study
+        And [API] The epoch with type 'Pre Treatment' and subtype 'Run-in' exists in selected study
 
     Scenario: [Create][Non visit] User must be able to create non visit for given study
         Given The '/studies/Study_000003/study_structure/visits' page is opened

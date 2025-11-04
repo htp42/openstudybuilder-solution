@@ -93,7 +93,7 @@
   <ConfirmDialog ref="confirmRef" :text-cols="6" :action-cols="5" />
 </template>
 <script setup>
-import { computed, onMounted, inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStudiesGeneralStore } from '@/stores/studies-general'
 import { useStudyActivitiesStore } from '@/stores/studies-activities'
@@ -147,15 +147,15 @@ const headers = [
   },
   {
     title: t('StudyActivityInstances.test_name_code'),
-    key: 'test_name_code',
+    key: 'activity_instance.test_name_code',
   },
   {
     title: t('StudyActivityInstances.specimen'),
-    key: 'specimen',
+    key: 'activity_instance.specimen',
   },
   {
     title: t('StudyActivityInstances.standard_unit'),
-    key: 'standard_unit',
+    key: 'activity_instance.standard_unit',
   },
   { title: t('StudyActivityInstances.state_actions'), key: 'state' },
   {
@@ -223,10 +223,6 @@ const activityInstanceHistoryTitle = computed(() => {
   return ''
 })
 
-onMounted(() => {
-  getStudyActivityInstances()
-})
-
 function getInstanceCssClass(item) {
   if (item.activity_instance) {
     if (item.state === statuses.SUGGESTION) {
@@ -278,18 +274,6 @@ function getStudyActivityInstances(filters, options, filtersUpdated) {
   params.studyUid = studiesGeneralStore.selectedStudy.uid
   activitiesStore.fetchStudyActivityInstances(params).then((resp) => {
     studyActivitiesInstances.value = resp.data.items
-    studyActivitiesInstances.value.forEach((instance) => {
-      instance.specimen = instance.activity_instance?.activity_items?.find(
-        (item) => item.activity_item_class.name === 'specimen'
-      )?.ct_terms[0].name
-      instance.test_name_code =
-        instance.activity_instance?.activity_items?.find(
-          (item) => item.activity_item_class.name === 'test_name_code'
-        )?.ct_terms[0].name
-      instance.standard_unit = instance.activity_instance?.activity_items?.find(
-        (item) => item.activity_item_class.name === 'standard_unit'
-      )?.unit_definitions[0].name
-    })
     total.value = resp.data.total
   })
 }

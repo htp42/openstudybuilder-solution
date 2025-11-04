@@ -461,7 +461,7 @@ class StudySelectionActivityBaseRepository(Generic[_AggregateRootType], abc.ABC)
         detailed_soa_audit_trail = """
         CALL {
         MATCH (sr:StudyRoot {uid: $study_uid})-[:AUDIT_TRAIL]->(:StudyAction)-[:BEFORE|AFTER]->(all_sa:StudyActivity)
-            -[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)
+            -[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)
             -[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
         MATCH (study_soa_group:StudySoAGroup)<-[:AFTER]-(asa:StudyAction)
         OPTIONAL MATCH (study_soa_group:StudySoAGroup)<-[:BEFORE]-(bsa:StudyAction)
@@ -480,7 +480,7 @@ class StudySelectionActivityBaseRepository(Generic[_AggregateRootType], abc.ABC)
             -[:STUDY_ACTIVITY_HAS_STUDY_ACTIVITY_GROUP]->(study_activity_group:StudyActivityGroup)
             -[:HAS_SELECTED_ACTIVITY_GROUP]->(activity_group_value:ActivityGroupValue)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)
-            -[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
+            -[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
         MATCH (study_activity_group:StudyActivityGroup)<-[:AFTER]-(asa:StudyAction)
         OPTIONAL MATCH (study_activity_group:StudyActivityGroup)<-[:BEFORE]-(bsa:StudyAction)
         WITH DISTINCT all_sa, fgr_value, activity_group_value, asa, bsa, study_activity_group
@@ -500,7 +500,7 @@ class StudySelectionActivityBaseRepository(Generic[_AggregateRootType], abc.ABC)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_ACTIVITY_GROUP]->(study_activity_group:StudyActivityGroup)
             -[:HAS_SELECTED_ACTIVITY_GROUP]->(activity_group_value:ActivityGroupValue)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)
-            -[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
+            -[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
         MATCH (study_activity_subgroup:StudyActivitySubGroup)<-[:AFTER]-(asa:StudyAction)
         OPTIONAL MATCH (study_activity_subgroup:StudyActivitySubGroup)<-[:BEFORE]-(bsa:StudyAction)
         WITH DISTINCT all_sa, fgr_value, activity_group_value, activity_subgroup_value, asa, bsa, study_activity_subgroup
@@ -523,7 +523,7 @@ class StudySelectionActivityBaseRepository(Generic[_AggregateRootType], abc.ABC)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_ACTIVITY_GROUP]->(study_activity_group:StudyActivityGroup)
             -[:HAS_SELECTED_ACTIVITY_GROUP]->(activity_group_value:ActivityGroupValue)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)
-            -[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
+            -[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
         MATCH (all_sa:StudyActivity)<-[:AFTER]-(asa:StudyAction)
         OPTIONAL MATCH (all_sa:StudyActivity)<-[:BEFORE]-(bsa:StudyAction)
         WITH DISTINCT all_sa, fgr_value, activity_group_value, activity_subgroup_value, av, asa, bsa
@@ -586,7 +586,7 @@ class StudySelectionActivityBaseRepository(Generic[_AggregateRootType], abc.ABC)
         total_count_query = """
                PROFILE CALL {
         MATCH (sr:StudyRoot {uid: $study_uid})-[:AUDIT_TRAIL]->(:StudyAction)-[:BEFORE|AFTER]->(all_sa:StudyActivity)
-            -[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)
+            -[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)
             -[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
         MATCH (study_soa_group:StudySoAGroup)<-[:AFTER]-(asa:StudyAction)
         RETURN count(distinct study_soa_group) as ct
@@ -595,7 +595,7 @@ class StudySelectionActivityBaseRepository(Generic[_AggregateRootType], abc.ABC)
             -[:STUDY_ACTIVITY_HAS_STUDY_ACTIVITY_GROUP]->(study_activity_group:StudyActivityGroup)
             -[:HAS_SELECTED_ACTIVITY_GROUP]->(activity_group_value:ActivityGroupValue)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)
-            -[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
+            -[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
         MATCH (study_activity_group:StudyActivityGroup)<-[:AFTER]-(asa:StudyAction)
         RETURN count(distinct study_activity_group) as ct
         UNION ALL
@@ -605,7 +605,7 @@ class StudySelectionActivityBaseRepository(Generic[_AggregateRootType], abc.ABC)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_ACTIVITY_GROUP]->(study_activity_group:StudyActivityGroup)
             -[:HAS_SELECTED_ACTIVITY_GROUP]->(activity_group_value:ActivityGroupValue)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)
-            -[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
+            -[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
         MATCH (study_activity_subgroup:StudyActivitySubGroup)<-[:AFTER]-(asa:StudyAction)
         RETURN count(distinct study_activity_subgroup) as ct
         UNION ALL
@@ -616,7 +616,7 @@ class StudySelectionActivityBaseRepository(Generic[_AggregateRootType], abc.ABC)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_ACTIVITY_GROUP]->(study_activity_group:StudyActivityGroup)
             -[:HAS_SELECTED_ACTIVITY_GROUP]->(activity_group_value:ActivityGroupValue)
         MATCH (all_sa:StudyActivity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)
-            -[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
+            -[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(fgr_value:CTTermNameValue)
         MATCH (all_sa:StudyActivity)<-[:AFTER]-(asa:StudyAction)
         RETURN count(distinct all_sa) as ct
         UNION ALL

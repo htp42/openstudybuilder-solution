@@ -11,7 +11,7 @@ from clinical_mdr_api.domains.concepts.activities.activity_instance import (
 )
 from clinical_mdr_api.domains.concepts.activities.activity_item import (
     ActivityItemVO,
-    LibraryItem,
+    CTTermItem,
 )
 from clinical_mdr_api.domains.versioned_object_aggregate import LibraryVO
 from clinical_mdr_api.models.concepts.activities.activity_instance import (
@@ -77,8 +77,12 @@ class ActivityInstanceService(ConceptGenericService[ActivityInstanceAR]):
                     for unit_uid in item.unit_definition_uids
                 ]
                 ct_terms = [
-                    LibraryItem(uid=term_uid, name=None)
-                    for term_uid in item.ct_term_uids
+                    CTTermItem(
+                        uid=ct_term.term_uid,
+                        name=None,
+                        codelist_uid=ct_term.codelist_uid,
+                    )
+                    for ct_term in item.ct_terms
                 ]
                 odm_forms: list[CompactOdmForm] = [
                     CompactOdmForm(uid=odm_form_uid, oid=None, name=None)
@@ -155,6 +159,10 @@ class ActivityInstanceService(ConceptGenericService[ActivityInstanceAR]):
             get_final_activity_value_by_uid_callback=self._repos.activity_repository.final_concept_value,
             activity_group_exists=self._repos.activity_group_repository.final_concept_exists,
             activity_subgroup_exists=self._repos.activity_subgroup_repository.final_concept_exists,
+            activity_group_latest_is_final=self._repos.activity_group_repository.latest_concept_is_final,
+            activity_subgroup_latest_is_final=self._repos.activity_subgroup_repository.latest_concept_is_final,
+            get_activity_group_name=self._repos.activity_group_repository.get_latest_concept_name,
+            get_activity_subgroup_name=self._repos.activity_subgroup_repository.get_latest_concept_name,
             find_activity_item_class_by_uid_callback=self._repos.activity_item_class_repository.find_by_uid_2,
             find_activity_instance_class_by_uid_callback=self._repos.activity_instance_class_repository.find_by_uid_2,
             preview=preview,
@@ -201,8 +209,12 @@ class ActivityInstanceService(ConceptGenericService[ActivityInstanceAR]):
                         for unit_uid in activity_item.unit_definition_uids
                     ]
                     ct_terms = [
-                        LibraryItem(uid=term_uid, name=None)
-                        for term_uid in activity_item.ct_term_uids
+                        CTTermItem(
+                            uid=ct_term.term_uid,
+                            name=None,
+                            codelist_uid=ct_term.codelist_uid,
+                        )
+                        for ct_term in activity_item.ct_terms
                     ]
                     odm_forms: list[CompactOdmForm] = [
                         CompactOdmForm(uid=odm_form_uid, oid=None, name=None)

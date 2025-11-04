@@ -4,6 +4,9 @@ from typing import Any
 
 from neomodel import db
 
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.generic_repository import (
     manage_previous_connected_study_selection_relationships,
 )
@@ -24,6 +27,7 @@ from clinical_mdr_api.domains.study_selections.study_soa_group_selection import 
     StudySoAGroupVO,
 )
 from clinical_mdr_api.utils import unpack_list_of_lists
+from common.config import settings
 from common.utils import convert_to_datetime
 
 
@@ -82,7 +86,7 @@ class StudySoAGroupRepository(StudySelectionActivityBaseRepository[StudySoAGroup
             
             WITH DISTINCT sr, soag, collect(DISTINCT sag.uid) AS study_activity_group_uids
             
-            MATCH (soag)-[:HAS_FLOWCHART_GROUP]->(cttr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(ctnv:CTTermNameValue)
+            MATCH (soag)-[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(cttr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(ctnv:CTTermNameValue)
             MATCH (soag)<-[:AFTER]-(sac:StudyAction)
         """
 
@@ -151,7 +155,7 @@ class StudySoAGroupRepository(StudySelectionActivityBaseRepository[StudySoAGroup
         audit_trail_cypher += """
 
                     WITH DISTINCT all_sa, study_activity
-                    OPTIONAL MATCH (all_sa)-[:HAS_FLOWCHART_GROUP]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(soa_group_term_name:CTTermNameValue)
+                    OPTIONAL MATCH (all_sa)-[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(fgr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(soa_group_term_name:CTTermNameValue)
                     WITH DISTINCT all_sa, fgr, soa_group_term_name, study_activity
                     ORDER BY study_activity.order ASC
                     MATCH (all_sa)<-[:AFTER]-(asa:StudyAction)
@@ -206,7 +210,13 @@ class StudySoAGroupRepository(StudySelectionActivityBaseRepository[StudySoAGroup
         audit_node.has_after.connect(study_soa_group_node)
         # Set flowchart group
         ct_term_root = CTTermRoot.nodes.get(uid=selection.soa_group_term_uid)
-        study_soa_group_node.has_flowchart_group.connect(ct_term_root)
+        selected_term_node = (
+            CTCodelistAttributesRepository().get_or_create_selected_term(
+                ct_term_root,
+                codelist_submission_value=settings.flowchart_group_cl_submval,
+            )
+        )
+        study_soa_group_node.has_flowchart_group.connect(selected_term_node)
         if last_study_selection_node:
             manage_previous_connected_study_selection_relationships(
                 previous_item=last_study_selection_node,
@@ -247,7 +257,7 @@ class StudySoAGroupRepository(StudySelectionActivityBaseRepository[StudySoAGroup
         self, study_uid: str, soa_group_term_uid: str
     ) -> StudySoAGroup | None:
         query = """
-            MATCH (flowchart_group_term:CTTermRoot)<-[:HAS_FLOWCHART_GROUP]-(study_soa_group:StudySoAGroup)<-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]
+            MATCH (flowchart_group_term:CTTermRoot)<-[:HAS_SELECTED_TERM]-(:CTTermContext)<-[:HAS_FLOWCHART_GROUP]-(study_soa_group:StudySoAGroup)<-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]
                 -(:StudyActivity)<-[:HAS_STUDY_ACTIVITY]-(:StudyValue)<-[:LATEST]-(:StudyRoot {uid:$study_uid})
             WHERE NOT (study_soa_group)<-[:BEFORE]-() AND NOT (study_soa_group)<-[]-(:Delete)
                 AND flowchart_group_term.uid=$soa_group_term_uid

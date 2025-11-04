@@ -89,10 +89,8 @@
     <v-dialog v-model="showForm" persistent content-class="fullscreen-dialog">
       <CrfFormForm
         :selected-form="selectedForm"
-        class="fullscreen-dialog"
         :read-only-prop="selectedForm && selectedForm.status === statuses.FINAL"
         @close="closeForm"
-        @approve="approve"
       />
     </v-dialog>
     <v-dialog

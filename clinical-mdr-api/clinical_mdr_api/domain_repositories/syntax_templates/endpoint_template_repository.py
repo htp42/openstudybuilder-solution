@@ -1,3 +1,6 @@
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.generic import (
     Library,
     VersionRelationship,
@@ -19,6 +22,7 @@ from clinical_mdr_api.models.controlled_terminologies.ct_term import (
     SimpleTermModel,
     SimpleTermName,
 )
+from common.config import settings
 
 
 class EndpointTemplateRepository(GenericSyntaxTemplateRepository[EndpointTemplateAR]):
@@ -64,7 +68,6 @@ class EndpointTemplateRepository(GenericSyntaxTemplateRepository[EndpointTemplat
                             ],
                         ),
                         attributes=SimpleTermAttributes(
-                            code_submission_value=category["code_submission_value"],
                             nci_preferred_name=category["preferred_term"],
                         ),
                     )
@@ -84,7 +87,6 @@ class EndpointTemplateRepository(GenericSyntaxTemplateRepository[EndpointTemplat
                             ],
                         ),
                         attributes=SimpleTermAttributes(
-                            code_submission_value=subcategory["code_submission_value"],
                             nci_preferred_name=subcategory["preferred_term"],
                         ),
                     )
@@ -108,9 +110,21 @@ class EndpointTemplateRepository(GenericSyntaxTemplateRepository[EndpointTemplat
 
         for indication in item.indications or []:
             root.has_indication.connect(self._get_indication(indication.term_uid))
+
         for category in item.categories or []:
-            root.has_category.connect(self._get_category(category.term_uid))
-        for subcategory in item.sub_categories or []:
-            root.has_subcategory.connect(self._get_category(subcategory.term_uid))
+            selected_term_node = CTCodelistAttributesRepository().get_or_create_selected_term(
+                self._get_category(category.term_uid),
+                codelist_submission_value=settings.syntax_endpoint_category_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+            )
+            root.has_category.connect(selected_term_node)
+
+        for sub_category in item.sub_categories or []:
+            selected_term_node = CTCodelistAttributesRepository().get_or_create_selected_term(
+                self._get_category(sub_category.term_uid),
+                codelist_submission_value=settings.syntax_endpoint_sub_category_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+            )
+            root.has_subcategory.connect(selected_term_node)
 
         return item

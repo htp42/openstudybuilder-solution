@@ -17,9 +17,6 @@ from clinical_mdr_api.domains.concepts.odms.vendor_element import (
     OdmVendorElementRelationVO,
 )
 from clinical_mdr_api.domains.concepts.utils import RelationType
-from clinical_mdr_api.domains.controlled_terminologies.ct_term_attributes import (
-    CTTermAttributesAR,
-)
 from clinical_mdr_api.models.concepts.activities.activity import (
     ActivityHierarchySimpleModel,
 )
@@ -45,9 +42,6 @@ from clinical_mdr_api.models.concepts.odms.odm_vendor_attribute import (
 from clinical_mdr_api.models.concepts.odms.odm_vendor_element import (
     OdmVendorElementRelationModel,
 )
-from clinical_mdr_api.models.controlled_terminologies.ct_term import (
-    SimpleCTTermAttributes,
-)
 from clinical_mdr_api.models.utils import BaseModel, PostInputModel
 from common.config import settings
 from common.utils import booltostr
@@ -59,9 +53,6 @@ class OdmForm(ConceptModel):
     sdtm_version: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = (
         None
     )
-    scope: Annotated[
-        SimpleCTTermAttributes | None, Field(json_schema_extra={"nullable": True})
-    ] = None
     descriptions: Annotated[
         list[OdmDescriptionSimpleModel] | None,
         Field(json_schema_extra={"nullable": True}),
@@ -80,7 +71,6 @@ class OdmForm(ConceptModel):
     def from_odm_form_ar(
         cls,
         odm_form_ar: OdmFormAR,
-        find_term_callback: Callable[[str], CTTermAttributesAR | None],
         find_odm_description_by_uid: Callable[[str], OdmDescriptionAR | None],
         find_odm_alias_by_uid: Callable[[str], OdmAliasAR | None],
         find_activity_group_by_uid: Callable[[str], ActivityGroupAR | None],
@@ -109,10 +99,6 @@ class OdmForm(ConceptModel):
             version=odm_form_ar.item_metadata.version,
             change_description=odm_form_ar.item_metadata.change_description,
             author_username=odm_form_ar.item_metadata.author_username,
-            scope=SimpleCTTermAttributes.from_term_uid(
-                uid=odm_form_ar.concept_vo.scope_uid,
-                find_term_by_uid=find_term_callback,
-            ),
             descriptions=sorted(
                 [
                     OdmDescriptionSimpleModel.from_odm_description_uid(
@@ -270,7 +256,6 @@ class OdmFormPostInput(ConceptPostInput):
     oid: Annotated[str | None, Field(min_length=1)] = None
     sdtm_version: Annotated[str | None, Field()] = None
     repeating: Annotated[str, Field(min_length=1)]
-    scope_uid: Annotated[str | None, Field()] = None
     descriptions: Annotated[list[OdmDescriptionPostInput | str], Field()]
     alias_uids: Annotated[list[str], Field()]
 
@@ -280,7 +265,6 @@ class OdmFormPatchInput(ConceptPatchInput):
     oid: Annotated[str | None, Field(min_length=1)]
     sdtm_version: Annotated[str | None, Field()]
     repeating: Annotated[str | None, Field()]
-    scope_uid: Annotated[str | None, Field()]
     descriptions: Annotated[
         list[OdmDescriptionBatchPatchInput | OdmDescriptionPostInput | str], Field()
     ]

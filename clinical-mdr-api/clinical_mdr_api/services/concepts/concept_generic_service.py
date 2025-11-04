@@ -21,6 +21,7 @@ from clinical_mdr_api.models.concepts.unit_definitions.unit_definition import (
     UnitDefinitionModel,
 )
 from clinical_mdr_api.models.controlled_terminologies.ct_term import (
+    SimpleCodelistTermModel,
     SimpleCTTermAttributes,
     SimpleTermModel,
 )
@@ -91,12 +92,34 @@ class ConceptGenericService(Generic[_AggregateRootType], ABC):
                     field_name,
                     getattr(reference_base_model, field_name).term_uid,
                 )
+            elif isinstance(
+                getattr(reference_base_model, field_name), SimpleCodelistTermModel
+            ):
+                setattr(
+                    base_model_with_missing_values,
+                    field_name,
+                    getattr(reference_base_model, field_name).term_uid,
+                )
             elif isinstance(getattr(reference_base_model, field_name), Sequence):
                 if (
                     get_field_type(
                         reference_base_model.model_fields[field_name].annotation
                     )
                     is SimpleTermModel
+                ):
+                    setattr(
+                        base_model_with_missing_values,
+                        field_name,
+                        [
+                            term.term_uid
+                            for term in getattr(reference_base_model, field_name)
+                        ],
+                    )
+                if (
+                    get_field_type(
+                        reference_base_model.model_fields[field_name].annotation
+                    )
+                    is SimpleCodelistTermModel
                 ):
                     setattr(
                         base_model_with_missing_values,
@@ -243,19 +266,29 @@ class ConceptGenericService(Generic[_AggregateRootType], ABC):
         filter_by: dict[str, dict[str, Any]] | None = None,
         filter_operator: FilterOperator = FilterOperator.AND,
         page_size: int = 10,
+        lite: bool = False,
         **kwargs,
     ) -> list[Any]:
         self.enforce_library(library)
 
-        header_values = self.repository.get_distinct_headers(
-            library=library,
-            field_name=field_name,
-            search_string=search_string,
-            filter_by=filter_by,
-            filter_operator=filter_operator,
-            page_size=page_size,
-            **kwargs,
-        )
+        if lite:
+            header_values = self.repository.get_distinct_headers_lite(
+                library=library,
+                field_name=field_name,
+                search_string=search_string,
+                page_size=page_size,
+                **kwargs,
+            )
+        else:
+            header_values = self.repository.get_distinct_headers(
+                library=library,
+                field_name=field_name,
+                search_string=search_string,
+                filter_by=filter_by,
+                filter_operator=filter_operator,
+                page_size=page_size,
+                **kwargs,
+            )
 
         return header_values
 
@@ -415,7 +448,7 @@ class ConceptGenericService(Generic[_AggregateRootType], ABC):
                         self._repos.unit_definition_repository.find_by_uid_2(
                             item.unit_definitions[0].uid
                         ),
-                        find_term_by_uid=self._repos.ct_term_name_repository.find_by_uid,
+                        find_codelist_term_by_uid_and_submission_value=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                         find_dictionary_term_by_uid=self._repos.dictionary_term_generic_repository.find_by_uid,
                     ).name
             for ct_term in item.ct_terms:
@@ -564,8 +597,23 @@ class ConceptGenericService(Generic[_AggregateRootType], ABC):
                     uid=item.ct_terms[0].uid,
                     find_term_by_uid=self._repos.ct_term_attributes_repository.find_by_uid,
                 )
+                # EXTRACT code_submission_value
+                params = {"ct_uid": item.ct_terms[0].uid}
+                cypher_expression_ct_code_extraction = """
+                    match (lib:Library)--(n:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(o:CTTermAttributesRoot)-[:LATEST]->(ctav:CTTermAttributesValue)
+                    where lib.name="CDISC" 
+                        AND n.uid = $ct_uid
+                    MATCH (n)<-[:HAS_TERM_ROOT]-(m:CTCodelistTerm) 
+                    where tolower(m.submission_value) <> tolower(ctav.preferred_term) 
+                    return m.submission_value
+                """
+                cypher_result, _ = db.cypher_query(
+                    cypher_expression_ct_code_extraction,
+                    params=params,
+                    resolve_objects=True,
+                )
                 ct_code_submission_value = (
-                    ct_attribute.code_submission_value if ct_attribute else None
+                    cypher_result[0][0] if cypher_result else None
                 )
                 if not ct_attribute:
                     break

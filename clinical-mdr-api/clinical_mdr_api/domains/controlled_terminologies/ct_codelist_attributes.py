@@ -9,7 +9,21 @@ from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryVO,
     ObjectAction,
 )
-from common.exceptions import AlreadyExistsException, BusinessLogicException
+from common.exceptions import (
+    AlreadyExistsException,
+    BusinessLogicException,
+    ValidationException,
+)
+
+
+@dataclass(frozen=True)
+class CTPairedCodelists:
+    """
+    Small class to hold the paired codelists UIDs
+    """
+
+    paired_names_codelist_uid: str | None
+    paired_codes_codelist_uid: str | None
 
 
 @dataclass(frozen=True)
@@ -19,37 +33,40 @@ class CTCodelistAttributesVO:
     """
 
     name: str
-    catalogue_name: str
+    catalogue_names: list[str]
     parent_codelist_uid: str | None
     child_codelist_uids: list[str]
     submission_value: str
     preferred_term: str | None
     definition: str
     extensible: bool
+    ordinal: bool
 
     @classmethod
     def from_repository_values(
         cls,
         name: str,
-        catalogue_name: str,
+        catalogue_names: list[str],
         parent_codelist_uid: str | None,
         child_codelist_uids: list[str],
         submission_value: str,
         preferred_term: str | None,
         definition: str,
         extensible: bool,
+        ordinal: bool,
     ) -> Self:
         if child_codelist_uids is None:
             child_codelist_uids = []
         ct_codelist_attribute_vo = cls(
             name=name,
-            catalogue_name=catalogue_name,
+            catalogue_names=catalogue_names,
             parent_codelist_uid=parent_codelist_uid,
             child_codelist_uids=child_codelist_uids,
             submission_value=submission_value,
             preferred_term=preferred_term,
             definition=definition,
             extensible=extensible,
+            ordinal=ordinal,
         )
 
         return ct_codelist_attribute_vo
@@ -58,12 +75,13 @@ class CTCodelistAttributesVO:
     def from_input_values(
         cls,
         name: str,
-        catalogue_name: str,
+        catalogue_names: list[str],
         parent_codelist_uid: str | None,
         submission_value: str,
         preferred_term: str | None,
         definition: str,
         extensible: bool,
+        ordinal: bool,
         catalogue_exists_callback: Callable[[str], bool],
         codelist_exists_by_uid_callback: Callable[[str], bool] = lambda _: False,
         codelist_exists_by_name_callback: Callable[[str], bool] = lambda _: False,
@@ -79,11 +97,11 @@ class CTCodelistAttributesVO:
             and not codelist_exists_by_uid_callback(parent_codelist_uid),
             msg=f"Codelist with Parent Codelist UID '{parent_codelist_uid}' doesn't exist.",
         )
-
-        BusinessLogicException.raise_if_not(
-            catalogue_exists_callback(catalogue_name),
-            msg=f"Catalogue with Name '{catalogue_name}' doesn't exist.",
-        )
+        for catalogue_name in catalogue_names:
+            ValidationException.raise_if_not(
+                catalogue_exists_callback(catalogue_name),
+                msg=f"Catalogue with Name '{catalogue_name}' doesn't exist.",
+            )
         AlreadyExistsException.raise_if(
             name and codelist_exists_by_name_callback(name),
             "CT Codelist Attributes",
@@ -102,11 +120,12 @@ class CTCodelistAttributesVO:
             name=name,
             parent_codelist_uid=parent_codelist_uid,
             child_codelist_uids=child_codelist_uids,
-            catalogue_name=catalogue_name,
+            catalogue_names=catalogue_names,
             submission_value=submission_value,
             preferred_term=preferred_term,
             definition=definition,
             extensible=extensible,
+            ordinal=bool(ordinal),
         )
 
         return ct_codelist_attribute_vo

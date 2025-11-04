@@ -24,8 +24,8 @@
               v-model="form.data_type"
               :label="$t('CrfExtensions.data_type')"
               :items="dataTypes"
-              item-title="code_submission_value"
-              item-value="code_submission_value"
+              item-title="submission_value"
+              item-value="submission_value"
               :rules="[formRules.required]"
               density="compact"
               clearable
@@ -38,6 +38,7 @@
               v-model="form.compatible_types"
               :label="$t('CrfExtensions.compatible_types')"
               :items="compatibleTypes"
+              :rules="[formRules.required]"
               density="compact"
               multiple
               clearable
@@ -114,7 +115,7 @@ export default {
     this.crfTypes = crfTypes
   },
   mounted() {
-    terms.getAttributesByCodelist('dataType').then((resp) => {
+    terms.getTermsByCodelist('dataType').then((resp) => {
       this.dataTypes = resp.data.items
     })
   },

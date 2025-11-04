@@ -124,9 +124,9 @@ class TestStudyDefinitionRepository(unittest.TestCase):
         TestUtils.create_library()
         TestUtils.create_library(name="UCUM", is_editable=True)
         TestUtils.create_ct_catalogue()
-        codelist = TestUtils.create_ct_codelist()
-        TestUtils.create_study_ct_data_map(codelist_uid=codelist.codelist_uid)
+
         TestUtils.create_study_fields_configuration()
+        TestUtils.create_study_ct_data_map(codelist_uid=None)
 
     def test__assert_dataclasses_equal(self):
         # create a study

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
-from typing import Callable, Iterable, Mapping
+from typing import Callable, Iterable
 
 from fastapi import status
 from neomodel import db
@@ -23,13 +23,6 @@ from clinical_mdr_api.domains.study_selections.study_selection_activity_instance
     StudySelectionActivityInstanceVO,
 )
 from clinical_mdr_api.domains.versioned_object_aggregate import LibraryItemStatus
-from clinical_mdr_api.models.concepts.activities.activity import (
-    ActivityForStudyActivity,
-    ActivityHierarchySimpleModel,
-)
-from clinical_mdr_api.models.concepts.activities.activity_instance import (
-    ActivityInstance,
-)
 from clinical_mdr_api.models.error import BatchErrorResponse
 from clinical_mdr_api.models.study_selections.study_selection import (
     StudySelectionActivityInstance,
@@ -106,22 +99,10 @@ class StudyActivityInstanceSelectionService(
         specific_selection: StudySelectionActivityInstanceVO,
         terms_at_specific_datetime: datetime | None = None,
         accepted_version: bool = False,
-        activity_versions_by_uid: (
-            Mapping[str, Iterable[ActivityForStudyActivity]] | None
-        ) = None,
-        activity_instance_versions_by_uid: (
-            Mapping[str, Iterable[ActivityInstance]] | None
-        ) = None,
     ) -> StudySelectionActivityInstance:
         return StudySelectionActivityInstance.from_study_selection_activity_instance_vo_and_order(
             study_uid=study_uid,
             study_selection=specific_selection,
-            get_activity_by_uid_callback=self._transform_latest_activity_model,
-            get_activity_by_uid_version_callback=self._transform_activity_model,
-            get_activity_instance_by_uid_callback=self._transform_latest_activity_instance_model,
-            get_activity_instance_by_uid_version_callback=self._transform_activity_instance_model,
-            activity_versions_by_uid=activity_versions_by_uid,
-            activity_instance_versions_by_uid=activity_instance_versions_by_uid,
         )
 
     def _transform_all_to_response_model(
@@ -132,46 +113,12 @@ class StudyActivityInstanceSelectionService(
         if study_selection is None:
             return []
 
-        activity_versions_by_uid: dict[str, list[ActivityForStudyActivity]] = (
-            defaultdict(list)
-        )
-
-        for activity in self._get_linked_activities(
-            study_selection.study_objects_selection
-        ):
-            activity_versions_by_uid[activity.uid].append(
-                ActivityForStudyActivity.from_activity_ar_objects(
-                    activity,
-                    activity_instance_ars=[
-                        ActivityHierarchySimpleModel(**item)
-                        for item in activity.concept_vo.activity_instances
-                    ],
-                )
-            )
-
-        activity_instance_versions_by_uid: dict[str, list[ActivityInstance]] = (
-            defaultdict(list)
-        )
-
-        for activity_instance in self._get_linked_activity_instances(
-            study_selection.study_objects_selection
-        ):
-            activity_instance_versions_by_uid[activity_instance.uid].append(
-                ActivityInstance.from_activity_instance_ar_objects(
-                    activity_instance_ar=activity_instance
-                )
-            )
-
         return [
             self._transform_from_vo_to_response_model(
                 study_uid=specific_selection.study_uid,
                 specific_selection=specific_selection,
-                activity_versions_by_uid=activity_versions_by_uid,
-                activity_instance_versions_by_uid=activity_instance_versions_by_uid,
             )
-            for order, specific_selection in enumerate(
-                study_selection.study_objects_selection, start=1
-            )
+            for specific_selection in study_selection.study_objects_selection
         ]
 
     def _get_linked_activity_instances(
@@ -203,8 +150,6 @@ class StudyActivityInstanceSelectionService(
                 StudySelectionActivityInstance.from_study_selection_history(
                     study_selection_history=history,
                     study_uid=study_uid,
-                    get_activity_by_uid_version_callback=self._transform_activity_model,
-                    get_activity_instance_by_uid_version_callback=self._transform_activity_instance_model,
                 )
             )
         return result

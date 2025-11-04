@@ -14,6 +14,9 @@ from clinical_mdr_api.domains.versioned_object_aggregate import (
     ObjectAction,
 )
 from clinical_mdr_api.models.concepts.concept import VersionProperties
+from clinical_mdr_api.models.controlled_terminologies.ct_codelist import (
+    CTCodelistNameAndAttributes,
+)
 from clinical_mdr_api.models.libraries.library import Library
 from clinical_mdr_api.models.utils import (
     BaseModel,
@@ -69,13 +72,26 @@ class SimpleDataTypeTerm(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     uid: Annotated[
-        str, Field(json_schema_extra={"source": "has_latest_value.has_data_type.uid"})
+        str,
+        Field(
+            json_schema_extra={
+                "source": "has_latest_value.has_data_type.has_selected_term.uid"
+            }
+        ),
     ]
+    codelist_uid: Annotated[
+        str | None,
+        Field(
+            json_schema_extra={
+                "source": "has_latest_value.has_data_type.has_selected_codelist.uid"
+            }
+        ),
+    ] = None
     name: Annotated[
         str | None,
         Field(
             json_schema_extra={
-                "source": "has_latest_value.has_data_type.has_name_root.has_latest_value.name",
+                "source": "has_latest_value.has_data_type.has_selected_term.has_name_root.has_latest_value.name",
                 "nullable": True,
             },
         ),
@@ -86,13 +102,26 @@ class SimpleRoleTerm(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     uid: Annotated[
-        str, Field(json_schema_extra={"source": "has_latest_value.has_role.uid"})
+        str,
+        Field(
+            json_schema_extra={
+                "source": "has_latest_value.has_role.has_selected_term.uid"
+            }
+        ),
     ]
+    codelist_uid: Annotated[
+        str | None,
+        Field(
+            json_schema_extra={
+                "source": "has_latest_value.has_role.has_selected_codelist.uid"
+            }
+        ),
+    ] = None
     name: Annotated[
         str | None,
         Field(
             json_schema_extra={
-                "source": "has_latest_value.has_role.has_name_root.has_latest_value.name",
+                "source": "has_latest_value.has_role.has_selected_term.has_name_root.has_latest_value.name",
                 "nullable": True,
             },
         ),
@@ -197,18 +226,20 @@ class ActivityItemClass(VersionProperties):
         ]
 
         activity_instance_classes = []
-        for activity_instance_class in _activity_instance_classes:
+        for (
+            activity_instance_class
+        ) in activity_item_class_ar.activity_item_class_vo.activity_instance_classes:
             rel = next(
                 item
-                for item in activity_instance_class.activity_instance_class_vo.activity_item_classes
-                if item.uid == activity_item_class_ar.uid
+                for item in _activity_instance_classes
+                if item.uid == activity_instance_class.uid
             )
             activity_instance_classes.append(
                 CompactActivityInstanceClass(
                     uid=activity_instance_class.uid,
-                    name=activity_instance_class.name,
-                    mandatory=rel.mandatory,
-                    is_adam_param_specific_enabled=rel.is_adam_param_specific_enabled,
+                    name=rel.name,
+                    mandatory=activity_instance_class.mandatory,
+                    is_adam_param_specific_enabled=activity_instance_class.is_adam_param_specific_enabled,
                 )
             )
 
@@ -220,12 +251,14 @@ class ActivityItemClass(VersionProperties):
             order=activity_item_class_ar.activity_item_class_vo.order,
             activity_instance_classes=activity_instance_classes,
             data_type=SimpleDataTypeTerm(
-                uid=activity_item_class_ar.activity_item_class_vo.data_type_uid,
-                name=activity_item_class_ar.activity_item_class_vo.data_type_name,
+                uid=activity_item_class_ar.activity_item_class_vo.data_type.uid,
+                codelist_uid=activity_item_class_ar.activity_item_class_vo.data_type.codelist_uid,
+                name=activity_item_class_ar.activity_item_class_vo.data_type.name,
             ),
             role=SimpleRoleTerm(
-                uid=activity_item_class_ar.activity_item_class_vo.role_uid,
-                name=activity_item_class_ar.activity_item_class_vo.role_name,
+                uid=activity_item_class_ar.activity_item_class_vo.role.uid,
+                name=activity_item_class_ar.activity_item_class_vo.role.name,
+                codelist_uid=activity_item_class_ar.activity_item_class_vo.role.codelist_uid,
             ),
             variable_classes=(
                 [
@@ -296,8 +329,8 @@ class ActivityItemClassCreateInput(PostInputModel):
     nci_concept_id: Annotated[str | None, Field(min_length=1)] = None
     order: Annotated[int, Field(gt=0, lt=settings.max_int_neo4j)]
     activity_instance_classes: Annotated[list[ActivityInstanceClassRelInput], Field()]
-    role_uid: Annotated[str, Field()]
-    data_type_uid: Annotated[str, Field()]
+    role_uid: Annotated[str, Field(min_length=1)]
+    data_type_uid: Annotated[str, Field(min_length=1)]
     library_name: Annotated[str, Field()]
 
 
@@ -325,3 +358,30 @@ class ActivityItemClassVersion(ActivityItemClass):
     """
 
     changes: list[str] = Field(description=CHANGES_FIELD_DESC, default_factory=list)
+
+
+class ActivityItemClassCodelist(CTCodelistNameAndAttributes):
+    term_uids: Annotated[
+        list[str] | None,
+        Field(
+            json_schema_extra={"nullable": True},
+            description="Optional list of term uids referenced by the data model. Null indicates that all terms of the codelist are available.",
+        ),
+    ] = None
+
+    @classmethod
+    def from_codelist_and_terms(
+        cls, cl_name_and_attrs: CTCodelistNameAndAttributes, term_uids: list[str] | None
+    ):
+        return cls(
+            catalogue_names=cl_name_and_attrs.catalogue_names,
+            codelist_uid=cl_name_and_attrs.codelist_uid,
+            parent_codelist_uid=cl_name_and_attrs.parent_codelist_uid,
+            child_codelist_uids=cl_name_and_attrs.child_codelist_uids,
+            library_name=cl_name_and_attrs.library_name,
+            name=cl_name_and_attrs.name,
+            attributes=cl_name_and_attrs.attributes,
+            paired_codes_codelist_uid=cl_name_and_attrs.paired_codes_codelist_uid,
+            paired_names_codelist_uid=cl_name_and_attrs.paired_names_codelist_uid,
+            term_uids=term_uids,
+        )

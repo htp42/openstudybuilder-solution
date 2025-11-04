@@ -4,22 +4,22 @@
 |            Package             |       Version        |
 |--------------------------------|----------------------|
 | aiohappyeyeballs               | 2.6.1                |
-| aiohttp                        | 3.11.18              |
+| aiohttp                        | 3.12.15              |
 | aiosignal                      | 1.4.0                |
-| anyio                          | 4.10.0               |
+| anyio                          | 4.11.0               |
 | astroid                        | 3.3.11               |
 | attrs                          | 25.3.0               |
 | Authlib                        | 1.3.2                |
-| azure-core                     | 1.35.0               |
-| azure-identity                 | 1.24.0               |
+| azure-core                     | 1.35.1               |
+| azure-identity                 | 1.25.0               |
 | black                          | 22.6.0               |
 | cachetools                     | 5.5.2                |
 | certifi                        | 2025.8.3             |
-| cffi                           | 1.17.1               |
+| cffi                           | 2.0.0                |
 | charset-normalizer             | 3.4.3                |
-| click                          | 8.2.1                |
-| coverage                       | 7.10.3               |
-| cryptography                   | 45.0.6               |
+| click                          | 8.3.0                |
+| coverage                       | 7.10.7               |
+| cryptography                   | 46.0.1               |
 | dill                           | 0.4.0                |
 | frozenlist                     | 1.7.0                |
 | google-api-core                | 2.25.1               |
@@ -34,7 +34,7 @@
 | Jinja2                         | 3.1.6                |
 | MarkupSafe                     | 3.0.2                |
 | mccabe                         | 0.7.0                |
-| msal                           | 1.33.0               |
+| msal                           | 1.34.0               |
 | msal-extensions                | 1.3.1                |
 | multidict                      | 6.6.4                |
 | mypy_extensions                | 1.1.0                |
@@ -46,33 +46,33 @@
 | packaging                      | 25.0                 |
 | pathspec                       | 0.12.1               |
 | pip                            | 25.2                 |
-| platformdirs                   | 4.3.8                |
+| platformdirs                   | 4.4.0                |
 | pluggy                         | 1.6.0                |
 | propcache                      | 0.3.2                |
 | proto-plus                     | 1.26.1               |
-| protobuf                       | 6.31.1               |
-| psutil                         | 7.0.0                |
+| protobuf                       | 6.32.1               |
+| psutil                         | 7.1.0                |
 | py                             | 1.11.0               |
 | pyasn1                         | 0.6.1                |
 | pyasn1_modules                 | 0.4.2                |
-| pycparser                      | 2.22                 |
-| pydantic                       | 1.10.22              |
+| pycparser                      | 2.23                 |
+| pydantic                       | 1.10.23              |
 | Pygments                       | 2.19.2               |
 | PyJWT                          | 2.10.1               |
 | pylint                         | 3.3.8                |
-| pytest                         | 8.4.1                |
+| pytest                         | 8.4.2                |
 | pytest-cov                     | 3.0.0                |
 | pytest-order                   | 1.3.0                |
 | pytz                           | 2025.2               |
-| requests                       | 2.32.4               |
+| requests                       | 2.32.5               |
 | rsa                            | 4.9.1                |
 | six                            | 1.17.0               |
 | sniffio                        | 1.3.1                |
-| starlette                      | 0.47.2               |
-| starlette-context              | 0.3.6                |
+| starlette                      | 0.48.0               |
+| starlette-context              | 0.4.0                |
 | tomli                          | 2.2.1                |
 | tomlkit                        | 0.13.3               |
-| typing_extensions              | 4.14.1               |
+| typing_extensions              | 4.15.0               |
 | urllib3                        | 2.5.0                |
 | yarl                           | 1.20.1               |
 
@@ -368,6 +368,29 @@ PERFORMANCE OF THIS SOFTWARE.
 ---
 
 ### License for 3rd party library aiohttp
+
+This software is licensed under the MIT License.
+
+Copyright Fedor Indutny, 2018.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the
+following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+USE OR OTHER DEALINGS IN THE SOFTWARE.
 
    Copyright aio-libs contributors.
 
@@ -1335,7 +1358,7 @@ Except when otherwise stated (look for LICENSE files in directories or
 information at the beginning of each file) all software and
 documentation is licensed as follows: 
 
-    The MIT License
+    MIT No Attribution
 
     Permission is hereby granted, free of charge, to any person 
     obtaining a copy of this software and associated documentation 
@@ -1343,10 +1366,7 @@ documentation is licensed as follows:
     restriction, including without limitation the rights to use, 
     copy, modify, merge, publish, distribute, sublicense, and/or 
     sell copies of the Software, and to permit persons to whom the 
-    Software is furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included 
-    in all copies or substantial portions of the Software.
+    Software is furnished to do so.
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
     OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
@@ -8085,5 +8105,38 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+```
+
+---
+
+
+### Referenced License for 3rd party library pygments
+
+```
+Copyright (c) 2006-2022 by the respective authors (see AUTHORS file).
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 

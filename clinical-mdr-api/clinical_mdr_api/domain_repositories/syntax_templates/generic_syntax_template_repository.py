@@ -34,7 +34,7 @@ class GenericSyntaxTemplateRepository(
         query = f"""MATCH (r:{self.root_class.__name__})<-[:CONTAINS_SYNTAX_TEMPLATE]-(l:Library {{name: "{library.name}"}})"""
 
         if type_uid:
-            query += f"""MATCH (r)-[:HAS_TYPE]->(:CTTermRoot {{uid: "{type_uid}"}})"""
+            query += f"""MATCH (r)-[:HAS_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot {{uid: "{type_uid}"}})"""
 
         query += "RETURN r.sequence_id"
 
@@ -307,7 +307,7 @@ class GenericSyntaxTemplateRepository(
     def ct_term_template(self, rel_type: str):
         query_to_subset = f"""
         MATCH (:StudyRoot {{uid:$uid}})-[:LATEST]->(:StudyValue)
-        -[:HAS_STUDY_VISIT]->(:StudyVisit)-[:{rel_type}]->(:CTTermRoot)
+        -[:HAS_STUDY_VISIT]->(:StudyVisit)-[:{rel_type}]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)
         -[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST_FINAL]->(term_name_value:CTTermNameValue)
         return term_name_value.name
         """
@@ -317,7 +317,7 @@ class GenericSyntaxTemplateRepository(
         query_to_subset = """
             MATCH (:StudyRoot {uid:$uid})-[:LATEST]->(:StudyValue)
             -[:HAS_STUDY_VISIT]->(:StudyVisit)-[:HAS_TIMEPOINT]->(:SimpleConceptRoot)
-            -[:LATEST_FINAL]->(simple_concept_value:SimpleConceptValue)-[:HAS_TIME_REFERENCE]->(:CTTermRoot)
+            -[:LATEST_FINAL]->(simple_concept_value:SimpleConceptValue)-[:HAS_TIME_REFERENCE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)
             -[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST_FINAL]->(term_name_value:CTTermNameValue)
             return term_name_value.name
             """
@@ -405,7 +405,7 @@ MATCH (:Library {{name: $library}})-[:{self.root_class.LIBRARY_REL_LABEL}]->(roo
 WITH DISTINCT root
 """
         if type_uid:
-            query += "MATCH (type:CTTermRoot {uid: $typeUid})<-[:HAS_TYPE]-(root)"
+            query += "MATCH (type:CTTermRoot {uid: $typeUid})<-[:HAS_SELECTED_TERM]-(:CTTermContext)<-[:HAS_TYPE]-(root)"
         query += "RETURN root.uid"
 
         result, _ = db.cypher_query(

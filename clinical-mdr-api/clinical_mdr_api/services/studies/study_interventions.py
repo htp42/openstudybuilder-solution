@@ -126,7 +126,9 @@ class StudyInterventionsService:
         for cmp in compounds:
             row.cells.append(
                 TableCell(
-                    text=cmp.type_of_treatment.name if cmp.type_of_treatment else ""
+                    text=(
+                        cmp.type_of_treatment.term_name if cmp.type_of_treatment else ""
+                    )
                 )
             )
 

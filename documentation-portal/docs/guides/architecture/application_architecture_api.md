@@ -1,6 +1,6 @@
 # Application Architecture
 
-This document describes the design specification for the application architecture for the StudyBuilder API service layer component. This follows the Domain Driven Design pattern.
+This document describes the design specification for the application architecture for the OpenStudyBuilder API service layer component. This follows the Domain Driven Design pattern.
 
 ## Introduction
 

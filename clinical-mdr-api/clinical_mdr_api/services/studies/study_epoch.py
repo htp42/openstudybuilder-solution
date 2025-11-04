@@ -17,7 +17,6 @@ from clinical_mdr_api.domains.controlled_terminologies.ct_term_attributes import
     CTTermAttributesVO,
 )
 from clinical_mdr_api.domains.controlled_terminologies.ct_term_name import (
-    CTTermCodelistVO,
     CTTermNameAR,
     CTTermNameVO,
 )
@@ -208,7 +207,10 @@ class StudyEpochService(StudySelectionMixin):
         # if epoch was previously calculated in preview call then we can just take it from the study_epoch_create_input
         # but we need to synchronize the orders because we don't synchronize them in a preview call
         if study_epoch_create_input.epoch is not None:
-            epoch = self.study_epoch_epochs_by_uid[study_epoch_create_input.epoch]
+            epoch_ar = self._repos.ct_term_name_repository.find_by_uid(
+                study_epoch_create_input.epoch
+            )
+            epoch = SimpleCTTermNameWithConflictFlag.from_ct_term_ar(epoch_ar)
             self._synchronize_epoch_orders(
                 epochs_to_synchronize=epochs_in_subtype,
                 all_epochs=all_epochs_in_study,
@@ -344,7 +346,8 @@ class StudyEpochService(StudySelectionMixin):
             # the following section applies if the name of the epoch is the same as the name of the send epoch subtype
             # in such case we should reuse epoch subtype node and add it to the epoch hierarchy
             epoch_uid = subtype.term_uid
-            epoch = self.study_epoch_subtypes_by_uid[epoch_uid]
+            epoch_ar = self._repos.ct_term_name_repository.find_by_uid(epoch_uid)
+            epoch = SimpleCTTermNameWithConflictFlag.from_ct_term_ar(epoch_ar)
 
             try:
                 # adding the epoch sub type term to the epoch codelist
@@ -354,6 +357,7 @@ class StudyEpochService(StudySelectionMixin):
                     # this is name prop of enum which is uid
                     author_id=self.author,
                     order=999999,
+                    submission_value=epoch_name.upper(),
                 )
                 # connecting the created epoch to the corresponding epoch sub type
                 self._repos.ct_term_attributes_repository.add_parent(
@@ -378,48 +382,50 @@ class StudyEpochService(StudySelectionMixin):
                 epoch = self.study_epoch_epochs_by_uid[epoch_uid]
             # the epoch ct term was not found and we have to create sponsor defined ct term
             else:
-                epoch_subtype_term = (
-                    self._repos.ct_term_attributes_repository.find_by_uid(
-                        term_uid=subtype.term_uid
+                # TODO: this "find_all_aggregated_result" call must be replaced by a "find by uid" call
+
+                epoch_terms_result, _ = (
+                    self._repos.ct_term_aggregated_repository.find_all_aggregated_result(
+                        codelist_uid=settings.study_epoch_epoch_uid,
+                        filter_by={"term_uid": {"v": [subtype.term_uid]}},
                     )
                 )
-                if epoch_subtype_term.ct_term_vo.name_submission_value is None:
-                    name_subm_value = None
+                (
+                    _,
+                    epoch_subtype_attribute_term,
+                    epoch_subtype_codelists_and_catalogues,
+                ) = epoch_terms_result[0]
+
+                epoch_subtype_codelist = next(
+                    (
+                        ct_codelist
+                        for ct_codelist in epoch_subtype_codelists_and_catalogues.codelists
+                        if ct_codelist.codelist_uid == settings.study_epoch_epoch_uid
+                    ),
+                    None,
+                )
+
+                if epoch_subtype_codelist:
+                    subm_value = (
+                        f"{epoch_subtype_codelist.submission_value} {str(epoch_order)}"
+                    )
                 else:
-                    name_subm_value = f"{epoch_subtype_term.ct_term_vo.name_submission_value} {str(epoch_order)}"
+                    subm_value = None
+
                 lib = self._repos.library_repository.find_by_name(name="Sponsor")
                 library = LibraryVO.from_input_values_2(
                     library_name=lib.library_name,
                     is_library_editable_callback=lambda _: lib.is_editable,
                 )
 
-                ct_codelist_name_ar = (
-                    self._repos.ct_codelist_name_repository.find_by_uid(
-                        settings.study_epoch_epoch_uid
-                    )
-                )
-
                 ct_term_attributes_ar = CTTermAttributesAR.from_input_values(
                     author_id=self.author,
                     ct_term_attributes_vo=CTTermAttributesVO.from_input_values(
-                        codelists=[
-                            CTTermCodelistVO(
-                                codelist_uid=settings.study_epoch_epoch_uid,
-                                order=None,
-                                library_name=ct_codelist_name_ar.library.name,
-                            )
-                        ],
-                        catalogue_name=epoch_subtype_term.ct_term_vo.catalogue_name,
-                        code_submission_value=f"{epoch_subtype_term.ct_term_vo.code_submission_value} {str(epoch_order)}",
-                        name_submission_value=name_subm_value,
-                        preferred_term=epoch_subtype_term.ct_term_vo.preferred_term,
-                        definition=epoch_subtype_term.ct_term_vo.definition,
-                        codelist_exists_callback=self._repos.ct_codelist_attribute_repository.codelist_exists,
+                        catalogue_names=epoch_subtype_codelists_and_catalogues.catalogues,
+                        preferred_term=epoch_subtype_attribute_term.ct_term_vo.preferred_term,
+                        definition=epoch_subtype_attribute_term.ct_term_vo.definition,
                         catalogue_exists_callback=self._repos.ct_catalogue_repository.catalogue_exists,
-                        term_exists_by_name_callback=self._repos.ct_term_attributes_repository.term_specific_exists_by_name,
-                        term_exists_by_code_submission_value_callback=(
-                            self._repos.ct_term_attributes_repository.term_attributes_exists_by_code_submission_value
-                        ),
+                        concept_id=None,
                     ),
                     library=library,
                     generate_uid_callback=self._repos.ct_term_attributes_repository.generate_uid,
@@ -430,8 +436,7 @@ class StudyEpochService(StudySelectionMixin):
                 ct_term_name_ar = CTTermNameAR.from_input_values(
                     generate_uid_callback=lambda: ct_term_attributes_ar.uid,
                     ct_term_name_vo=CTTermNameVO.from_repository_values(
-                        codelists=ct_term_attributes_ar.ct_term_vo.codelists,
-                        catalogue_name=ct_term_attributes_ar.ct_term_vo.catalogue_name,
+                        catalogue_names=ct_term_attributes_ar.ct_term_vo.catalogue_names,
                         name=epoch_name,
                         name_sentence_case=epoch_name.lower(),
                     ),
@@ -440,10 +445,19 @@ class StudyEpochService(StudySelectionMixin):
                 )
                 ct_term_name_ar.approve(author_id=self.author)
                 self._repos.ct_term_name_repository.save(ct_term_name_ar)
+
+                self._repos.ct_codelist_attribute_repository.add_term(
+                    codelist_uid=settings.study_epoch_epoch_uid,
+                    term_uid=ct_term_attributes_ar.uid,
+                    author_id=self.author,
+                    order=None,
+                    submission_value=subm_value,
+                )
+
                 # connecting the created epoch to the corresponding epoch sub type
                 self._repos.ct_term_attributes_repository.add_parent(
                     term_uid=ct_term_attributes_ar.uid,
-                    parent_uid=epoch_subtype_term.uid,
+                    parent_uid=epoch_subtype_attribute_term.uid,
                     relationship_type=TermParentType.PARENT_SUB_TYPE,
                 )
                 # adding newly created sponsor defined epoch term
@@ -549,7 +563,10 @@ class StudyEpochService(StudySelectionMixin):
             ]
             epoch_type = self._get_epoch_type_object(subtype=subtype.term_uid)
             if study_epoch_edit_input.epoch is not None:
-                epoch = self.study_epoch_epochs_by_uid[study_epoch_edit_input.epoch]
+                epoch_ar = self._repos.ct_term_name_repository.find_by_uid(
+                    study_epoch_edit_input.epoch
+                )
+                epoch = SimpleCTTermNameWithConflictFlag.from_ct_term_ar(epoch_ar)
             else:
                 epoch = self._get_epoch_object(
                     epochs_in_subtype=epochs_in_subtype, subtype=subtype
@@ -724,16 +741,6 @@ class StudyEpochService(StudySelectionMixin):
             created_study_epoch.order = len(all_epochs) + 1
         created_study_epoch.uid = "preview"
 
-        created_study_epoch.epoch = self.study_epoch_epochs_by_uid[
-            created_study_epoch.epoch.term_uid
-        ]
-        created_study_epoch.subtype = self.study_epoch_subtypes_by_uid[
-            created_study_epoch.subtype.term_uid
-        ]
-        created_study_epoch.epoch_type = self.study_epoch_types_by_uid[
-            created_study_epoch.epoch_type.term_uid
-        ]
-
         return self._transform_all_to_response_model(created_study_epoch)
 
     @db.transaction
@@ -752,14 +759,6 @@ class StudyEpochService(StudySelectionMixin):
         timeline = TimelineAR(study_uid, _visits=study_visits)
         timeline.collect_visits_to_epochs(self.repo.find_all_epochs_by_study(study_uid))
 
-        study_epoch.epoch = self.study_epoch_epochs_by_uid[study_epoch.epoch.term_uid]
-        study_epoch.subtype = self.study_epoch_subtypes_by_uid[
-            study_epoch.subtype.term_uid
-        ]
-        study_epoch.epoch_type = self.study_epoch_types_by_uid[
-            study_epoch.epoch_type.term_uid
-        ]
-
         fill_missing_values_in_base_model_from_reference_base_model(
             base_model_with_missing_values=study_epoch_input,
             reference_base_model=self._transform_all_to_response_model(study_epoch),
@@ -769,14 +768,6 @@ class StudyEpochService(StudySelectionMixin):
         )
 
         updated_item = self.repo.save(study_epoch)
-
-        updated_item.epoch = self.study_epoch_epochs_by_uid[updated_item.epoch.term_uid]
-        updated_item.subtype = self.study_epoch_subtypes_by_uid[
-            updated_item.subtype.term_uid
-        ]
-        updated_item.epoch_type = self.study_epoch_types_by_uid[
-            updated_item.epoch_type.term_uid
-        ]
 
         return self._transform_all_to_response_model(updated_item)
 

@@ -69,13 +69,19 @@ When('{string} action is not available', action => cy.get(`[data-cy="${action}"]
 
 Then('More than one result is found', () => cy.checkIfMoreThanOneResultFound())
 
-Then('The not existing item is searched for', () => cy.searchFor('gregsfs', false))
+Then('The not existing item is searched for', () => cy.searchFor('gregsfs'))
 
-Then('The existing item is searched for by partial name', () => cy.searchFor('SearchTest', false))
+Then('The existing item is searched for by partial name', () => cy.searchFor('SearchTest'))
 
-Then('The existing item in search by lowercased name', () => cy.searchFor('searchtest', false))
+Then('The existing item in search by lowercased name', () => cy.searchFor('searchtest'))
 
 Then('The item is not found and table is correctly filtered', () => cy.confirmNoResultsFound())
+
+Then('Only actions that should be avaiable for the Codelist are displayed', () => {
+    const allowedActions = ['Edit', 'Show terms', 'History']
+    const notAllowedActions = ['New version', 'Inactivate', 'Reactivate', 'Delete', 'Approve']
+    checkActionsAvailability(allowedActions, notAllowedActions)
+})
 
 Then('Only actions that should be avaiable for the Draft item are displayed', () => {
     const allowedActions = ['Approve', 'Edit', 'Delete', 'History']

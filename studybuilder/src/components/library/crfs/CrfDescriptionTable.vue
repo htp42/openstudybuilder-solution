@@ -29,8 +29,8 @@
         density="compact"
         :clearable="!readOnly"
         class="mt-3"
-        item-title="code_submission_value"
-        item-value="code_submission_value"
+        item-title="submission_value"
+        item-value="submission_value"
         :readonly="readOnly"
       />
     </template>
@@ -214,9 +214,9 @@ export default {
     },
   },
   mounted() {
-    terms.getAttributesByCodelist('language').then((resp) => {
+    terms.getTermsByCodelist('language').then((resp) => {
       this.languages = resp.data.items.filter(
-        (el) => el.name_submission_value !== 'ENG'
+        (el) => el.submission_value !== 'ENG'
       )
     })
     crfs.getDescriptions().then((resp) => {

@@ -12,6 +12,7 @@ Feature: Studies - Manage Study - Study Subparts
         And The 'Study Subparts' tab is selected
         Then The current URL is '/study_status/subparts'
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the Study Subpart table with correct columns
         Given A test study is selected
         Given The test study '/study_status/subparts' page is opened

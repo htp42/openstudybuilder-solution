@@ -86,7 +86,9 @@ class StudyDiseaseMilestoneOGM(BaseModel, StudyDiseaseMilestoneVO):
         str,
         Field(
             description="Name of the disease_milestone type based on CT term",
-            json_schema_extra={"source": "has_disease_milestone_type.uid"},
+            json_schema_extra={
+                "source": "has_disease_milestone_type.has_selected_term.uid"
+            },
         ),
     ]
 
@@ -95,7 +97,7 @@ class StudyDiseaseMilestoneOGM(BaseModel, StudyDiseaseMilestoneVO):
         Field(
             description="Name of the disease_milestone type based on CT term",
             json_schema_extra={
-                "source": "has_disease_milestone_type.has_attributes_root.latest_final.definition"
+                "source": "has_disease_milestone_type.has_selected_term.has_attributes_root.latest_final.definition"
             },
         ),
     ]
@@ -105,7 +107,7 @@ class StudyDiseaseMilestoneOGM(BaseModel, StudyDiseaseMilestoneVO):
         Field(
             description="Name of the disease_milestone type based on CT term",
             json_schema_extra={
-                "source": "has_disease_milestone_type.has_name_root.latest_final.name"
+                "source": "has_disease_milestone_type.has_selected_term.has_name_root.latest_final.name"
             },
         ),
     ]

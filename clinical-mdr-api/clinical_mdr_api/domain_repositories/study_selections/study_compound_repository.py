@@ -14,6 +14,9 @@ from clinical_mdr_api import utils
 from clinical_mdr_api.domain_repositories._utils.helpers import (
     acquire_write_lock_study_value,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.compounds import CompoundAliasRoot
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
     CTTermRoot,
@@ -33,6 +36,7 @@ from clinical_mdr_api.domains.study_selections.study_selection_compound import (
     StudySelectionCompoundsAR,
     StudySelectionCompoundVO,
 )
+from common.config import settings
 from common.exceptions import BusinessLogicException, NotFoundException
 from common.utils import convert_to_datetime
 
@@ -110,14 +114,13 @@ class StudySelectionCompoundRepository:
             -[:HAS_NAME_ROOT]->(:CTTermNameRoot)-->(:CTTermNameValue {name: $type_of_treatment})"""
             query_parameters["type_of_treatment"] = type_of_treatment
         else:
-            query += " OPTIONAL MATCH (sc)-[:HAS_TYPE_OF_TREATMENT]->(tot:CTTermRoot)"
-
+            query += " OPTIONAL MATCH (sc)-[:HAS_TYPE_OF_TREATMENT]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(tot:CTTermRoot)"
         query += """
             WITH DISTINCT sr, sv, sc, car, cr, mpr, tot
-            OPTIONAL MATCH (sc)-[:HAS_DOSE_FREQUENCY]->(doseFrequency:CTTermRoot)
-            OPTIONAL MATCH (sc)-[:HAS_DELIVERY_DEVICE]->(deliveryDevice:CTTermRoot)
-            OPTIONAL MATCH (sc)-[:HAS_DISPENSED_IN]->(di:CTTermRoot)
-            OPTIONAL MATCH (sc)-[:HAS_REASON_FOR_NULL_VALUE]->(nvr:CTTermRoot)
+            OPTIONAL MATCH (sc)-[:HAS_DOSE_FREQUENCY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(doseFrequency:CTTermRoot)
+            OPTIONAL MATCH (sc)-[:HAS_DELIVERY_DEVICE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(deliveryDevice:CTTermRoot)
+            OPTIONAL MATCH (sc)-[:HAS_DISPENSED_IN]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(di:CTTermRoot)
+            OPTIONAL MATCH (sc)-[:HAS_REASON_FOR_NULL_VALUE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(nvr:CTTermRoot)
             OPTIONAL MATCH (sc)-[:STUDY_COMPOUND_HAS_COMPOUND_DOSING]->(scd:StudyCompoundDosing)<-[:HAS_STUDY_COMPOUND_DOSING]-(sv)
 
             MATCH (sc)<-[:AFTER]-(sa:StudyAction)
@@ -243,12 +246,12 @@ class StudySelectionCompoundRepository:
         OPTIONAL MATCH (sc)-[:HAS_SELECTED_COMPOUND]->(:CompoundAliasValue)-[:IS_COMPOUND]->(cr:CompoundRoot)
         OPTIONAL MATCH (sc)-[:HAS_MEDICINAL_PRODUCT]->(:MedicinalProductValue)<-[:HAS_VERSION]-(mpr:MedicinalProductRoot)
         WITH DISTINCT sr, sv, sc, car, cr, mpr
-        OPTIONAL MATCH (sc)-[:HAS_TYPE_OF_TREATMENT]->(tot:CTTermRoot)
+        OPTIONAL MATCH (sc)-[:HAS_TYPE_OF_TREATMENT]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(tot:CTTermRoot)
         WITH DISTINCT sr, sv, sc, car, cr, mpr, tot
-        OPTIONAL MATCH (sc)-[:HAS_DOSE_FREQUENCY]->(doseFrequency:CTTermRoot)
-        OPTIONAL MATCH (sc)-[:HAS_DELIVERY_DEVICE]->(deliveryDevice:CTTermRoot)
-        OPTIONAL MATCH (sc)-[:HAS_DISPENSED_IN]->(di:CTTermRoot)
-        OPTIONAL MATCH (sc)-[:HAS_REASON_FOR_NULL_VALUE]->(nvr:CTTermRoot)
+        OPTIONAL MATCH (sc)-[:HAS_DOSE_FREQUENCY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(doseFrequency:CTTermRoot)
+        OPTIONAL MATCH (sc)-[:HAS_DELIVERY_DEVICE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(deliveryDevice:CTTermRoot)
+        OPTIONAL MATCH (sc)-[:HAS_DISPENSED_IN]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(di:CTTermRoot)
+        OPTIONAL MATCH (sc)-[:HAS_REASON_FOR_NULL_VALUE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(nvr:CTTermRoot)
         OPTIONAL MATCH (sc)-[:STUDY_COMPOUND_HAS_COMPOUND_DOSING]->(scd)<-[:HAS_STUDY_COMPOUND_DOSING]-(sv)
         MATCH (sc)<-[:AFTER]-(sa:StudyAction)
 
@@ -538,9 +541,17 @@ class StudySelectionCompoundRepository:
                 selection.type_of_treatment_uid,
             )
 
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    type_of_treatment_node,
+                    codelist_submission_value=settings.type_of_treatment_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+
             # Connect new node with type_of_treatment node
             study_compound_selection_node.has_type_of_treatment.connect(
-                type_of_treatment_node
+                selected_term_node
             )
 
         # check if reason_for_missing_value_uid is set
@@ -555,10 +566,17 @@ class StudySelectionCompoundRepository:
                 "CT Term for 'reason for missing'",
                 selection.reason_for_missing_value_uid,
             )
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    null_value_reason_node,
+                    codelist_submission_value=settings.null_flavor_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
 
             # connect to reason_for_missing node
             study_compound_selection_node.has_reason_for_missing.connect(
-                null_value_reason_node
+                selected_term_node
             )
 
     def generate_uid(self) -> str:
@@ -586,11 +604,11 @@ class StudySelectionCompoundRepository:
             OPTIONAL MATCH (all_sc)-[:HAS_SELECTED_COMPOUND]->(:CompoundAliasValue)-[:IS_COMPOUND]->(cr:CompoundRoot)
             OPTIONAL MATCH (all_sc)-[:HAS_SELECTED_COMPOUND]->(:CompoundAliasValue)<-[:LATEST]-(car:CompoundAliasRoot)
             OPTIONAL MATCH (all_sc)-[:HAS_MEDICINAL_PRODUCT]->(:MedicinalProductValue)<-[:HAS_VERSION]-(mpr:MedicinalProductRoot)
-            OPTIONAL MATCH (all_sc)-[:HAS_TYPE_OF_TREATMENT]->(tot:CTTermRoot)
-            OPTIONAL MATCH (all_sc)-[:HAS_DOSE_FREQUENCY]->(doseFrequency:CTTermRoot)
-            OPTIONAL MATCH (all_sc)-[:HAS_DELIVERY_DEVICE]->(deliveryDevice:CTTermRoot)
-            OPTIONAL MATCH (all_sc)-[:HAS_DISPENSED_IN]->(di:CTTermRoot)
-            OPTIONAL MATCH (all_sc)-[:HAS_REASON_FOR_NULL_VALUE]->(nvr:CTTermRoot)
+            OPTIONAL MATCH (all_sc)-[:HAS_TYPE_OF_TREATMENT]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(tot:CTTermRoot)
+            OPTIONAL MATCH (all_sc)-[:HAS_DOSE_FREQUENCY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(doseFrequency:CTTermRoot)
+            OPTIONAL MATCH (all_sc)-[:HAS_DELIVERY_DEVICE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(deliveryDevice:CTTermRoot)
+            OPTIONAL MATCH (all_sc)-[:HAS_DISPENSED_IN]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(di:CTTermRoot)
+            OPTIONAL MATCH (all_sc)-[:HAS_REASON_FOR_NULL_VALUE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(nvr:CTTermRoot)
             
             MATCH (all_sc)<-[:AFTER]-(asa:StudyAction)
             OPTIONAL MATCH (all_sc)<-[:BEFORE]-(bsa:StudyAction)
@@ -677,11 +695,11 @@ class StudySelectionCompoundRepository:
             WITH *
             MATCH (sc)-[:HAS_MEDICINAL_PRODUCT]->(:MedicinalProductValue)<-[:HAS_VERSION]-(mpr:MedicinalProductRoot {uid: $medicinal_product_uid})
             WITH *
-            MATCH (sc)-[:HAS_DELIVERY_DEVICE]->(deliveryDevice:CTTermRoot {uid: $delivery_device_uid})
+            MATCH (sc)-[:HAS_DELIVERY_DEVICE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(deliveryDevice:CTTermRoot {uid: $delivery_device_uid})
             WITH *
-            MATCH (sc)-[:HAS_DOSE_FREQUENCY]->(doseFrequency:CTTermRoot {uid: $dose_frequency_uid})
+            MATCH (sc)-[:HAS_DOSE_FREQUENCY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(doseFrequency:CTTermRoot {uid: $dose_frequency_uid})
             WITH *
-            MATCH (sc)-[:HAS_DISPENSED_IN]->(dispenser:CTTermRoot {uid: $dispenser_uid})
+            MATCH (sc)-[:HAS_DISPENSED_IN]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(dispenser:CTTermRoot {uid: $dispenser_uid})
             RETURN sc
             """
         result, _ = db.cypher_query(

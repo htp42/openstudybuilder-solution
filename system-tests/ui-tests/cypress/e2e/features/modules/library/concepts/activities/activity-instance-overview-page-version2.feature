@@ -59,13 +59,11 @@ Feature: Library - Concepts - Activities - Activity Instance Overview Page (Vers
         Then The Activity items table should display the next page within 5 rows per page
 
 @manual_test
-Scenario: Verify that the filter and export functionality work in both Activity groupings and Activity items table
+Scenario: Verify that the export functionality work in both Activity groupings and Activity items table
         When Activity instance created via API is searched for and found
         And User goes to instance overview page by clicking its name
         Then Instance overview page is opened
-        And The free text search field works in both Activity groupings and Activity items table
         And The Export functionality works in both Activity groupings and Activity items table
-        And The Filter functionality works in both Activity groupings and Activity items table
 
 Scenario: [Table][Search][Negative case] User must be able to search not existing grouping and table will be correctly filtered
         When Activity instance created via API is searched for and found
@@ -81,25 +79,3 @@ Scenario: [Table][Search][Negative case] User must be able to search not existin
         And User waits for linked 'Activity Items' table data to load
         When User searches for non-existing item in 'Activity Items' table
         Then The Activity Items table is empty
-
-Scenario: [Table][Filtering] User must have access to filters
-        When Activity instance created via API is searched for and found
-        And User goes to instance overview page by clicking its name
-        Then Instance overview page is opened
-        And Filters for the 'Activity groupings' table are expanded
-        Then Following filters are available in the table 'Activity groupings'
-        | filter by             |
-        | Activity group        |
-        | Activity subgroup     |
-        | Activity              |
-
-Scenario: [Table][Filtering] User must have access to filters
-        When Activity instance created via API is searched for and found
-        And User goes to instance overview page by clicking its name
-        Then Instance overview page is opened
-        And Filters for the 'Activity Items' table are expanded
-        Then Following filters are available in the table 'Activity Items'
-        | filter by                |
-        |  Data type               |
-        |  Name                    |
-        |  Activity Item Class     |

@@ -2,7 +2,6 @@
 Tests for /concepts/activities/activity-sub-groups/{uid}/overview endpoint
 """
 
-import json
 import logging
 from datetime import datetime, timezone
 

@@ -51,6 +51,9 @@ from clinical_mdr_api.models.syntax_instances.timeframe import TimeframeCreateIn
 from clinical_mdr_api.models.syntax_templates.template_parameter_multi_select_input import (
     TemplateParameterMultiSelectInput,
 )
+from clinical_mdr_api.models.syntax_templates.template_parameter_term import (
+    IndexedTemplateParameterTerm,
+)
 from clinical_mdr_api.services.studies.study_endpoint_selection import (
     StudyEndpointSelectionService,
 )
@@ -249,16 +252,14 @@ class TestData:
     def create_objectives(self, count=10, approved=False, retired=False):
         for i in range(count):
             template_parameter = TemplateParameterMultiSelectInput(
-                template_parameter=self.TPR_LABEL,
                 conjunction="",
                 terms=[
-                    {
-                        "position": 1,
-                        "index": 1,
-                        "name": self.term_values[i].name,
-                        "type": self.TPR_LABEL,
-                        "uid": self.term_roots[i].uid,
-                    }
+                    IndexedTemplateParameterTerm(
+                        index=1,
+                        name=self.term_values[i].name,
+                        type=self.TPR_LABEL,
+                        uid=self.term_roots[i].uid,
+                    )
                 ],
             )
             template = ObjectiveCreateInput(
@@ -277,16 +278,14 @@ class TestData:
     def create_timeframes(self, count=10, approved=False, retired=False):
         for i in range(count):
             template_parameter = TemplateParameterMultiSelectInput(
-                template_parameter=self.TPR_LABEL,
                 conjunction="",
                 terms=[
-                    {
-                        "position": 1,
-                        "index": 1,
-                        "name": self.term_values[i].name,
-                        "type": self.TPR_LABEL,
-                        "uid": self.term_roots[i].uid,
-                    }
+                    IndexedTemplateParameterTerm(
+                        index=1,
+                        name=self.term_values[i].name,
+                        type=self.TPR_LABEL,
+                        uid=self.term_roots[i].uid,
+                    )
                 ],
             )
             template = TimeframeCreateInput(
@@ -304,16 +303,14 @@ class TestData:
     def create_endpoints(self, count=10, approved=False, retired=False):
         for i in range(count):
             template_parameter = TemplateParameterMultiSelectInput(
-                template_parameter=self.TPR_LABEL,
                 conjunction="",
                 terms=[
-                    {
-                        "position": 1,
-                        "index": 1,
-                        "name": self.term_values[i].name,
-                        "type": self.TPR_LABEL,
-                        "uid": self.term_roots[i].uid,
-                    }
+                    IndexedTemplateParameterTerm(
+                        index=1,
+                        name=self.term_values[i].name,
+                        type=self.TPR_LABEL,
+                        uid=self.term_roots[i].uid,
+                    )
                 ],
             )
             template = EndpointCreateInput(

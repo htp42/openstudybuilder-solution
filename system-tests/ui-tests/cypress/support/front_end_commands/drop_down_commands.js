@@ -1,5 +1,7 @@
 const clickLastElement = () => cy.get('.v-list-item').last().click()
 const clickFirstElement = () => cy.get('.v-list-item').first().click()
+const checkLastElement = () => cy.get('.v-list-item input').last().check()
+const checkFirstElement = () => cy.get('.v-list-item input').first().check()
 const clickElementByValue = (value) => cy.contains('.v-list-item', value).click()
 
 Cypress.Commands.add('checkNoDataAvailable', () => {
@@ -32,6 +34,14 @@ Cypress.Commands.add('selectFirstMultipleSelect', (dropdownName) => {
 
 Cypress.Commands.add('selectLastMultipleSelect', (dropdownName) => {
     selectFromDropdown(dropdownName, '.v-field__field', clickLastElement)
+})
+
+Cypress.Commands.add('checkFirstMultipleSelect', (dropdownName) => {
+    selectFromDropdown(dropdownName, '.v-field__field', checkFirstElement)
+})
+
+Cypress.Commands.add('checkLastMultipleSelect', (dropdownName) => {
+    selectFromDropdown(dropdownName, '.v-field__field', checkLastElement)
 })
 
 function selectFromDropdown(dropdownName, dropdownLocator, action, defocus = true) {

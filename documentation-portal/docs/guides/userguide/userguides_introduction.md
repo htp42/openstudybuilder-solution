@@ -1,6 +1,6 @@
 # Introduction
 
-This is the user guide of the StudyBuilder application.
+This is the user guide of the OpenStudyBuilder application.
 The solution is a combination of the following:
 - A graph database - Here we are using Neo4j (in version 4.0)
 - An API - We are using the Python FastAPI application
@@ -8,17 +8,17 @@ The solution is a combination of the following:
 
 We have a central shared solution mostly dealing with an API.
 
-[![Conceptual architecture for the StudyBuilder solution](~@source/images/documentation/conceptual-architecture.png)](../../images/documentation/conceptual-architecture.png)
+[![Conceptual architecture for the Study Builder solution](~@source/images/documentation/conceptual-architecture.png)](../../images/documentation/conceptual-architecture.png)
 
-> Note: For the current release of StudyBuilder, documented evidence verifying the complete functionality has not been established. If output from StudyBuilder is to be used in GxP relevant processes, sufficient quality gateways must be established ensuring fit for intended use for the specific process.
+> Note: For the current release of OpenStudyBuilder, documented evidence verifying the complete functionality has not been established. If output from OpenStudyBuilder is to be used in GxP relevant processes, sufficient quality gateways must be established ensuring fit for intended use for the specific process.
 
-> Internally at Novo Nordisk the solution is named as "StudyBuilder". The solution is also shared as an open-source project named as "OpenStudyBuilder".
+> The solution is named as "OpenStudyBuilder" and it is shared as an open-source project.
 
 
 ## Home page of the application
 
 
-The URL to access the StudyBuilder application will follow this pattern, where text in '[ ]' is optional and *italic* text is replaced by environment specific values:
+The URL to access the OpenStudyBuilder application will follow this pattern, where text in '[ ]' is optional and *italic* text is replaced by environment specific values:
 
 > [open]studybuilder[.*environment*].*domain*
 
@@ -29,11 +29,11 @@ See your system environment definition for specific options and values.
 
 ## User authentication
 
-Before being able to fully work with the **Study Builder** you need to authenticate by providing a User and a Password information. This is done by SSO using the browser authentication.
+Before being able to fully work with the **OpenStudyBuilder** you need to authenticate by providing a User and a Password information. This is done by SSO using the browser authentication.
 
 ## After being authenticated
 
-You will see the StudyBuilder application with your login user name in the top bar. If you select your user name you can see your system access roles and logout option.
+You will see the OpenStudyBuilder application with your login user name in the top bar. If you select your user name you can see your system access roles and logout option.
 
 ## Different User access
 
@@ -76,7 +76,7 @@ The secondary navigation is located on the left-hand side and is distinct for ea
 
 ## Versioning and Audit Trail
 
-Versioning and audit trails are two sides of the same solution approach in StudyBuilder system, as extracting data for a specific versioning actually is extracting data for a marked point in the audit trail.
+Versioning and audit trails are two sides of the same solution approach in OpenStudyBuilder system, as extracting data for a specific versioning actually is extracting data for a marked point in the audit trail.
 
 Generally, you browse the audit trail by displaying the history for any versioned item that is being versioned, either by page level (showing the latest actions on items on a specific page), or by row level (showing the actions for a specific item).
 
@@ -121,9 +121,9 @@ The audit trail provides users with the appropriate permissions to view a table 
 
 
 ## API activity logging (incl. Export and Extracts)
-All StudyBuilder application user activity (via user interface) and direct requests from interfacing systems goes through the StudyBuilder API. All API activities are logged to Azure Monitoring, where they can be addressed and analysed as required.
+All OpenStudyBuilder application user activity (via user interface) and direct requests from interfacing systems goes through the OpenStudyBuilder API. All API activities are logged to Azure Monitoring, where they can be addressed and analysed as required.
 
-To ensure sufficient logging of the business use of StudyBuilder data, all business related data extracts and exports of data from StudyBuilder, must be performed through API calls. 
+To ensure sufficient logging of the business use of OpenStudyBuilder data, all business related data extracts and exports of data from OpenStudyBuilder, must be performed through API calls. 
 
 
 ## Working with the tables

@@ -20,6 +20,7 @@ from clinical_mdr_api.domains.controlled_terminologies.ct_term_name import (
     CTTermCodelistVO,
     CTTermNameAR,
     CTTermNameVO,
+    CTTermVO,
 )
 from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryItemMetadataVO,
@@ -32,10 +33,7 @@ from clinical_mdr_api.models.controlled_terminologies.ct_codelist_attributes imp
 from clinical_mdr_api.models.controlled_terminologies.ct_codelist_name import (
     CTCodelistName,
 )
-from clinical_mdr_api.models.controlled_terminologies.ct_term import (
-    SimpleTermModel,
-    TermWithCodelistMetadata,
-)
+from clinical_mdr_api.models.controlled_terminologies.ct_term import SimpleTermModel
 from clinical_mdr_api.models.controlled_terminologies.ct_term_attributes import (
     CTTermAttributes,
 )
@@ -88,7 +86,9 @@ def create_term_filter_statement(
             MATCH (codelist_ver_value:CTCodelistNameValue)
             <-[:LATEST]-(:CTCodelistNameRoot)<-[:HAS_NAME_ROOT]-(codelist_root)
         """
-        filter_by_codelist_name = "codelist_ver_value.name=$codelist_name"
+        filter_by_codelist_name = (
+            "codelist_ver_value.name=$codelist_name AND rel_term.end_date IS NULL"
+        )
         filter_parameters.append(filter_by_codelist_name)
         filter_query_parameters["codelist_name"] = codelist_name
     if library_name:
@@ -121,7 +121,7 @@ def create_term_filter_statement(
 
 def create_simple_term_instances_from_cypher_result(
     term_dict: dict[str, Any],
-) -> TermWithCodelistMetadata:
+) -> SimpleTermModel:
     """
     Method CTTermNameAR instance from the cypher query output.
 
@@ -129,17 +129,9 @@ def create_simple_term_instances_from_cypher_result(
     :return CTTermNameAR
     """
 
-    return TermWithCodelistMetadata(
+    return SimpleTermModel(
         term_uid=term_dict["term_uid"],
         name=term_dict.get("value_node_name").get("name"),
-        name_submission_value=term_dict.get("value_node_attributes").get(
-            "name_submission_value"
-        ),
-        code_submission_value=term_dict.get("value_node_attributes").get(
-            "code_submission_value"
-        ),
-        codelist_uid=term_dict.get("codelist_uid"),
-        codelist_submission_value=term_dict.get("codelist_submission_value"),
     )
 
 
@@ -168,26 +160,14 @@ def create_term_name_aggregate_instances_from_cypher_result(
             name=term_dict.get(f"value_node{specific_suffix}").get("name"),
         )
 
-    codelist_uid = term_dict.get("codelist_uid")
-    codelists = []
-    if codelist_uid:
-        codelists.append(
-            CTTermCodelistVO(
-                codelist_uid=codelist_uid,
-                order=term_dict.get("order"),
-                library_name=term_dict.get("codelist_library_name"),
-            )
-        )
-
     term_name_ar = CTTermNameAR.from_repository_values(
         uid=term_dict["term_uid"],
         ct_term_name_vo=CTTermNameVO.from_repository_values(
-            codelists=codelists,
             name=term_dict.get(f"value_node{specific_suffix}").get("name"),
             name_sentence_case=term_dict.get(f"value_node{specific_suffix}").get(
                 "name_sentence_case"
             ),
-            catalogue_name=term_dict["catalogue_name"],
+            catalogue_names=term_dict["catalogue_names"],
         ),
         library=(
             LibraryVO.from_input_values_2(
@@ -231,33 +211,15 @@ def create_term_attributes_aggregate_instances_from_cypher_result(
     rel_data = term_dict[f"rel_data{specific_suffix}"]
     major, minor = rel_data.get("version").split(".")
 
-    codelist_uid = term_dict.get("codelist_uid")
-    codelists = []
-    if codelist_uid:
-        codelists.append(
-            CTTermCodelistVO(
-                codelist_uid=codelist_uid,
-                order=term_dict.get("order"),
-                library_name=term_dict.get("codelist_library_name"),
-            )
-        )
-
     term_attributes_ar = CTTermAttributesAR.from_repository_values(
         uid=term_dict["term_uid"],
         ct_term_attributes_vo=CTTermAttributesVO.from_repository_values(
-            codelists=codelists,
             concept_id=term_dict.get(f"value_node{specific_suffix}").get("concept_id"),
-            code_submission_value=term_dict.get(f"value_node{specific_suffix}").get(
-                "code_submission_value"
-            ),
-            name_submission_value=term_dict.get(f"value_node{specific_suffix}").get(
-                "name_submission_value"
-            ),
             preferred_term=term_dict.get(f"value_node{specific_suffix}").get(
                 "preferred_term"
             ),
             definition=term_dict.get(f"value_node{specific_suffix}").get("definition"),
-            catalogue_name=term_dict["catalogue_name"],
+            catalogue_names=term_dict["catalogue_names"],
         ),
         library=(
             LibraryVO.from_input_values_2(
@@ -284,6 +246,32 @@ def create_term_attributes_aggregate_instances_from_cypher_result(
     return term_attributes_ar
 
 
+def create_term_codelist_vos_from_cypher_result(term_dict: dict[str, Any]) -> CTTermVO:
+    """
+    Method CTTermAttributesAR instance from the cypher query output.
+
+    :param term_dict:
+    :return CTTermAttributesAR:
+    """
+
+    term_codelists = [
+        CTTermCodelistVO(
+            codelist_uid=cl["codelist_uid"],
+            submission_value=cl["submission_value"],
+            order=cl["order"],
+            library_name=cl["library"],
+            codelist_name=cl["codelist_name"],
+            codelist_submission_value=cl["codelist_submission_value"],
+            codelist_concept_id=cl["codelist_concept_id"],
+            start_date=convert_to_datetime(cl["start_date"]),
+        )
+        for cl in term_dict.get("codelists", [])
+    ]
+    term_catalogues = term_dict.get("catalogues", [])
+
+    return CTTermVO(term_codelists, term_catalogues)
+
+
 def format_term_filter_sort_keys(key: str, prefix: str | None = None) -> str:
     """
     Maps a fieldname as provided by the API query (equal to output model) to the same fieldname as defined in the database and/or Cypher query
@@ -300,8 +288,6 @@ def format_term_filter_sort_keys(key: str, prefix: str | None = None) -> str:
     if key in [
         "sponsor_preferred_name",
         "sponsor_preferred_name_sentence_case",
-        "code_submission_value",
-        "name_submission_value",
         "definition",
         "concept_id",
     ]:
@@ -441,7 +427,7 @@ def create_codelist_name_aggregate_instances_from_cypher_result(
         uid=codelist_dict["codelist_uid"],
         ct_codelist_name_vo=CTCodelistNameVO.from_repository_values(
             name=codelist_dict.get(f"value_node{specific_suffix}").get("name"),
-            catalogue_name=codelist_dict["catalogue_name"],
+            catalogue_names=codelist_dict["catalogue_names"],
             is_template_parameter="TemplateParameter"
             in codelist_dict.get(f"value_node{specific_suffix}").labels,
         ),
@@ -492,7 +478,7 @@ def create_codelist_attributes_aggregate_instances_from_cypher_result(
             name=codelist_dict.get(f"value_node{specific_suffix}").get("name"),
             parent_codelist_uid=codelist_dict.get("parent_codelist_uid"),
             child_codelist_uids=codelist_dict["child_codelist_uids"],
-            catalogue_name=codelist_dict["catalogue_name"],
+            catalogue_names=codelist_dict["catalogue_names"],
             submission_value=codelist_dict.get(f"value_node{specific_suffix}").get(
                 "submission_value"
             ),
@@ -504,6 +490,9 @@ def create_codelist_attributes_aggregate_instances_from_cypher_result(
             ),
             extensible=codelist_dict.get(f"value_node{specific_suffix}").get(
                 "extensible"
+            ),
+            ordinal=bool(
+                codelist_dict.get(f"value_node{specific_suffix}").get("ordinal")
             ),
         ),
         library=LibraryVO.from_input_values_2(
@@ -554,7 +543,7 @@ def format_codelist_filter_sort_keys(key: str, prefix: str | None = None) -> str
         )
     if key == "template_parameter":
         return "is_template_parameter"
-    if key in ["name", "definition", "submission_value", "extensible"]:
+    if key in ["name", "definition", "submission_value", "extensible", "ordinal"]:
         return f"value_node_{prefix}.{key}" if prefix else f"value_node.{key}"
     # Property coming from relationship
     if key in [
@@ -577,7 +566,7 @@ def format_codelist_filter_sort_keys(key: str, prefix: str | None = None) -> str
 
 
 def _parse_target_model_items_codelist(
-    is_aggregated: bool, target_model: type[BaseModel]
+    is_aggregated: bool, target_model: type[BaseModel], transform: bool = True
 ):
     output = []
     prefix = None
@@ -591,12 +580,17 @@ def _parse_target_model_items_codelist(
             and attribute not in ["possible_actions"]
             and not jse.get("remove_from_wildcard", False)
         ):
-            output.append(format_codelist_filter_sort_keys(attribute, prefix))
+            if transform:
+                output.append(format_codelist_filter_sort_keys(attribute, prefix))
+            else:
+                output.append(attribute)
     return output
 
 
 def list_codelist_wildcard_properties(
-    is_aggregated: bool = True, target_model: type[BaseModel] | None = None
+    is_aggregated: bool = True,
+    target_model: type[BaseModel] | None = None,
+    transform: bool = True,
 ) -> list[str]:
     """
     Returns a list of properties on which to apply wildcard filtering, formatted as defined in the database and/or Cypher query
@@ -611,5 +605,7 @@ def list_codelist_wildcard_properties(
         property_list += list_codelist_wildcard_properties(True, CTCodelistName)
         property_list += list_codelist_wildcard_properties(True, CTCodelistAttributes)
     elif target_model is not None:
-        property_list += _parse_target_model_items_codelist(is_aggregated, target_model)
+        property_list += _parse_target_model_items_codelist(
+            is_aggregated, target_model, transform=transform
+        )
     return list(set(property_list))

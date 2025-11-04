@@ -1,3 +1,6 @@
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.generic import (
     Library,
     VersionRelationship,
@@ -20,6 +23,7 @@ from clinical_mdr_api.models.controlled_terminologies.ct_term import (
     SimpleTermName,
 )
 from clinical_mdr_api.models.generic_models import SimpleNameModel
+from common.config import settings
 
 
 class FootnoteTemplateRepository(GenericSyntaxTemplateRepository[FootnoteTemplateAR]):
@@ -53,9 +57,6 @@ class FootnoteTemplateRepository(GenericSyntaxTemplateRepository[FootnoteTemplat
                     ],
                 ),
                 attributes=SimpleTermAttributes(
-                    code_submission_value=kwargs["template_type"][
-                        "code_submission_value"
-                    ],
                     nci_preferred_name=kwargs["template_type"]["preferred_term"],
                 ),
             ),
@@ -119,14 +120,25 @@ class FootnoteTemplateRepository(GenericSyntaxTemplateRepository[FootnoteTemplat
         root, item = super()._create(item)
 
         if item.type:
-            footnote_type = self._get_template_type(item.type.term_uid)
-            root.has_type.connect(footnote_type)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    self._get_template_type(item.type.term_uid),
+                    codelist_submission_value=settings.syntax_footnote_type_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            root.has_type.connect(selected_term_node)
+
         for indication in item.indications or []:
             root.has_indication.connect(self._get_indication(indication.term_uid))
+
         for activity in item.activities or []:
             root.has_activity.connect(self._get_activity(activity.uid))
+
         for group in item.activity_groups or []:
             root.has_activity_group.connect(self._get_activity_group(group.uid))
+
         for group in item.activity_subgroups or []:
             root.has_activity_subgroup.connect(self._get_activity_subgroup(group.uid))
+
         return item

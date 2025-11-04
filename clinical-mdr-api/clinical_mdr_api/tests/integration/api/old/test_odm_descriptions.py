@@ -44,7 +44,6 @@ def test_creating_a_new_odm_form_with_description(api_client):
         "oid": "oid1",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": None,
         "descriptions": [
             {
                 "name": "name1",
@@ -74,7 +73,6 @@ def test_creating_a_new_odm_form_with_description(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == [
         {
             "uid": "OdmDescription_000001",
@@ -413,7 +411,6 @@ def test_create_a_new_odm_form_with_relation_to_odm_description(api_client):
         "oid": "oid2",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": None,
         "descriptions": [
             {
                 "name": "name2",
@@ -443,7 +440,6 @@ def test_create_a_new_odm_form_with_relation_to_odm_description(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == [
         {
             "uid": "OdmDescription_000002",
@@ -469,7 +465,6 @@ def test_create_a_new_odm_form_with_relation_to_odm_description(api_client):
         "oid": "oid2",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": None,
         "descriptions": [],
         "alias_uids": [],
         "change_description": "Removing description",
@@ -487,7 +482,6 @@ def test_create_a_new_odm_form_with_relation_to_odm_description(api_client):
         "oid": "oid2",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": None,
         "descriptions": ["OdmDescription_000002"],
         "alias_uids": [],
         "change_description": "Adding description",
@@ -568,7 +562,6 @@ def test_all_cascade_operations_for_description(api_client):
             "oid": "oid test",
             "sdtm_version": "0.1",
             "repeating": "No",
-            "scope_uid": None,
             "descriptions": [
                 {
                     "name": "xyz",

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import AbstractSet, Callable, Self
 
+from pydantic import BaseModel
+
 from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryItemAggregateRootBase,
     LibraryItemMetadataVO,
@@ -22,6 +24,12 @@ class ActivityInstanceClassActivityItemClassRelVO:
     is_adam_param_specific_enabled: bool
 
 
+class CTTermItem(BaseModel):
+    uid: str
+    name: str | None = None
+    codelist_uid: str | None = None
+
+
 @dataclass(frozen=True)
 class ActivityItemClassVO:
     """
@@ -33,10 +41,8 @@ class ActivityItemClassVO:
     nci_concept_id: str | None
     order: int
     activity_instance_classes: list[ActivityInstanceClassActivityItemClassRelVO]
-    data_type_uid: str
-    data_type_name: str | None
-    role_uid: str
-    role_name: str | None
+    data_type: CTTermItem
+    role: CTTermItem
     variable_class_uids: list[str] | None
 
     @classmethod
@@ -45,22 +51,18 @@ class ActivityItemClassVO:
         name: str,
         order: int,
         activity_instance_classes: list[ActivityInstanceClassActivityItemClassRelVO],
-        data_type_uid: str,
-        role_uid: str,
+        data_type: CTTermItem,
+        role: CTTermItem,
         definition: str | None = None,
         nci_concept_id: str | None = None,
-        data_type_name: str | None = None,
-        role_name: str | None = None,
         variable_class_uids: list[str] | None = None,
     ) -> Self:
         activity_item_class_vo = cls(
             name=name,
             order=order,
             activity_instance_classes=activity_instance_classes,
-            data_type_uid=data_type_uid,
-            data_type_name=data_type_name,
-            role_uid=role_uid,
-            role_name=role_name,
+            data_type=data_type,
+            role=role,
             variable_class_uids=variable_class_uids,
             definition=definition,
             nci_concept_id=nci_concept_id,
@@ -83,12 +85,12 @@ class ActivityItemClassVO:
             "Name",
         )
         BusinessLogicException.raise_if_not(
-            ct_term_exists(self.role_uid),
-            msg=f"Activity Item Class tried to connect to non-existent or non-final CT Term for Role with UID '{self.role_uid}'.",
+            ct_term_exists(self.role.uid),
+            msg=f"Activity Item Class tried to connect to non-existent or non-final CT Term for Role with UID '{self.role.uid}'.",
         )
         BusinessLogicException.raise_if_not(
-            ct_term_exists(self.data_type_uid),
-            msg=f"Activity Item Class tried to connect to non-existent or non-final CT Term for Data type with UID '{self.data_type_uid}'.",
+            ct_term_exists(self.data_type.uid),
+            msg=f"Activity Item Class tried to connect to non-existent or non-final CT Term for Data type with UID '{self.data_type.uid}'.",
         )
         for activity_instance_class in self.activity_instance_classes:
             BusinessLogicException.raise_if_not(

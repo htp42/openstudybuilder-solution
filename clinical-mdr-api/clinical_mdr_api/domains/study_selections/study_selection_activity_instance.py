@@ -25,21 +25,41 @@ class StudySelectionActivityInstanceVO(study_selection_base.StudySelectionBaseVO
     """
 
     study_uid: str
-    study_selection_uid: str
     study_activity_uid: str
+    # Activity properties
     activity_uid: str
     activity_name: str | None
+    activity_library_name: str | None
+    activity_is_data_collected: bool
+    # ActivityInstance properties
     activity_instance_uid: str | None
     activity_instance_name: str | None
+    activity_instance_topic_code: str | None
+    activity_instance_adam_param_code: str | None
+    activity_instance_class_uid: str | None
+    activity_instance_class_name: str | None
+    activity_instance_specimen: str | None
+    activity_instance_test_name_code: str | None
+    activity_instance_standard_unit: str | None
     activity_instance_version: str | None
+    activity_instance_is_default_selected_for_activity: bool
+    activity_instance_is_required_for_activity: bool
     show_activity_instance_in_protocol_flowchart: bool
     keep_old_version: bool
+    # ActivityInstance properties
+    latest_activity_instance_uid: str | None
+    latest_activity_instance_name: str | None
+    latest_activity_instance_topic_code: str | None
+    latest_activity_instance_class_uid: str | None
+    latest_activity_instance_class_name: str | None
+    latest_activity_instance_version: str | None
     # Study selection Versioning
     start_date: datetime.datetime
     author_id: str
     author_username: str | None = None
     activity_version: str | None = None
     accepted_version: bool = False
+    # StudyActivity groupings
     study_activity_subgroup_uid: str | None = None
     activity_subgroup_uid: str | None = None
     activity_subgroup_name: str | None = None
@@ -49,6 +69,7 @@ class StudySelectionActivityInstanceVO(study_selection_base.StudySelectionBaseVO
     study_soa_group_uid: str | None = None
     soa_group_term_uid: str | None = None
     soa_group_term_name: str | None = None
+    study_selection_uid: str | None = None
 
     @classmethod
     def from_input_values(
@@ -57,15 +78,31 @@ class StudySelectionActivityInstanceVO(study_selection_base.StudySelectionBaseVO
         author_id: str,
         study_activity_uid: str,
         activity_uid: str,
-        author_username: str | None = None,
         activity_name: str | None = None,
+        activity_library_name: str | None = None,
+        activity_is_data_collected: bool = False,
         activity_version: str | None = None,
         activity_instance_uid: str | None = None,
         activity_instance_name: str | None = None,
+        activity_instance_topic_code: str | None = None,
+        activity_instance_adam_param_code: str | None = None,
+        activity_instance_class_uid: str | None = None,
+        activity_instance_class_name: str | None = None,
+        activity_instance_specimen: str | None = None,
+        activity_instance_test_name_code: str | None = None,
+        activity_instance_standard_unit: str | None = None,
         activity_instance_version: str | None = None,
+        activity_instance_is_default_selected_for_activity: bool = False,
+        activity_instance_is_required_for_activity: bool = False,
         show_activity_instance_in_protocol_flowchart: bool = False,
         keep_old_version: bool = False,
-        study_selection_uid: str | None = None,
+        latest_activity_instance_uid: str | None = None,
+        latest_activity_instance_name: str | None = None,
+        latest_activity_instance_topic_code: str | None = None,
+        latest_activity_instance_class_uid: str | None = None,
+        latest_activity_instance_class_name: str | None = None,
+        latest_activity_instance_version: str | None = None,
+        author_username: str | None = None,
         start_date: datetime.datetime | None = None,
         accepted_version: bool = False,
         generate_uid_callback: Callable[[], str] = lambda: "",
@@ -78,6 +115,7 @@ class StudySelectionActivityInstanceVO(study_selection_base.StudySelectionBaseVO
         study_soa_group_uid: str | None = None,
         soa_group_term_uid: str | None = None,
         soa_group_term_name: str | None = None,
+        study_selection_uid: str | None = None,
     ):
         if study_selection_uid is None:
             study_selection_uid = generate_uid_callback()
@@ -90,12 +128,45 @@ class StudySelectionActivityInstanceVO(study_selection_base.StudySelectionBaseVO
             study_activity_uid=normalize_string(study_activity_uid),
             activity_instance_uid=normalize_string(activity_instance_uid),
             activity_instance_name=normalize_string(activity_instance_name),
+            activity_instance_topic_code=normalize_string(activity_instance_topic_code),
+            activity_instance_adam_param_code=normalize_string(
+                activity_instance_adam_param_code
+            ),
+            activity_instance_class_uid=normalize_string(activity_instance_class_uid),
+            activity_instance_class_name=normalize_string(activity_instance_class_name),
+            activity_instance_specimen=normalize_string(activity_instance_specimen),
+            activity_instance_test_name_code=normalize_string(
+                activity_instance_test_name_code
+            ),
+            activity_instance_standard_unit=normalize_string(
+                activity_instance_standard_unit
+            ),
             activity_instance_version=normalize_string(activity_instance_version),
+            activity_instance_is_default_selected_for_activity=activity_instance_is_default_selected_for_activity,
+            activity_instance_is_required_for_activity=activity_instance_is_required_for_activity,
             activity_uid=normalize_string(activity_uid),
             activity_name=normalize_string(activity_name),
+            activity_library_name=normalize_string(activity_library_name),
+            activity_is_data_collected=activity_is_data_collected,
             activity_version=normalize_string(activity_version),
             show_activity_instance_in_protocol_flowchart=show_activity_instance_in_protocol_flowchart,
             keep_old_version=keep_old_version,
+            latest_activity_instance_uid=normalize_string(latest_activity_instance_uid),
+            latest_activity_instance_name=normalize_string(
+                latest_activity_instance_name
+            ),
+            latest_activity_instance_topic_code=normalize_string(
+                latest_activity_instance_topic_code
+            ),
+            latest_activity_instance_class_uid=normalize_string(
+                latest_activity_instance_class_uid
+            ),
+            latest_activity_instance_class_name=normalize_string(
+                latest_activity_instance_class_name
+            ),
+            latest_activity_instance_version=normalize_string(
+                latest_activity_instance_version
+            ),
             start_date=start_date,
             study_selection_uid=normalize_string(study_selection_uid),
             author_id=normalize_string(author_id),

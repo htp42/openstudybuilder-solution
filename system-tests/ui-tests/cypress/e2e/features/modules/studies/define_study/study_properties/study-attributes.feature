@@ -5,12 +5,14 @@ Feature: Studies - Define Study - Study Properties - Study Attributes
         Given The user is logged in   
         And A test study is selected
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to the Study Interventions page
         Given The '/studies' page is opened
         When The 'Study Properties' submenu is clicked in the 'Define Study' section
         And The 'Study Attributes' tab is selected
         Then The current URL is '/study_properties/attributes'
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the page table with correct columns and options
         Given The test study '/study_properties/attributes' page is opened
         Then A table is visible with following headers
@@ -34,6 +36,8 @@ Feature: Studies - Define Study - Study Properties - Study Attributes
     Scenario: [Actions][Edit] User must be able to edit the Study Intervention Type
         Given The test study '/study_properties/attributes' page is opened
         When The study intervention type is edited
+        And Form save button is clicked
+        And The form is closed
         Then The study intervention type data is reflected in the table
 
     @manual_test

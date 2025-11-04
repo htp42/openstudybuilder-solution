@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Self
 
 import pytest
 from hypothesis import HealthCheck, assume, given, settings
@@ -111,6 +111,40 @@ class CTTermNameAR:
     @property
     def ct_term_vo(self):
         return self._term_vo
+
+
+@dataclass(frozen=True)
+class CTSimpleCodelistTermVO:
+    """
+    The CTSimpleCodelistTermVO acts as the value object for a single CT simple codelist term
+    """
+
+    term_uid: str
+    term_name: str
+    submission_value: str
+    order: int | None
+    codelist_uid: str | None
+    codelist_name: str | None
+    codelist_submission_value: str | None
+
+
+@dataclass
+class CTSimpleCodelistTermAR:
+    _ct_simple_codelist_term_vo: CTSimpleCodelistTermVO
+
+    @property
+    def ct_simple_codelist_term_vo(self) -> CTSimpleCodelistTermVO:
+        return self._ct_simple_codelist_term_vo
+
+    @classmethod
+    def from_repository_values(
+        cls,
+        ct_simple_codelist_term_vo: CTSimpleCodelistTermVO,
+    ) -> Self:
+        ct_simple_codelist_term_ar = cls(
+            _ct_simple_codelist_term_vo=ct_simple_codelist_term_vo,
+        )
+        return ct_simple_codelist_term_ar
 
 
 def get_mock_ct_item(name):

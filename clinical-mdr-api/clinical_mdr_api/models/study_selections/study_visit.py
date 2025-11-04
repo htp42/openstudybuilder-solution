@@ -156,7 +156,7 @@ class SimpleStudyVisit(BaseModel):
         Field(
             description="Name of the visit type",
             json_schema_extra={
-                "source": "has_visit_type.has_name_root.has_latest_value.name"
+                "source": "has_visit_type.has_selected_term.has_name_root.has_latest_value.name"
             },
         ),
     ]

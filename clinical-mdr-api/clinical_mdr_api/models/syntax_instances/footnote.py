@@ -11,6 +11,7 @@ from clinical_mdr_api.domain_repositories.models.syntax import (
 from clinical_mdr_api.domains.syntax_instances.footnote import FootnoteAR
 from clinical_mdr_api.models.controlled_terminologies.ct_term import (
     CTTermNameAndAttributes,
+    CTTermVO,
 )
 from clinical_mdr_api.models.libraries.library import Library
 from clinical_mdr_api.models.syntax_templates.footnote_template import (
@@ -197,6 +198,7 @@ class FootnoteWithType(Footnote):
                     ct_term_attributes_ar=get_footnote_type_attributes(
                         syntax_template_node
                     ),
+                    ct_term_codelists=CTTermVO([], []),
                 ),
                 library_name=footnote_ar.template_library_name,
             ),

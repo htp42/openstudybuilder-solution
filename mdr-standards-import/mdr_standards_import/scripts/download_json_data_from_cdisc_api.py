@@ -9,8 +9,6 @@ from pathlib import Path
 import requests
 from requests.exceptions import HTTPError
 from neo4j.exceptions import ServiceUnavailable
-from mdr_standards_import.scripts.entities.cdisc_ct.package import Package
-from mdr_standards_import.scripts.entities.cdisc_ct.ct_import import CTImport
 from mdr_standards_import.scripts.entities.cdisc_data_models.version import Version
 from mdr_standards_import.scripts.entities.cdisc_data_models.data_model_import import (
     DataModelImport,
@@ -59,11 +57,10 @@ def download_newer_packages_than(last_effective_date: str | None, to_directory: 
         # the effective date is at the end of the package id
         # e.g. "2014-09-26"
         effective_date = "-".join(package_id.rsplit("-", 3)[-3:])
-        ct_import = CTImport(effective_date, "TMP")
+        catalogue_name = package_id.split("-", 1)[0]
+        package["catalogue_name"] = catalogue_name.upper()
+        package["effective_date"] = effective_date
         if is_newer_than(effective_date, last_effective_date):
-            package = Package(ct_import)
-            package.set_catalogue_name(href)
-            package.set_href(href)
             packages_to_load.append(package)
 
     if len(packages_to_load) > 0:
@@ -72,7 +69,7 @@ def download_newer_packages_than(last_effective_date: str | None, to_directory: 
         print(" -> No packages found for downloading.")
 
 
-def get_available_packages_meta_data_from_api() -> json:
+def get_available_packages_meta_data_from_api() -> dict:
     """
     Gets the CT packages list from the CDISC REST API.
 
@@ -100,7 +97,7 @@ def get_available_packages_meta_data_from_api() -> json:
     return response.json()
 
 
-def download_packages_data(packages_to_download: Sequence[Package], to_directory: str):
+def download_packages_data(packages_to_download: Sequence, to_directory: str):
     """
     Downloads the CDISC CT package data for those packages specified by <packages_to_download>.
     Stores the data in JSON files on disc.
@@ -125,7 +122,7 @@ def download_packages_data(packages_to_download: Sequence[Package], to_directory
     number_of_packages = len(packages_to_download)
     for package in packages_to_download:
         package_id = (
-            package.catalogue_name + "-" + package.get_ct_import().effective_date
+            package["catalogue_name"] + "-" + package["effective_date"]
         )
         if path.basename(package_id.lower()) in existing_packages:
             print(
@@ -137,7 +134,7 @@ def download_packages_data(packages_to_download: Sequence[Package], to_directory
             )
             try:
                 response = requests.get(
-                    BASE_URL + package.href, headers=HEADERS, timeout=60
+                    BASE_URL + package["href"], headers=HEADERS, timeout=60
                 )
                 response.raise_for_status()
                 package_data = response.json()

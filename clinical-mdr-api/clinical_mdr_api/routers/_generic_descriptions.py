@@ -114,6 +114,11 @@ FILTER_OPERATOR = (
 )
 
 FILTERS_EXAMPLE = {
+    "none": {
+        "summary": "No Filters",
+        "description": "No filters are applied.",
+        "value": {},
+    },
     "wildcard": {
         "summary": "Wildcard Filter",
         "description": "Apply a wildcard filter.",
@@ -139,11 +144,6 @@ FILTERS_EXAMPLE = {
         "description": "Apply a filter to display only those records with **exact** matching names.",
         "value": """{"name":{ "v": [""], "op": "eq"}}""",
     },
-    "none": {
-        "summary": "No Filters",
-        "description": "No filters are applied.",
-        "value": {},
-    },
 }
 
 TOTAL_COUNT = (
@@ -161,6 +161,8 @@ HEADER_SEARCH_STRING = """Optionally, a (part of the) text for a given field.
 The query result will be values of the field that contain the provided search string."""
 
 HEADER_PAGE_SIZE = "Optionally, the number of results to return. Default = 10."
+
+HEADERS_QUERY_LITE = "Whether to use the lightweight implementation of this endpoint, which doesn't support `filters` and `operator` parameters."
 
 DATA_EXPORTS_HEADER = """\n
 Response format:\n

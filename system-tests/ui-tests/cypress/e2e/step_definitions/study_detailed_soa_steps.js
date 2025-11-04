@@ -1,31 +1,18 @@
-import { activityName } from "./library_activities_steps";
 import { activity_activity } from "./study_activities_steps";
 
-const {Given, When, Then } = require("@badeball/cypress-cucumber-preprocessor");
-const { closeSync } = require("fs");
+const { When, Then } = require("@badeball/cypress-cucumber-preprocessor");
 
-let groupName, subgroupName
-let current_activity
-let new_activity_name
-let first_in_order
-let last_in_order
+let groupName, subgroupName, activityName, new_activity_name
+let first_in_order, last_in_order
+let activity_list = []
 
-When('At least {string} activites are present in the selected study', (number_of_activities) => {
-    prepareActivites(number_of_activities, `${Cypress.env('TEST_STUDY_UID')}`)
+When('Action {string} is selected for study activity', (action) => {
+    cy.contains('table tbody tr.bg-white', activityName).within(() => cy.clickButton('table-item-action-button'))
+    cy.clickButton(action)
 })
 
-Given('At least {string} activities are present in the same {string} flowchart subgroup and {string} group in the selected study', (number_of_activities, group, subgroup) => {
-    prepareActivitesInSameGroup(number_of_activities, subgroup, group)
-})
-
-When('The user click on {string} action for an Activity', (action) => {
-    cy.request(`api/studies/${Cypress.env('TEST_STUDY_UID')}/study-activities?total_count=true`).then((req) => {
-        current_activity = req.body.items[0].activity.name.substring(0, 40)
-        cy.wait(1000)
-        cy.contains('.v-selection-control', 'Expand table').click()
-        cy.contains('table tbody tr.bg-white', current_activity).within(() => cy.clickButton('table-item-action-button'))
-        cy.clickButton(action)
-    })
+When('Activity checkbox is checked for {int} activity on the list', (index) => {
+    cy.contains('table tbody tr.bg-white', activity_list[index]).within(() => cy.get('[id^="checkbox"]').check())
 })
 
 When('The user goes through selection from library form', () => {
@@ -36,52 +23,18 @@ When('The user goes through selection from library form', () => {
     cy.get('[data-cy="select-activity"]').not('.v-selection-control--disabled').first().click()
     cy.get('[data-cy="flowchart-group"]').not('.v-input--disabled').first().click()
     cy.get('.v-list-item').filter(':visible').first().click()
-    cy.clickFormActionButton('save')
 })
 
 Then('The newly selected activity replaces previous activity in study', () => {
-    cy.reload()
-    cy.contains('.v-selection-control', 'Expand table').click()
-    cy.contains('table tbody tr.bg-white', new RegExp(`^(${current_activity})$`, "g")).should('not.exist')
+    cy.contains('table tbody tr.bg-white', new RegExp(`^(${activityName})$`, "g")).should('not.exist')
     cy.contains('table tbody tr.bg-white', new RegExp(`^(${new_activity_name})$`, "g")).should('exist')
 })
 
-Then('The newly created activity is present in SoA', () => {
-    cy.reload()
-    cy.contains('.v-selection-control', 'Expand table').click()
-    cy.contains(new_activity_name).should('exist')
+Then('The Activity is visible in the SoA', () => cy.contains(activity_activity.substring(0, 40)).should('be.visible'))
 
-})
-
-When('The user confirms the deletion pop-up', () => {
-    cy.clickButton('continue-popup')
-})
-
-Then('The Activity is no longer visible in the SoA', () => {
-    cy.reload()
-    cy.contains('.v-selection-control', 'Expand table').click()
-    cy.contains(current_activity).should('not.exist')
-})
-
-Then('The Activity is visible in the SoA', () => {
-    cy.contains('.v-selection-control', 'Expand table').click()
-    cy.contains(activity_activity.substring(0, 40)).should('be.visible')
-})
-
-When('The user selects rows in SoA table', () => {
-    cy.request(`api/studies/${Cypress.env('TEST_STUDY_UID')}/study-activities?total_count=true`).then((req) => {
-        current_activity = req.body.items[0].activity.name.substring(0, 40)
-        cy.wait(1000)
-        cy.contains('.v-selection-control', 'Expand table').click()
-        cy.contains('.bg-white', current_activity).within(() => {
-            cy.get('[id^="checkbox"]').first().click()
-        })
-    })
-})
-
-When('The user clicks on Bulk Edit action on SoA table options', () => {
+When('The user selects {string} action after clicking Bulk actions', (action) => {
     cy.get('[title="Bulk actions"]').click()
-    cy.contains('.v-list-item', 'Bulk Edit Activities').click()
+    cy.contains('.v-list-item', action).click()
 })
 
 Then('The bulk edit view is presented to user allowing to update Activity Group and Visits for selected activities', () => {
@@ -89,7 +42,7 @@ Then('The bulk edit view is presented to user allowing to update Activity Group 
     cy.elementContain('form-body', 'Note: The entire row of existing selections will be overwritten with the selection(s) done here')
     cy.elementContain('form-body', 'Batch editing will overwrite existing choices. Only activities expected to have same schedule should be batch-edited together.')
     cy.elementContain('form-body', 'Batch edit study activities')
-    cy.elementContain('form-body', current_activity)
+    cy.elementContain('form-body', activity_list[0])
 })
 
 When('The user edits activities in bulk', () => {
@@ -97,43 +50,20 @@ When('The user edits activities in bulk', () => {
     cy.slectFirstVSelect('bulk-edit-visit')
     cy.intercept('**/soa-edits/batch').as('editRequest')
     cy.clickButton('save-button')
-
 })
 
-Then('The data for bulk edited activities is updated', () => {
-    cy.wait('@editRequest').its('response.statusCode').should('equal', 207)
-
-})
-
-When('The user edits activities in bulk without selecting Activity Group and Visit', () => {
-    bulkAction('Bulk Edit Activities')
-    cy.clickButton('save-button')
-
-})
+Then('The data for bulk edited activities is updated', () => cy.wait('@editRequest').its('response.statusCode').should('equal', 207))
 
 Then('The validation appears for Activity Group field in bulk edit form', () => {
-    cy.get('[data-cy="form-body"]').within(()=> {
-        cy.get('.v-input').eq(2).should('contain', 'This field is required')
-    })
+    cy.get('[data-cy="form-body"] .v-input').eq(2).should('contain', 'This field is required')
 })
 
-When('The user delete activities in bulk', ()=> {
-    bulkAction('Bulk Remove Activities')
-    cy.intercept('**/study-activities/batch').as('deleteRequest')
-    cy.clickButton('continue-popup')
-    
-})
+When('Batch request is intercepted', ()=> cy.intercept('**/study-activities/batch').as('deleteRequest'))
 
-Then('The activities are removed from the study', () => {
-    cy.wait('@deleteRequest').its('response.statusCode').should('equal', 207)
+Then('The activities are removed from the study', () => cy.wait('@deleteRequest').its('response.statusCode').should('equal', 207))
 
-})
-
-When('The user enables the Reorder Activities function for acitivities in the same {string} flowchart subgroup and {string} group', (subgroup, group) => {
-    cy.contains('tr.flowchart', group).find('.mdi-chevron-right').click()
-    cy.get('.group .mdi-chevron-right').click()
-    cy.get('.subgroup .mdi-chevron-right').click()
-    cy.contains('tr[class="bg-white"]', subgroup).within(() => cy.clickButton('table-item-action-button'))
+When('The user enables the Reorder Activities function for acitivities in the same flowchart group', () => {
+    cy.contains('tr[class="bg-white"]', activity_list[0]).within(() => cy.clickButton('table-item-action-button'))
     cy.clickButton('Reorder')
 })
 
@@ -170,15 +100,17 @@ Then('Activity is found in table', () => cy.contains('table[aria-label="SoA tabl
 
 When('User search for non-existing activity', () => cy.contains('.v-input__control', 'Search Activities').type('xxx'))
 
-When('User search newly added activity', () => cy.contains('.v-input__control', 'Search Activities').type(activityName))
+When('User search for {int} activity on the list', (index) => cy.contains('.v-input__control', 'Search Activities').type(activity_list[index]))
 
-When('User search newly added activity in lowercase', () => cy.contains('.v-input__control', 'Search Activities').type(activityName.toLowerCase()))
+When('User search study activity', () => cy.contains('.v-input__control', 'Search Activities').type(activityName))
 
-When('User search newly added activity by partial name', () => cy.contains('.v-input__control', 'Search Activities').type(activityName.slice(-3)))
+When('User search study activity in lowercase', () => cy.contains('.v-input__control', 'Search Activities').type(activityName.toLowerCase()))
 
-When('User search search activity by subgroup', () => cy.contains('.v-input__control', 'Search Activities').type('API_SubGroup'))
+When('User search study activity by partial name', () => cy.contains('.v-input__control', 'Search Activities').type(activityName.slice(-3)))
 
-When('User search search activity by group', () => cy.contains('.v-input__control', 'Search Activities').type('API_Group'))
+When('User search study activity by subgroup', () => cy.contains('.v-input__control', 'Search Activities').type('API_SubGroup'))
+
+When('User search study activity by group', () => cy.contains('.v-input__control', 'Search Activities').type('API_Group'))
 
 When('User expand table', () => cy.contains('.v-selection-control', 'Expand table').click())
 
@@ -234,10 +166,15 @@ Then('SoA table is visible with following headers', (options) => {
     options.rows().forEach(option => cy.contains('table tr th.header.zindex25', `${option}`).should('be.visible'))
 })
 
-Then('Group and subgroup names are fetch to be used in SoA', () => {
+Then('Activity, Group And Subgroup names are fetch to be used in SoA', () => {
     cy.getGroupNameByUid().then(name => groupName = name)
     cy.getSubGroupNameByUid().then(name => subgroupName = name)
+    cy.getActivityNameByUid().then(name => activityName = name)
 })
+
+Then('Activity name is added to the list', () => cy.getActivityNameByUid().then(name => activity_list.push(name)))
+
+Then('Activity name list is cleared', () => activity_list = [])
 
 Then('Group is visible in the protocol SoA', () => cy.contains('th.group', groupName).should('be.visible'))
 
@@ -303,66 +240,13 @@ Then('Study visit windows {string}, {string}, {string} are visible in the protoc
     verifySoATableHeaders('[id="protocolFlowchart"] table thead tr th', 'Visit window (days)', window1, window2, window3)
 })
 
-function bulkAction(action) {
-    cy.request(`api/studies/${Cypress.env('TEST_STUDY_UID')}/study-activities?total_count=true`).then((req) => {
-        current_activity = req.body.items[0].activity.name.substring(0, 40)
-        cy.wait(1000)
-        cy.contains('.v-selection-control', 'Expand table').click()
-        cy.contains('.bg-white', current_activity).within(() => {
-            cy.get('[id^="checkbox"]').first().click()
-        })
-    })
-    cy.get('[title="Bulk actions"]').click()
-    cy.contains('.v-list-item', action).click()
-}
+Then('[API] Study Activity based on existing group and subgroup is created and approved', () => (cy.createActivity(), cy.approveActivity()))
 
-function prepareActivites(number_of_activities, study_id) {
-    cy.request('api/studies/' + study_id + '/study-activities?total_count=true').then((req) => {
-        if (req.body.total < parseInt(number_of_activities)) {
-            cy.log('No activity')
-            cy.visit('studies/' + study_id + '/activities/list')
-            cy.clickButton('add-study-activity')
-            cy.clickFormActionButton('continue')
-            cy.get('[data-cy="select-activity"]').not('.v-selection-control--disabled').first().click()
-            cy.get('[data-cy="flowchart-group"]').not('.v-input--disabled').first().click()
-            cy.get('.v-list-item').filter(':visible').first().click()
-            cy.clickFormActionButton('save')
-            prepareActivites(number_of_activities, study_id)
-        } else {
-            cy.log('Skipping activity creation')
-        }
-    })
-}
+Then('[API] Group and subgroup are created and approved', () => {
+    cy.createGroup(), cy.approveGroup()
+    cy.createSubGroup(), cy.approveSubGroup()
+})
 
-function prepareActivitesInSameGroup(number_of_activities, subgroup, group) {
-    let group_subgroup_count = 0
-    cy.sendGetRequest(`/studies/${Cypress.env('TEST_STUDY_UID')}/study-activities?page_size=100`).then(response => {
-        response.body.items.forEach(item => {
-            let subgroupName = item.activity.activity_groupings[0].activity_subgroup_name
-            let soaName = item.study_soa_group.soa_group_term_name
-            if (subgroupName == group && soaName == subgroup) group_subgroup_count++
-        })
-    }).then(() => {
-        if (group_subgroup_count < parseInt(number_of_activities)) {
-            cy.visit(`studies/${Cypress.env('TEST_STUDY_UID')}/activities/list`)
-            cy.clickButton('add-study-activity')
-            cy.clickFormActionButton('continue')
-            cy.contains('Use the same SoA group for all').click()
-            cy.searchForInPopUp(group)
-            cy.get('input[aria-label="Use the same SoA group for all"]').check()
-            cy.get('.v-card-title [role="combobox"] input').click()
-            cy.contains('.v-list-item__content', subgroup).click()
-            while (group_subgroup_count != parseInt(number_of_activities)) {
-                cy.get('.v-data-table__td--select-row input').not(':disabled').not('[checked]').first().check();
-                group_subgroup_count++;
-            }
-            cy.clickFormActionButton('save')
-        } else {
-            cy.log('Skipping activity creation')
-        }
-    })
-
-}
 
 function verifySoATable(tableLocator) {
     cy.contains(`${tableLocator}`, 'INFORMED CONSENT').should('be.visible')

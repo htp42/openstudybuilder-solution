@@ -24,6 +24,7 @@ from clinical_mdr_api.models.concepts.activities.activity_sub_group import (
     ActivitySubGroup,
 )
 from clinical_mdr_api.models.concepts.concept import TextValue
+from clinical_mdr_api.models.controlled_terminologies.ct_codelist import CTCodelist
 from clinical_mdr_api.models.controlled_terminologies.ct_term import CTTerm
 from clinical_mdr_api.models.dictionaries.dictionary_codelist import DictionaryCodelist
 from clinical_mdr_api.models.dictionaries.dictionary_term import DictionaryTerm
@@ -49,6 +50,7 @@ log = logging.getLogger(__name__)
 # Global variables shared between fixtures and tests
 footnotes: list[Footnote]
 footnote_template: FootnoteTemplate
+type_codelist: CTCodelist
 ct_term_schedule_of_activities: CTTerm
 dictionary_term_indication: DictionaryTerm
 indications_codelist: DictionaryCodelist
@@ -78,6 +80,7 @@ def test_data():
     global footnotes
     global footnote_template
     global ct_term_schedule_of_activities
+    global type_codelist
     global dictionary_term_indication
     global indications_codelist
     global indications_library_name
@@ -104,9 +107,17 @@ def test_data():
     text_value_1 = TestUtils.create_text_value()
     text_value_2 = TestUtils.create_text_value()
 
+    type_codelist = TestUtils.create_ct_codelist(
+        name="Criteria Type",
+        submission_value="FTNTTP",
+        extensible=True,
+        approve=True,
+    )
+
     # Create Dictionary/CT Terms
     ct_term_schedule_of_activities = TestUtils.create_ct_term(
-        sponsor_preferred_name="Schedule of Activities"
+        sponsor_preferred_name="Schedule of Activities",
+        codelist_uid=type_codelist.codelist_uid,
     )
     indications_library_name = "SNOMED"
     indications_codelist = TestUtils.create_dictionary_codelist(

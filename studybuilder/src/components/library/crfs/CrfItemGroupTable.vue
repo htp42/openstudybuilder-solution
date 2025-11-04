@@ -98,8 +98,6 @@
           selectedGroup && selectedGroup.status === constants.FINAL
         "
         @close="closeForm"
-        @new-version="newVersion"
-        @approve="approve"
       />
     </v-dialog>
     <v-dialog

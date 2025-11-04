@@ -1507,12 +1507,11 @@ def terms_name_codelist_mapping(tx, term_name):
     terms_data = tx.run(
         """
         MATCH (codelist_value:CTCodelistAttributesValue)<-[:LATEST]-(:CTCodelistAttributesRoot)<--(codelist_root:CTCodelistRoot)
-            -->(term_root:CTTermRoot)-->(:CTTermAttributesRoot)-[version_rel:HAS_VERSION]->(term:CTTermAttributesValue)
-        WHERE term.code_submission_value=$code_submission_value
+            -->(ct:CTCodelistTerm)-->(term_root:CTTermRoot)-->(:CTTermAttributesRoot)-[version_rel:HAS_VERSION]->(term:CTTermAttributesValue)
+        WHERE ct.submission_value=$code_submission_value
         WITH codelist_root, codelist_value, version_rel, term_root
         ORDER BY codelist_root.uid, version_rel.start_date DESC
-        WITH codelist_root, codelist_value, collect(term_root)[0] AS terms
-        UNWIND terms AS term_root
+        WITH codelist_root, codelist_value, collect(term_root)[0] AS term_root
         RETURN DISTINCT term_root.uid AS term_uid, collect(DISTINCT {uid:codelist_root.uid, submission_value: codelist_value.submission_value}) AS codelists
     """,
         code_submission_value=term_name,
@@ -1533,19 +1532,31 @@ def link_variable_with_value_terms(
         MATCH (dmv:DataModelVersion)-[rel:{VERSION_TO_DATASET_VARIABLE_REL_TYPE}]->(variable_instance:DatasetVariableInstance)
         WHERE rel.href=$variable_href
     """
-    create_relationship_clause = "MERGE (variable_instance)-[:REFERENCES_TERM]->(term)"
+    create_relationship_clause = """
+        CREATE (term)<-[:HAS_SELECTED_TERM]-(ctx:CTTermContext)-[:HAS_SELECTED_CODELIST]->(cl)
+        CREATE (variable_instance)-[:REFERENCES_TERM]->(ctx)
+    """
     for _value in variable["value_list"]:
         terms_data = terms_name_codelist_mapping(tx, _value)
 
-        # If there is only one CCode, then link the variable with it
-        if len(terms_data) == 1:
-            match_term = "MATCH (term: CTTermRoot {uid: $term_uid})"
+        # If there is only one CCode in a single codelist
+        # Then link the variable with it
+        if len(terms_data) == 1 and len(terms_data[0]["codelists"]) == 1:
+            match_term_and_codelist = """
+                MATCH (term: CTTermRoot {uid: $term_uid})
+                MATCH (cl:CTCodelistRoot {uid: $codelist_uid})
+            """
             query = " ".join(
-                [match_variable_clause, match_term, create_relationship_clause]
+                [
+                    match_variable_clause,
+                    match_term_and_codelist,
+                    create_relationship_clause,
+                ]
             )
             tx.run(
                 query,
                 term_uid=terms_data[0]["term_uid"],
+                codelist_uid=terms_data[0]["codelists"][0]["uid"],
                 variable_href=variable["href"],
             )
             # Store the codelist name in the list for the next case
@@ -1576,9 +1587,13 @@ def link_variable_with_value_terms(
                 )
 
                 if term_uid is not None:
-                    match_term = "MATCH (term: CTTermRoot {uid: $term_uid})<--(:CTCodelistRoot{uid: $codelist_uid})"
+                    match_term_and_codelist = "MATCH (term: CTTermRoot {uid: $term_uid})<--(:CTCodelistTerm)<--(cl:CTCodelistRoot{uid: $codelist_uid})"
                     query = " ".join(
-                        [match_variable_clause, match_term, create_relationship_clause]
+                        [
+                            match_variable_clause,
+                            match_term_and_codelist,
+                            create_relationship_clause,
+                        ]
                     )
                     tx.run(
                         query,
@@ -1645,9 +1660,13 @@ def link_variable_with_value_terms(
                         None,
                     )
 
-                match_term = "MATCH (term: CTTermRoot {uid: $term_uid})"
+                match_term_and_codelist = "MATCH (term: CTTermRoot {uid: $term_uid})"
                 query = " ".join(
-                    [match_variable_clause, match_term, create_relationship_clause]
+                    [
+                        match_variable_clause,
+                        match_term_and_codelist,
+                        create_relationship_clause,
+                    ]
                 )
                 tx.run(
                     query,
@@ -1664,9 +1683,13 @@ def link_variable_with_value_terms(
 
                 if value_list_mapping is not None:
                     # Create the relationship between DatasetVariable and CTTerm corresponding to the value
-                    match_term = "MATCH (term: CTTermRoot {uid: $term_uid})<--(:CTCodelistRoot{uid: $codelist_uid})"
+                    match_term_and_codelist = "MATCH (term: CTTermRoot {uid: $term_uid})<--(:CTCodelistTerm)<--(cl:CTCodelistRoot{uid: $codelist_uid})"
                     query = " ".join(
-                        [match_variable_clause, match_term, create_relationship_clause]
+                        [
+                            match_variable_clause,
+                            match_term_and_codelist,
+                            create_relationship_clause,
+                        ]
                     )
                     tx.run(
                         query,

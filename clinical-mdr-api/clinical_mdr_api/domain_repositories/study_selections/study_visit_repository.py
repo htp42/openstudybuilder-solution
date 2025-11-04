@@ -10,6 +10,9 @@ from clinical_mdr_api.domain_repositories._utils.helpers import (
 from clinical_mdr_api.domain_repositories.concepts.unit_definitions.unit_definition_repository import (
     UnitDefinitionRepository,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.generic_repository import (
     manage_previous_connected_study_selection_relationships,
 )
@@ -53,7 +56,10 @@ from clinical_mdr_api.domains.study_selections.study_visit import (
     StudyVisitVO,
     TextValue,
     TimePoint,
+    TimeUnit,
+    VisitClass,
     VisitGroup,
+    VisitSubclass,
 )
 from clinical_mdr_api.models.controlled_terminologies.ct_term import (
     SimpleCTTermNameWithConflictFlag,
@@ -63,7 +69,7 @@ from common.auth.user import user
 from common.config import settings
 from common.exceptions import ValidationException
 from common.telemetry import trace_calls
-from common.utils import TimeUnit, VisitClass, VisitSubclass, convert_to_datetime
+from common.utils import convert_to_datetime
 
 
 def get_valid_time_references_for_study(
@@ -85,13 +91,13 @@ def get_valid_time_references_for_study(
         """
     cypher_query = f"""
         MATCH (time_reference_name_root:CTTermNameRoot)<-[HAS_NAME_ROOT]-
-        (time_reference_root:CTTermRoot)<-[HAS_TERM]-(codelist_root:CTCodelistRoot)-[:HAS_NAME_ROOT]->
+        (time_reference_root:CTTermRoot)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm)<-[ht:HAS_TERM WHERE ht.end_date IS NULL]-(codelist_root:CTCodelistRoot)-[:HAS_NAME_ROOT]->
         (:CTCodelistNameRoot)-[:LATEST]->(:CTCodelistNameValue {{name:$time_reference_codelist_name}})
 
         {time_reference_match}
         
         MATCH (study_root:StudyRoot {{uid:$study_uid}})-[:LATEST]->(:StudyValue)-[:HAS_STUDY_VISIT]->
-            (study_visit:StudyVisit)-[:HAS_VISIT_TYPE]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(visit_type_root:CTTermNameRoot) 
+            (study_visit:StudyVisit)-[:HAS_VISIT_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(visit_type_root:CTTermNameRoot) 
         
         {visit_type_match}
             
@@ -479,7 +485,7 @@ class StudyVisitRepository:
                 query.append("WHERE NOT (study_visit)-[:BEFORE]-()")
 
         query.append(
-            "MATCH (study_visit)<-[:STUDY_EPOCH_HAS_STUDY_VISIT]-(study_epoch:StudyEpoch)-[:HAS_EPOCH]->(epoch_term_root:CTTermRoot)"
+            "MATCH (study_visit)<-[:STUDY_EPOCH_HAS_STUDY_VISIT]-(study_epoch:StudyEpoch)-[:HAS_EPOCH]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(epoch_term_root:CTTermRoot)"
         )
 
         filters = []
@@ -493,14 +499,14 @@ class StudyVisitRepository:
         query.append(
             dedent(
                 """
-            MATCH (study_visit)-[:HAS_VISIT_TYPE]->(visit_type_term:CTTermRoot)
-            MATCH (study_visit)-[:HAS_VISIT_CONTACT_MODE]->(visit_contact_mode_term:CTTermRoot)
-            OPTIONAL MATCH (study_visit)-[:HAS_REPEATING_FREQUENCY]->(repeating_frequency_term:CTTermRoot)
-            OPTIONAL MATCH (study_visit)-[:HAS_EPOCH_ALLOCATION]->(epoch_allocation_term:CTTermRoot)
+            MATCH (study_visit)-[:HAS_VISIT_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(visit_type_term:CTTermRoot)
+            MATCH (study_visit)-[:HAS_VISIT_CONTACT_MODE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(visit_contact_mode_term:CTTermRoot)
+            OPTIONAL MATCH (study_visit)-[:HAS_REPEATING_FREQUENCY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(repeating_frequency_term:CTTermRoot)
+            OPTIONAL MATCH (study_visit)-[:HAS_EPOCH_ALLOCATION]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(epoch_allocation_term:CTTermRoot)
             OPTIONAL MATCH (study_visit)-[:HAS_WINDOW_UNIT]->(window_unit_root:UnitDefinitionRoot)-[:LATEST]->(window_unit_value:UnitDefinitionValue) 
             OPTIONAL MATCH (study_visit)-[:HAS_TIMEPOINT]->(timepoint_root:TimePointRoot)-[:LATEST]->(timepoint_value:TimePointValue)
             OPTIONAL MATCH (timepoint_value)-[:HAS_UNIT_DEFINITION]->(timepoint_unit_root:UnitDefinitionRoot)-[:LATEST]->(timepoint_unit_value:UnitDefinitionValue)
-            OPTIONAL MATCH (timepoint_value)-[:HAS_TIME_REFERENCE]->(time_reference_term:CTTermRoot)
+            OPTIONAL MATCH (timepoint_value)-[:HAS_TIME_REFERENCE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(time_reference_term:CTTermRoot)
             OPTIONAL MATCH (timepoint_value)-[:HAS_VALUE]->(numeric_root:NumericValueRoot)-[:LATEST]->(numeric_value:NumericValue)
         """
             ).rstrip()
@@ -559,7 +565,7 @@ class StudyVisitRepository:
             WITH 
                 study_root.uid AS study_uid,
                 study_value.study_id_prefix AS study_id_prefix,
-                study_value.study_number AS study_number,
+                study_value.study_number + COALESCE(nullif('-' + study_value.subpart_id, '-'), '') AS study_number,
                 study_action,
                 study_visit,
                 study_epoch {.*, study_epoch_uid: study_epoch.uid, term: CASE WHEN epoch_term IS NULL THEN null ELSE epoch_term END} AS epoch,
@@ -795,38 +801,62 @@ class StudyVisitRepository:
         if study_visit.uid is None:
             study_visit.uid = new_visit.uid
 
+        # Visit type
         visit_type = CTTermRoot.nodes.get(uid=study_visit.visit_type.term_uid)
-        new_visit.has_visit_type.connect(visit_type)
+        selected_visit_type_node = (
+            CTCodelistAttributesRepository().get_or_create_selected_term(
+                visit_type,
+                codelist_submission_value=settings.study_visit_type_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+            )
+        )
+        new_visit.has_visit_type.connect(selected_visit_type_node)
 
+        # Repeating visit frequency
         if study_visit.repeating_frequency:
             visit_repeating_frequency = CTTermRoot.nodes.get(
                 uid=study_visit.repeating_frequency.term_uid
             )
-            new_visit.has_repeating_frequency.connect(visit_repeating_frequency)
+            selected_repeating_frequency_node = CTCodelistAttributesRepository().get_or_create_selected_term(
+                visit_repeating_frequency,
+                codelist_submission_value=settings.repeating_visit_frequency_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+            )
+            new_visit.has_repeating_frequency.connect(selected_repeating_frequency_node)
 
+        # Time point
         if study_visit.timepoint:
             visit_timepoint = TimePointRoot.nodes.get(uid=study_visit.timepoint.uid)
             new_visit.has_timepoint.connect(visit_timepoint)
+        # Study day
         if study_visit.study_day:
             study_day_numeric_value = StudyDayRoot.nodes.get(
                 uid=study_visit.study_day.uid
             )
             new_visit.has_study_day.connect(study_day_numeric_value)
+
+        # Study duration days
         if study_visit.study_duration_days:
             study_duration_days = StudyDurationDaysRoot.nodes.get(
                 uid=study_visit.study_duration_days.uid
             )
             new_visit.has_study_duration_days.connect(study_duration_days)
+
+        # Study week
         if study_visit.study_week:
             study_week_numeric_value = StudyWeekRoot.nodes.get(
                 uid=study_visit.study_week.uid
             )
             new_visit.has_study_week.connect(study_week_numeric_value)
+
+        # Study duration weeks
         if study_visit.study_duration_weeks:
             study_duration_weeks = StudyDurationWeeksRoot.nodes.get(
                 uid=study_visit.study_duration_weeks.uid
             )
             new_visit.has_study_duration_weeks.connect(study_duration_weeks)
+
+        # Week in study
         if study_visit.week_in_study:
             week_in_study = WeekInStudyRoot.nodes.get(uid=study_visit.week_in_study.uid)
             new_visit.has_week_in_study.connect(week_in_study)
@@ -837,25 +867,45 @@ class StudyVisitRepository:
             )
             new_visit.in_visit_group.connect(study_visit_group)
 
+        # Visit name
         visit_name_text_value = VisitNameRoot.nodes.get(
             uid=study_visit.visit_name_sc.uid
         )
         new_visit.has_visit_name.connect(visit_name_text_value)
 
+        # Visit window time unit
         if study_visit.window_unit_uid is not None:
             window_unit = UnitDefinitionRoot.nodes.get(uid=study_visit.window_unit_uid)
             new_visit.has_window_unit.connect(window_unit)
         else:
             window_unit = None
+
+        # Visit contact mode
         visit_contact_mode = CTTermRoot.nodes.get(
             uid=study_visit.visit_contact_mode.term_uid
         )
-        new_visit.has_visit_contact_mode.connect(visit_contact_mode)
+        selected_contact_mode_node = (
+            CTCodelistAttributesRepository().get_or_create_selected_term(
+                visit_contact_mode,
+                codelist_submission_value=settings.study_visit_contact_mode_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+            )
+        )
+        new_visit.has_visit_contact_mode.connect(selected_contact_mode_node)
+
+        # Epoch allocation
         if study_visit.epoch_allocation:
             epoch_allocation = CTTermRoot.nodes.get(
                 uid=study_visit.epoch_allocation.term_uid
             )
-            new_visit.has_epoch_allocation.connect(epoch_allocation)
+            selected_epoch_allocation_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    epoch_allocation,
+                    codelist_submission_value=settings.epoch_allocation_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            new_visit.has_epoch_allocation.connect(selected_epoch_allocation_node)
 
         study_epoch = (
             StudyEpoch.nodes.has(has_after=True)

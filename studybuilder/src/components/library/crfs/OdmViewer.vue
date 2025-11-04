@@ -1,137 +1,140 @@
 <template>
   <div>
-    <v-row v-if="!doc" class="mt-2 ml-2 mr-2">
+    <v-row class="mt-2 ml-2 mr-2" style="display: flex">
       <v-col cols="2">
         <v-select
-          v-model="data.target_type"
-          :items="types"
-          :label="$t('OdmViewer.odm_element_type')"
-          density="comfortable"
+          v-model="selectedTemplates"
+          :items="templates"
+          :label="$t('OdmViewer.crf_template')"
+          variant="outlined"
+          density="compact"
           clearable
+          multiple
+          return-object
           item-title="name"
           item-value="value"
           class="mt-2"
-          @update:model-value="setElements()"
-        />
+          @update:model-value="getFormsForTemplates()"
+        >
+          <template #selection="{ item, index }">
+            <div v-if="index === 0">
+              <span>{{
+                item.title.length > 25
+                  ? item.title.substring(0, 25) + '...'
+                  : item.title
+              }}</span>
+            </div>
+            <span v-if="index === 1" class="grey--text text-caption mr-1">
+              (+{{ selectedTemplates.length - 1 }})
+            </span>
+          </template>
+        </v-select>
       </v-col>
-      <v-col cols="2">
-        <v-select
-          v-model="data.target_uid"
-          :items="elements"
-          :label="$t('OdmViewer.odm_element_name')"
-          density="comfortable"
+      <v-col cols="3">
+        <v-autocomplete
+          v-model="selectedForms"
+          :items="forms"
+          :label="$t('OdmViewer.select_forms')"
+          variant="outlined"
+          density="compact"
           clearable
+          multiple
           class="mt-2"
           item-title="name"
           item-value="uid"
-        />
+        >
+          <template #selection="{ item, index }">
+            <div v-if="index === 0">
+              <span>{{
+                item.title.length > 25
+                  ? item.title.substring(0, 25) + '...'
+                  : item.title
+              }}</span>
+            </div>
+            <span v-if="index === 1" class="grey--text text-caption mr-1">
+              (+{{ selectedForms.length - 1 }})
+            </span>
+          </template>
+        </v-autocomplete>
       </v-col>
       <v-col cols="2">
         <v-select
           v-model="element_status"
           :items="elementStatuses"
           :label="$t('OdmViewer.element_status')"
-          density="comfortable"
+          variant="outlined"
+          density="compact"
           class="mt-2"
         />
-      </v-col>
-    </v-row>
-    <v-row v-if="!doc" class="mt-2 ml-2 mr-2">
-      <v-col cols="2">
-        <v-select
-          v-model="selectedNamespaces"
-          :items="allowedNamespaces"
-          :label="$t('OdmViewer.allowed_namespaces')"
-          density="comfortable"
-          clearable
-          multiple
-        >
-          <template #selection="{ item, index }">
-            <v-chip
-              v-if="index < 2"
-              :text="item.title"
-              density="compact"
-            ></v-chip>
-
-            <span
-              v-if="index === 2"
-              class="text-grey text-caption align-self-center"
-            >
-              (+{{ selectedNamespaces.length - 2 }}
-              {{ selectedNamespaces.length - 2 === 1 ? 'other' : 'others' }})
-            </span>
-          </template>
-        </v-select>
       </v-col>
       <v-col cols="2">
         <v-select
           v-model="data.selectedStylesheet"
           :items="data.stylesheet"
-          density="comfortable"
+          variant="outlined"
+          density="compact"
+          class="mt-2"
           :label="$t('OdmViewer.stylesheet')"
         />
       </v-col>
       <v-col cols="2">
         <v-btn
-          :disabled="!data.target_uid"
-          color="primary"
+          color="secondary"
           :label="$t('_global.load')"
-          size="large"
-          block
+          variant="flat"
+          rounded="xl"
+          class="mt-2"
+          :disabled="selectedForms.length === 0"
           @click="loadXml"
         >
           {{ $t('OdmViewer.load') }}
         </v-btn>
       </v-col>
-    </v-row>
-    <v-row v-else class="mt-0 ml-2">
-      <v-btn
-        class="ml-2 mt-1"
-        size="small"
-        color="primary"
-        :label="$t('_global.load')"
-        @click="clearXml"
-      >
-        {{ $t('OdmViewer.load_another') }}
-      </v-btn>
-      <v-btn
-        v-show="doc"
-        size="small"
-        color="nnGreen1"
-        class="ml-4 white--text"
-        :title="$t('DataTableExportButton.export_xml')"
-        :loading="xmlDownloadLoading"
-        icon="mdi-file-xml-box"
-        @click="downloadXml"
-      />
-      <v-btn
-        v-show="doc !== ''"
-        size="small"
-        color="nnGreen1"
-        class="ml-4 white--text"
-        :title="$t('DataTableExportButton.export_pdf')"
-        :loading="pdfDownloadLoading"
-        icon="mdi-file-pdf-box"
-        @click="downloadPdf"
-      />
-      <v-btn
-        v-show="doc !== ''"
-        size="small"
-        color="nnGreen1"
-        class="ml-4 white--text"
-        :title="$t('DataTableExportButton.export_html')"
-        :loading="htmlDownloadLoading"
-        icon="mdi-file-document-outline"
-        @click="downloadHtml"
-      />
       <v-spacer />
-      <v-switch
-        v-model="showOdmXml"
-        :label="$t('OdmViewer.xml_code')"
-        color="primary"
-        class="mr-6"
-        inset
-      ></v-switch>
+      <v-menu rounded offset-y>
+        <template #activator="{ props }">
+          <slot name="button" :props="props">
+            <v-btn
+              class="mr-4 mt-4"
+              size="small"
+              variant="outlined"
+              color="nnBaseBlue"
+              v-bind="props"
+              :title="$t('DataTableExportButton.export')"
+              data-cy="table-export-button"
+              icon="mdi-download-outline"
+              :disabled="!doc"
+              :loading="loading || exportLoading"
+            />
+          </slot>
+        </template>
+        <v-list>
+          <v-list-item link color="nnBaseBlue" @click="downloadXml">
+            <v-list-item-title class="nnBaseBlue">
+              <v-icon color="nnBaseBlue" class="mr-2">
+                mdi-file-xml-box
+              </v-icon>
+              {{ $t('DataTableExportButton.export_xml') }}
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item link color="nnBaseBlue" @click="downloadPdf">
+            <v-list-item-title class="nnBaseBlue">
+              <v-icon color="nnBaseBlue" class="mr-2">
+                mdi-file-pdf-box
+              </v-icon>
+              {{ $t('DataTableExportButton.export_pdf') }}
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item link color="nnBaseBlue" @click="downloadHtml">
+            <v-list-item-title class="nnBaseBlue">
+              <v-icon color="nnBaseBlue" class="mr-2">
+                mdi-file-document-outline
+              </v-icon>
+              {{ $t('DataTableExportButton.export_html') }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-row>
     <div v-show="loading">
       <v-row align="center" justify="center" style="text-align: -webkit-center">
@@ -162,31 +165,12 @@
 </template>
 
 <script setup>
-import _isEmpty from 'lodash/isEmpty'
 import crfs from '@/api/crfs'
 import statuses from '@/constants/statuses'
 import exportLoader from '@/utils/exportLoader'
 import { DateTime } from 'luxon'
-import { ref, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
-
-const props = defineProps({
-  typeProp: {
-    type: String,
-    default: null,
-  },
-  elementProp: {
-    type: String,
-    default: null,
-  },
-  refresh: {
-    type: String,
-    default: null,
-  },
-})
-const route = useRoute()
-const router = useRouter()
 const { t } = useI18n()
 
 const elementStatuses = [
@@ -196,11 +180,13 @@ const elementStatuses = [
   statuses.RETIRED,
 ]
 
-const allowedNamespaces = ref([])
-const selectedNamespaces = ref([])
 const showOdmXml = ref(false)
 
-const elements = ref([])
+const selectedTemplates = ref([])
+const templates = ref([])
+const selectedForms = ref([])
+const forms = ref([])
+
 let xml = ''
 const xmlString = ref('')
 const doc = ref(null)
@@ -216,97 +202,36 @@ const data = ref({
       value: 'falcon',
     },
   ],
-  selectedStylesheet: 'with-annotations',
+  selectedStylesheet: 'falcon',
   export_to: 'v1',
 })
 const loading = ref(false)
-const xmlDownloadLoading = ref(false)
-const pdfDownloadLoading = ref(false)
-const htmlDownloadLoading = ref(false)
-const types = [
-  { name: t('OdmViewer.template'), value: 'study_event' },
-  { name: t('OdmViewer.form'), value: 'form' },
-  { name: t('OdmViewer.item_group'), value: 'item_group' },
-  { name: t('OdmViewer.item'), value: 'item' },
-]
+const exportLoading = ref(false)
 const element_status = ref(statuses.LATEST)
-let url = ''
-
-watch(
-  () => props.refresh,
-  () => {
-    if (props.refresh === 'odm-viewer' && url !== '') {
-      const stateObj = { id: '100' }
-      window.history.replaceState(stateObj, 'Loaded CRF', url)
-    }
-  }
-)
-
-watch(
-  () => props.elementProp,
-  () => {
-    automaticLoad()
-  }
-)
 
 onMounted(() => {
-  automaticLoad()
+  getTemplates()
 })
 
-function automaticLoad() {
-  data.value.target_type = route.params.type || 'form'
-  data.value.target_uid = route.params.uid
-  setElements()
-  if (_isEmpty(allowedNamespaces.value)) {
-    crfs.getAllNamespaces({ page_size: 0 }).then((resp) => {
-      allowedNamespaces.value = resp.data.items.map((item) => item.prefix)
+function getTemplates() {
+  const params = { page_size: 0 }
+  crfs.get('study-events', { params }).then((resp) => {
+    templates.value = resp.data.items
+  })
+}
 
-      selectedNamespaces.value = allowedNamespaces.value
+function getFormsForTemplates() {
+  try {
+    forms.value = []
+    selectedForms.value = []
+    selectedTemplates.value.forEach((template) => {
+      forms.value = [...forms.value, ...template.forms]
     })
-  }
-  if (data.value.target_type && data.value.target_uid) {
-    loadXml()
-  }
-}
-
-function setElements() {
-  if (data.value.target_type) {
-    const params = { page_size: 0 }
-    switch (data.value.target_type) {
-      case 'study_event':
-        crfs.get('study-events', { params }).then((resp) => {
-          elements.value = resp.data.items
-        })
-        return
-      case 'form':
-        crfs.get('forms', { params }).then((resp) => {
-          elements.value = resp.data.items
-        })
-        return
-      case 'item_group':
-        crfs.get('item-groups', { params }).then((resp) => {
-          elements.value = resp.data.items
-        })
-        return
-      case 'item':
-        crfs.get('items', { params }).then((resp) => {
-          elements.value = resp.data.items
-        })
-    }
-  }
-}
-
-function getAllowedNamespaces() {
-  if (_isEmpty(selectedNamespaces.value)) {
-    return ''
-  } else if (
-    allowedNamespaces.value.length == selectedNamespaces.value.length
-  ) {
-    return '&allowed_namespaces=*'
-  } else {
-    return selectedNamespaces.value
-      .map((ns) => `&allowed_namespaces=${encodeURIComponent(ns)}`)
-      .join('')
+    forms.value = forms.value.filter(
+      (form1, i, arr) => arr.findIndex((form2) => form2.uid === form1.uid) === i
+    )
+  } catch (error) {
+    console.error(error)
   }
 }
 
@@ -314,7 +239,11 @@ async function loadXml() {
   doc.value = ''
   loading.value = true
   data.value.status = element_status.value.toLowerCase()
-  data.value.allowed_namespaces = getAllowedNamespaces()
+  data.value.allowed_namespaces = '&allowed_namespaces=*'
+  data.value.target_uids = ''
+  selectedForms.value.forEach((form) => {
+    data.value.target_uids += `target_uids=${form}&`
+  })
   crfs.getXml(data.value).then((resp) => {
     const parser = new DOMParser()
     xmlString.value = resp.data
@@ -337,15 +266,6 @@ async function loadXml() {
       loading.value = false
     })
   })
-  router.push({
-    name: 'Crfs',
-    params: {
-      tab: 'odm-viewer',
-      type: data.value.target_type,
-      uid: data.value.target_uid,
-    },
-  })
-  url = `${window.location.href}`
 }
 
 function getDownloadFileName() {
@@ -353,52 +273,43 @@ function getDownloadFileName() {
   if (data.value.selectedStylesheet === 'falcon') {
     stylesheet = '_falcon_crf_'
   }
-  const templateName = elements.value.filter(
-    (el) => el.uid === data.value.target_uid
-  )[0].name
-  return `${templateName + stylesheet + DateTime.local().toFormat('yyyy-MM-dd HH:mm')}`
+  return `${'CRF_Export' + stylesheet + DateTime.local().toFormat('yyyy-MM-dd HH:mm')}`
 }
 
 function downloadHtml() {
-  htmlDownloadLoading.value = true
+  exportLoading.value = true
   exportLoader.downloadFile(
     doc.value,
     'text/html',
     getDownloadFileName() + '.html'
   )
-  htmlDownloadLoading.value = false
+  exportLoading.value = false
 }
 
 function downloadXml() {
-  xmlDownloadLoading.value = true
-  data.value.allowed_namespaces = getAllowedNamespaces()
+  exportLoading.value = true
+  data.value.allowed_namespaces = '&allowed_namespaces=*'
   crfs.getXml(data.value).then((resp) => {
     exportLoader.downloadFile(
       resp.data,
       'text/xml',
       getDownloadFileName() + '.xml'
     )
-    xmlDownloadLoading.value = false
+    exportLoading.value = false
   })
 }
 
 function downloadPdf() {
-  pdfDownloadLoading.value = true
-  data.value.allowed_namespaces = getAllowedNamespaces()
+  exportLoading.value = true
+  data.value.allowed_namespaces = '&allowed_namespaces=*'
   crfs.getPdf(data.value).then((resp) => {
     exportLoader.downloadFile(
       resp.data,
       'application/pdf',
       getDownloadFileName()
     )
-    pdfDownloadLoading.value = false
+    exportLoading.value = false
   })
-}
-
-function clearXml() {
-  doc.value = null
-  url = ''
-  router.push({ name: 'Crfs', params: { tab: 'odm-viewer' } })
 }
 </script>
 <style>

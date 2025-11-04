@@ -20,7 +20,7 @@ from clinical_mdr_api.domain_repositories.models.concepts import (
     WeekInStudyRoot,
 )
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
-    CTTermRoot,
+    CTTermContext,
 )
 from clinical_mdr_api.domain_repositories.models.generic import (
     ClinicalMdrNodeWithUID,
@@ -62,7 +62,7 @@ class StudyVisit(StudySelection):
     visit_number = FloatProperty()
 
     has_visit_type = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_VISIT_TYPE",
         model=ClinicalMdrRel,
         cardinality=ZeroOrOne,
@@ -90,13 +90,13 @@ class StudyVisit(StudySelection):
     start_rule = StringProperty()
     end_rule = StringProperty()
     has_visit_contact_mode = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_VISIT_CONTACT_MODE",
         model=ClinicalMdrRel,
         cardinality=ZeroOrOne,
     )
     has_epoch_allocation = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_EPOCH_ALLOCATION",
         model=ClinicalMdrRel,
         cardinality=ZeroOrOne,
@@ -108,7 +108,7 @@ class StudyVisit(StudySelection):
     is_soa_milestone = BooleanProperty(default=False)
 
     has_repeating_frequency = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_REPEATING_FREQUENCY",
         model=ClinicalMdrRel,
         cardinality=ZeroOrOne,

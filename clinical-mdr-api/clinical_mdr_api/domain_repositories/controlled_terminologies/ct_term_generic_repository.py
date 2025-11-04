@@ -59,11 +59,16 @@ class CTTermGenericRepository(
 
     generic_alias_clause = """
         DISTINCT term_root, term_ver_root, term_ver_value, codelist_root, rel_term
-        ORDER BY rel_term.order, term_ver_value.name
-        WITH DISTINCT codelist_root, rel_term, term_root, term_ver_root, term_ver_value,
-        head([(catalogue)-[:HAS_CODELIST]->(codelist_root) | catalogue]) AS catalogue,
+        ORDER BY term_ver_value.name
+        WITH DISTINCT term_root, term_ver_root, term_ver_value,
+        [(catalogue:CTCatalogue)-[:HAS_CODELIST]->(codelist_root) | catalogue.name] AS catalogue_names,
         head([(lib)-[:CONTAINS_TERM]->(term_root) | lib]) AS library
-        MATCH (codelist_root)<-[:CONTAINS_CODELIST]-(codelist_library:Library)
+        WITH
+            term_root,
+            term_ver_root,
+            term_ver_value,
+            apoc.coll.dropDuplicateNeighbors(apoc.coll.sort(apoc.coll.flatten(collect(catalogue_names)))) AS catalogue_names,
+            library
         CALL {
                 WITH term_ver_root, term_ver_value
                 MATCH (term_ver_root)-[hv:HAS_VERSION]-(term_ver_value)
@@ -78,11 +83,8 @@ class CTTermGenericRepository(
             }
         WITH
             term_root.uid AS term_uid,
-            codelist_root.uid AS codelist_uid,
-            codelist_library.name AS codelist_library_name,
-            catalogue.name AS catalogue_name,
+            catalogue_names,
             term_ver_value AS value_node,
-            rel_term.order AS order,
             library.name AS library_name,
             library.is_editable AS is_library_editable,
             {
@@ -100,7 +102,7 @@ class CTTermGenericRepository(
                 // RETURN author
                 RETURN coalesce(author.username, rel_data.author_id) AS author_username 
             }
-        WITH *             
+        WITH * 
         """
 
     def generate_uid(self) -> str:
@@ -131,6 +133,22 @@ class CTTermGenericRepository(
             RETURN rel_term.order as order
             """
         result, _ = db.cypher_query(query, {"uid": uid})
+        if len(result) > 0 and len(result[0]) > 0:
+            return result[0][0]
+        return None
+
+    def term_specific_order_by_uid_and_cl_submval(
+        self, uid: str, cl_submval: str
+    ) -> int | None:
+        """
+        Returns the latest final version order number if a order number exists for a given term uid and codelist submission value
+        :return:
+        """
+        query = """
+            MATCH (term_root:CTTermRoot {uid: $uid})<-[:HAS_TERM_ROOT]-(codelist_term:CTCodelistTerm)<-[ht:HAS_TERM]-(:CTCodelistRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTCodelistAttributesRoot)-[:LATEST]->(cl_attr_value:CTCodelistAttributesValue {submission_value: $cl_submval})
+            RETURN ht.order as order
+            """
+        result, _ = db.cypher_query(query, {"uid": uid, "cl_submval": cl_submval})
         if len(result) > 0 and len(result[0]) > 0:
             return result[0][0]
         return None
@@ -169,10 +187,10 @@ class CTTermGenericRepository(
 
     def get_term_name_and_attributes_by_codelist_uids(self, codelist_uids: list[Any]):
         query = """
-            MATCH (codelist:CTCodelistRoot)-[:HAS_TERM]->(term_root:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(term_attr_root:CTTermAttributesRoot)-[:LATEST]->(term_attr_value:CTTermAttributesValue)
+            MATCH (codelist:CTCodelistRoot)-[:HAS_TERM]->(codelist_term:CTCodelistTerm)-[:HAS_TERM_ROOT]->(term_root:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(term_attr_root:CTTermAttributesRoot)-[:LATEST]->(term_attr_value:CTTermAttributesValue)
             MATCH (term_root)-[:HAS_NAME_ROOT]->(term_name_root:CTTermNameRoot)-[:LATEST]->(term_name_value:CTTermNameValue)
             WHERE codelist.uid in $codelist_uids
-            RETURN term_name_value.name as name, term_root.uid as term_uid, codelist.uid as codelist_uid, term_attr_value.code_submission_value as code_submission_value, term_attr_value.preferred_term as nci_preferred_name
+            RETURN term_name_value.name as name, term_root.uid as term_uid, codelist.uid as codelist_uid, codelist_term.submission_value as submission_value, term_attr_value.preferred_term as nci_preferred_name
             """
 
         items, prop_names = db.cypher_query(query, {"codelist_uids": codelist_uids})
@@ -183,7 +201,7 @@ class CTTermGenericRepository(
         query = """
             MATCH (term_root:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(term_attr_root:CTTermAttributesRoot)-[:LATEST]->(term_attr_value:CTTermAttributesValue)
             WHERE term_root.uid in $term_uids
-            RETURN term_root.uid as term_uid, term_attr_value.code_submission_value as code_submission_value, term_attr_value.preferred_term as nci_preferred_name
+            RETURN term_root.uid as term_uid, term_attr_value.preferred_term as nci_preferred_name
             """
 
         items, prop_names = db.cypher_query(query, {"term_uids": term_uids})
@@ -370,7 +388,10 @@ class CTTermGenericRepository(
         :param syntax_node: Syntax Root node
         :return _AggregateRootType:
         """
-        type_node = syntax_node.has_type.single()
+        type_node = syntax_node.has_type.get_or_none()
+        if type_node:
+            type_node = type_node.has_selected_term.get_or_none()
+
         return self.find_by_uid(term_uid=type_node.uid)
 
     def hashkey_ct_term(
@@ -422,7 +443,7 @@ class CTTermGenericRepository(
             ct_term_root = CTTermRoot.nodes.get_or_none(uid=term_uid)
         else:
             ct_term_root = CTTermRoot.nodes.filter(
-                has_term__has_name_root__has_latest_value__name=codelist_name,
+                has_term_root__has_term__has_name_root__has_latest_value__name=codelist_name,
             ).get_or_none(uid=term_uid)[0]
         if ct_term_root is None:
             return None
@@ -491,7 +512,9 @@ class CTTermGenericRepository(
             return versions
         return None
 
-    @sb_clear_cache(caches=["cache_store_item_by_uid"])
+    @sb_clear_cache(
+        caches=["cache_store_item_by_uid", "cache_store_term_by_uid_and_submval"]
+    )
     def save(self, item: _AggregateRootType) -> None:
         if item.uid is not None and item.repository_closure_data is None:
             self._create(item)
@@ -504,7 +527,9 @@ class CTTermGenericRepository(
     def _is_repository_related_to_ct(self) -> bool:
         return True
 
-    @sb_clear_cache(caches=["cache_store_item_by_uid"])
+    @sb_clear_cache(
+        caches=["cache_store_item_by_uid", "cache_store_term_by_uid_and_submval"]
+    )
     def add_parent(
         self, term_uid: str, parent_uid: str, relationship_type: TermParentType
     ) -> None:
@@ -521,6 +546,8 @@ class CTTermGenericRepository(
 
         if relationship_type == TermParentType.PARENT_TYPE:
             parent_node = ct_term_root_node.has_parent_type.get_or_none()
+        elif relationship_type == TermParentType.PREDECESSOR:
+            parent_node = ct_term_root_node.has_predecessor.get_or_none()
         else:
             parent_node = ct_term_root_node.has_parent_subtype.get_or_none()
 
@@ -534,10 +561,14 @@ class CTTermGenericRepository(
 
         if relationship_type == TermParentType.PARENT_TYPE:
             ct_term_root_node.has_parent_type.connect(ct_term_root_parent_node)
+        elif relationship_type == TermParentType.PREDECESSOR:
+            ct_term_root_node.has_predecessor.connect(ct_term_root_parent_node)
         else:
             ct_term_root_node.has_parent_subtype.connect(ct_term_root_parent_node)
 
-    @sb_clear_cache(caches=["cache_store_item_by_uid"])
+    @sb_clear_cache(
+        caches=["cache_store_item_by_uid", "cache_store_term_by_uid_and_submval"]
+    )
     def remove_parent(
         self, term_uid: str, parent_uid: str, relationship_type: TermParentType
     ) -> None:
@@ -554,6 +585,8 @@ class CTTermGenericRepository(
 
         if relationship_type == TermParentType.PARENT_TYPE:
             parent_node = ct_term_root_node.has_parent_type.get_or_none()
+        elif relationship_type == TermParentType.PREDECESSOR:
+            parent_node = ct_term_root_node.has_predecessor.get_or_none()
         else:
             parent_node = ct_term_root_node.has_parent_subtype.get_or_none()
 
@@ -564,6 +597,8 @@ class CTTermGenericRepository(
         )
         if relationship_type == TermParentType.PARENT_TYPE:
             ct_term_root_node.has_parent_type.disconnect(parent_node)
+        elif relationship_type == TermParentType.PREDECESSOR:
+            ct_term_root_node.has_predecessor.disconnect(parent_node)
         else:
             ct_term_root_node.has_parent_subtype.disconnect(parent_node)
 
@@ -593,6 +628,37 @@ class CTTermGenericRepository(
         cypher_query += f"""
             (term_root:CTTermRoot)-[:{cast(str, self.relationship_from_root).upper()}]->(:{self.root_class.__label__})-
             [:LATEST_FINAL|LATEST_DRAFT|LATEST_RETIRED]->(:{self.value_class.__label__} {{{field}: $field}})
+            RETURN term_root.uid
+        """
+        items, _ = db.cypher_query(cypher_query, params)
+        if len(items) > 0:
+            return items[0][0]
+        return None
+
+    def find_uid_by_submission_value(self, value: str, codelist_uid: str) -> str | None:
+        params = {"submval": value, "codelist_uid": codelist_uid}
+
+        cypher_query = """
+            MATCH (ct_codelist_root:CTCodelistRoot {uid: $codelist_uid})-[ht:HAS_TERM]->(:CTCodelistTerm {submission_value: $submval})-[:HAS_TERM_ROOT]->(term_root:CTTermRoot)
+            WHERE ht.end_date IS NULL
+            RETURN term_root.uid
+        """
+        items, _ = db.cypher_query(cypher_query, params)
+        print("--øøø find_uid_by_submission_value", value, codelist_uid)
+        print(items)
+        if len(items) > 0:
+            return items[0][0]
+        return None
+
+    def find_uid_by_submission_values(
+        self, term_submval: str, codelist_submval: str
+    ) -> str | None:
+        params = {"term_submval": term_submval, "codelist_submval": codelist_submval}
+
+        cypher_query = """
+            MATCH (ct_codelist_root:CTCodelistRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTCodelistAttributesRoot)-[:LATEST]->(:CTCodelistAttributesValue {submission_value: $codelist_submval})
+            MATCH (ct_codelist_root)-[ht:HAS_TERM]->(:CTCodelistTerm {submission_value: $term_submval})-[:HAS_TERM_ROOT]->(term_root:CTTermRoot)
+            WHERE ht.end_date IS NULL
             RETURN term_root.uid
         """
         items, _ = db.cypher_query(cypher_query, params)
@@ -636,14 +702,17 @@ class CTTermGenericRepository(
             match_clause += filter_statements
 
         if in_codelist or (not package and (codelist_uid or codelist_name)):
-            match_clause += " MATCH (codelist_root:CTCodelistRoot)-[rel_term:HAS_TERM]->(term_root) "
+            # Only include terms that are curently in a codelist,
+            # meaning they have at least one HAS_TERM relationship without and end date
+            match_clause += " MATCH (codelist_root:CTCodelistRoot)-[rel_term:HAS_TERM WHERE rel_term.end_date IS NULL ]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->(term_root) "
         elif not package:
-            match_clause += " OPTIONAL MATCH (codelist_root:CTCodelistRoot)-[rel_term:HAS_TERM]->(term_root) "
+            # Include terms that are not in any codelist, meaning they have no HAS_TERM relationship or only HAS_TERM relationships with an end date.
+            match_clause += " OPTIONAL MATCH (codelist_root:CTCodelistRoot)-[rel_term:HAS_TERM]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->(term_root) "
         else:
-            # We are listing terms for a specific package, we need to include HAD_TERM relationships also.
+            # We are listing terms for a specific package, we need to include HAS_TERM relationships with an end date also.
             # If not, we would only get terms that are also in the latest version of the package,
             # not those that were in the past.
-            match_clause += " MATCH (codelist_root:CTCodelistRoot)-[rel_term:HAS_TERM|HAD_TERM]->(term_root) "
+            match_clause += " MATCH (codelist_root:CTCodelistRoot)-[rel_term:HAS_TERM]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->(term_root) "
 
         if codelist_uid or codelist_name:
             # Build specific filtering for codelist
@@ -658,3 +727,49 @@ class CTTermGenericRepository(
             filter_query_parameters.update(codelist_filter_query_parameters)
 
         return match_clause, filter_query_parameters
+
+    @sb_clear_cache(
+        caches=["cache_store_item_by_uid", "cache_store_term_by_uid_and_submval"]
+    )
+    def update_term_codelist(
+        self,
+        term_uid: str,
+        codelist_uid: str,
+        order: int,
+        submission_value: str,
+        author: str,
+    ) -> None:
+        """
+        Method adds term identified by term_uid to the codelist identified by codelist_uid.
+        Adding a term means creating a HAS_TERM relationship from CTCodelistRoot to CTCodelistTerm,
+        and  HAS_TERM_ROOT from CTCodelistTerm to CTTermRoot.
+        When codelist identified by codelist_uid is a TemplateParameter, then the added term
+        will become TemplateParameter term, which means creating HAS_PARAMETER_TERM relationship from
+        CTCodelistNameValue to the CTTermNameRoot and labeling CTTermNameRoot as TemplateParameterTermRoot
+        and CTTermNameValue as TemplateParameterTermValue.
+        :param codelist_uid:
+        :param term_uid:
+        :param author:
+        :param order:
+        :param submission_value:
+        :return None:
+        """
+
+        query = """
+            MATCH (term_root:CTTermRoot {uid: $term_uid})<-[:HAS_TERM_ROOT]-(codeslist_term:CTCodelistTerm)<-[has_term:HAS_TERM]-
+                (codelist_root:CTCodelistRoot {uid: $codelist_uid}) WHERE has_term.end_date IS NULL
+            WITH term_root, codeslist_term, codelist_root, has_term
+            MERGE (term_root)<-[:HAS_TERM_ROOT]-(new_codeslist_term:CTCodelistTerm {submission_value: $submission_value})
+            SET has_term.end_date = datetime()
+            MERGE (codelist_root)-[:HAS_TERM {start_date: has_term.end_date, order: $order, author_id: $author_id}]->(new_codeslist_term)
+        """
+        db.cypher_query(
+            query,
+            {
+                "codelist_uid": codelist_uid,
+                "term_uid": term_uid,
+                "submission_value": submission_value,
+                "order": order,
+                "author_id": author,
+            },
+        )

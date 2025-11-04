@@ -58,7 +58,7 @@ class StudyDesignCellRepository:
     def find_by_uid(self, study_uid: str, uid: str) -> StudyDesignCellVO:
         unique_design_cells = ListDistinct(
             StudyDesignCell.nodes.fetch_relations(
-                "study_epoch__has_epoch__has_name_root__has_latest_value",
+                "study_epoch__has_epoch__has_selected_term__has_name_root__has_latest_value",
                 "has_after__audit_trail",
                 "study_epoch",
                 Optional("study_arm__study_value"),
@@ -107,7 +107,7 @@ class StudyDesignCellRepository:
             )
             for sas_node in ListDistinct(
                 StudyDesignCell.nodes.fetch_relations(
-                    "study_epoch__has_epoch__has_name_root__has_latest_value",
+                    "study_epoch__has_epoch__has_selected_term__has_name_root__has_latest_value",
                     "has_after__audit_trail",
                     "study_epoch__study_value",
                     "study_element__study_value",
@@ -167,6 +167,7 @@ class StudyDesignCellRepository:
 
         study_epoch_name = (
             study_epoch.has_epoch.single()
+            .has_selected_term.single()
             .has_name_root.single()
             .has_latest_value.single()
             .name
@@ -488,7 +489,7 @@ class StudyDesignCellRepository:
             }
         sdc_node = ListDistinct(
             StudyDesignCell.nodes.fetch_relations(
-                "study_epoch__has_epoch__has_name_root__has_latest_value",
+                "study_epoch__has_epoch__has_selected_term__has_name_root__has_latest_value",
                 "has_after__audit_trail",
                 "study_epoch__study_value",
                 "study_branch_arm",
@@ -523,7 +524,7 @@ class StudyDesignCellRepository:
             }
         sdc_node = ListDistinct(
             StudyDesignCell.nodes.fetch_relations(
-                "study_epoch__has_epoch__has_name_root__has_latest_value",
+                "study_epoch__has_epoch__has_selected_term__has_name_root__has_latest_value",
                 "has_after__audit_trail",
                 "study_epoch__study_value",
                 Optional("study_arm__study_value"),
@@ -556,7 +557,7 @@ class StudyDesignCellRepository:
             }
         sdc_node = ListDistinct(
             StudyDesignCell.nodes.fetch_relations(
-                "study_epoch__has_epoch__has_name_root__has_latest_value",
+                "study_epoch__has_epoch__has_selected_term__has_name_root__has_latest_value",
                 "study_arm__study_value",
                 "has_after__audit_trail",
                 "study_epoch__study_value",

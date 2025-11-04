@@ -49,7 +49,6 @@ def test_create_a_new_odm_form(api_client):
         "oid": "oid1",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": "term1",
         "descriptions": ["odm_description2", "odm_description3"],
         "alias_uids": ["odm_alias1"],
     }
@@ -70,11 +69,6 @@ def test_create_a_new_odm_form(api_client):
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
     assert res["sdtm_version"] == "0.1"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -169,11 +163,6 @@ def test_add_odm_vendor_element_to_an_odm_form(api_client):
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
     assert res["sdtm_version"] == "0.1"
-    assert res["scope"] == {
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-        "uid": "term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -228,11 +217,6 @@ def test_add_odm_vendor_element_attribute_to_an_odm_form(api_client):
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
     assert res["sdtm_version"] == "0.1"
-    assert res["scope"] == {
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-        "uid": "term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -282,7 +266,6 @@ def test_cannot_create_a_new_odm_form_with_same_properties(api_client):
         "oid": "oid1",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": "term1",
         "descriptions": ["odm_description2", "odm_description3"],
         "alias_uids": ["odm_alias1"],
     }
@@ -295,31 +278,7 @@ def test_cannot_create_a_new_odm_form_with_same_properties(api_client):
     assert res["type"] == "AlreadyExistsException"
     assert (
         res["message"]
-        == "ODM Form already exists with UID (OdmForm_000001) and data {'library_name': 'Sponsor', 'alias_uids': ['odm_alias1'], 'scope_uid': 'term1', 'name': 'name1', 'oid': 'oid1', 'sdtm_version': '0.1', 'repeating': False}"
-    )
-
-
-def test_cannot_create_an_odm_form_connected_to_non_existent_scope(api_client):
-    data = {
-        "library_name": "Sponsor",
-        "name": "new name",
-        "oid": "new oid",
-        "sdtm_version": "0.1",
-        "repeating": "No",
-        "scope_uid": "wrong_uid",
-        "descriptions": [],
-        "alias_uids": [],
-    }
-    response = api_client.post("concepts/odms/forms", json=data)
-
-    assert_response_status_code(response, 400)
-
-    res = response.json()
-
-    assert res["type"] == "BusinessLogicException"
-    assert (
-        res["message"]
-        == "ODM Form tried to connect to non-existent Scope with UID 'wrong_uid'."
+        == "ODM Form already exists with UID (OdmForm_000001) and data {'library_name': 'Sponsor', 'alias_uids': ['odm_alias1'], 'name': 'name1', 'oid': 'oid1', 'sdtm_version': '0.1', 'repeating': False}"
     )
 
 
@@ -457,11 +416,6 @@ def test_approve_odm_form(api_client):
     assert res["change_description"] == "Approved version"
     assert res["author_username"] == "unknown-user@example.com"
     assert res["sdtm_version"] == "0.1"
-    assert res["scope"] == {
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-        "uid": "term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -620,11 +574,6 @@ def test_inactivate_odm_form(api_client):
     assert res["change_description"] == "Inactivated version"
     assert res["author_username"] == "unknown-user@example.com"
     assert res["sdtm_version"] == "0.1"
-    assert res["scope"] == {
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-        "uid": "term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",

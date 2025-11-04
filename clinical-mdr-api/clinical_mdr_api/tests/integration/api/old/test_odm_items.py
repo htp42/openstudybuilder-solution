@@ -155,6 +155,7 @@ def test_creating_a_new_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }
@@ -239,6 +240,7 @@ def test_getting_non_empty_list_of_odm_items(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }
@@ -333,6 +335,7 @@ def test_getting_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }
@@ -417,6 +420,7 @@ def test_getting_versions_of_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }
@@ -530,6 +534,7 @@ def test_updating_an_existing_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -614,6 +619,7 @@ def test_approving_an_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -698,6 +704,7 @@ def test_inactivating_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -782,6 +789,7 @@ def test_reactivating_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -869,6 +877,7 @@ def test_adding_activity_to_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -956,6 +965,7 @@ def test_overriding_activity_from_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -1043,6 +1053,7 @@ def test_adding_odm_vendor_element_to_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -1132,6 +1143,7 @@ def test_overriding_odm_vendor_element_from_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -1221,6 +1233,7 @@ def test_adding_odm_vendor_attribute_to_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -1319,6 +1332,7 @@ def test_overriding_odm_vendor_attribute_from_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -1417,6 +1431,7 @@ def test_adding_odm_vendor_element_attribute_to_a_specific_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -1525,6 +1540,7 @@ def test_overriding_odm_vendor_element_attribute_from_a_specific_odm_item(api_cl
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -1634,6 +1650,7 @@ def test_overriding_odm_vendor_element_attribute_from_a_specific_odm_item1(api_c
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -1738,6 +1755,7 @@ def test_creating_a_new_odm_item_version(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": "display text",
             "version": "1.0",
         }
@@ -2029,6 +2047,7 @@ def test_updating_an_existing_odm_item_with_relations(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }

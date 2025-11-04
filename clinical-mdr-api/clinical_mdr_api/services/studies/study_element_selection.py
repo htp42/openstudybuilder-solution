@@ -92,8 +92,8 @@ class StudyElementSelectionService(
             study_uid,
             study_selection,
             order,
-            find_simple_term_element_by_term_uid=self._find_by_uid_or_raise_not_found,
             get_term_element_type_by_element_subtype=repos.study_element_repository.get_element_type_term_uid_by_element_subtype_term_uid,
+            find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             find_all_study_time_units=self._repos.unit_definition_repository.find_all,
             study_value_version=study_value_version,
             terms_at_specific_datetime=terms_at_specific_datetime,
@@ -109,8 +109,8 @@ class StudyElementSelectionService(
         return StudySelectionElement.from_study_selection_history(
             study_selection_history=study_selection_history,
             study_uid=study_uid,
-            get_ct_term_element_subtype=self._find_by_uid_or_raise_not_found,
             get_term_element_type_by_element_subtype=repos.study_element_repository.get_element_type_term_uid_by_element_subtype_term_uid,
+            find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             find_all_study_time_units=self._repos.unit_definition_repository.find_all,
             effective_date=effective_date,
         )
@@ -262,8 +262,8 @@ class StudyElementSelectionService(
                     study_uid=study_uid,
                     selection=new_selection,
                     order=order,
-                    find_simple_term_element_by_term_uid=self._find_by_uid_or_raise_not_found,
                     get_term_element_type_by_element_subtype=repos.study_element_repository.get_element_type_term_uid_by_element_subtype_term_uid,
+                    find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                     find_all_study_time_units=self._repos.unit_definition_repository.find_all,
                     terms_at_specific_datetime=terms_at_specific_datetime,
                 )
@@ -379,8 +379,8 @@ class StudyElementSelectionService(
             study_uid=study_uid,
             selection=new_selection,
             order=order,
-            find_simple_term_element_by_term_uid=self._find_by_uid_or_raise_not_found,
             get_term_element_type_by_element_subtype=repos.study_element_repository.get_element_type_term_uid_by_element_subtype_term_uid,
+            find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             find_all_study_time_units=self._repos.unit_definition_repository.find_all,
             terms_at_specific_datetime=terms_at_specific_datetime,
         )
@@ -479,8 +479,8 @@ class StudyElementSelectionService(
                 study_uid=study_uid,
                 selection=new_selection,
                 order=order,
-                find_simple_term_element_by_term_uid=self._find_by_uid_or_raise_not_found,
                 get_term_element_type_by_element_subtype=repos.study_element_repository.get_element_type_term_uid_by_element_subtype_term_uid,
+                find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 find_all_study_time_units=self._repos.unit_definition_repository.find_all,
                 terms_at_specific_datetime=terms_at_specific_datetime,
             )

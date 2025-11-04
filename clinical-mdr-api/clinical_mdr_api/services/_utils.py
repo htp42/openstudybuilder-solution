@@ -378,7 +378,7 @@ def filter_base_model_using_fields_directive(
 def create_duration_object_from_api_input(
     value: int | None,
     unit: str,
-    find_duration_name_by_code: Callable[[str], UnitDefinitionAR | None],
+    find_duration_name_by_code: Callable[..., UnitDefinitionAR | None],
 ) -> str | None:
     """
     Transforms the API duration input to the ISO duration format.
@@ -787,7 +787,11 @@ def service_level_generic_header_filtering(
             if is_hashable:
                 value_to_return = extracted_value
             else:
-                value_to_return = extracted_value.name
+                value_to_return = None
+                for attrn_name in ["name", "term_name"]:
+                    if hasattr(extracted_value, attrn_name):
+                        value_to_return = getattr(extracted_value, attrn_name)
+                        break
 
             if value_to_return not in return_values:
                 return_values.append(value_to_return)

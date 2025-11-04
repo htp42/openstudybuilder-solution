@@ -315,7 +315,6 @@ class GenericSyntaxService(Generic[_AggregateRootType], abc.ABC):
                     sponsor_preferred_name_sentence_case=template_type_name.ct_term_vo.name_sentence_case,
                 ),
                 attributes=SimpleTermAttributes(
-                    code_submission_value=template_type_attributes.ct_term_vo.code_submission_value,
                     nci_preferred_name=template_type_attributes.ct_term_vo.preferred_term,
                 ),
             )
@@ -354,7 +353,6 @@ class GenericSyntaxService(Generic[_AggregateRootType], abc.ABC):
                             sponsor_preferred_name_sentence_case=category_name.ct_term_vo.name_sentence_case,
                         ),
                         attributes=SimpleTermAttributes(
-                            code_submission_value=category_attributes.ct_term_vo.code_submission_value,
                             nci_preferred_name=category_attributes.ct_term_vo.preferred_term,
                         ),
                     )
@@ -382,7 +380,6 @@ class GenericSyntaxService(Generic[_AggregateRootType], abc.ABC):
                             sponsor_preferred_name_sentence_case=subcategory_name.ct_term_vo.name_sentence_case,
                         ),
                         attributes=SimpleTermAttributes(
-                            code_submission_value=subcategory_attributes.ct_term_vo.code_submission_value,
                             nci_preferred_name=subcategory_attributes.ct_term_vo.preferred_term,
                         ),
                     )

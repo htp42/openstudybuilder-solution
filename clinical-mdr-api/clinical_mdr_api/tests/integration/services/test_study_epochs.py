@@ -18,6 +18,7 @@ from clinical_mdr_api.tests.integration.utils.data_library import (
 from clinical_mdr_api.tests.integration.utils.method_library import (
     create_study_epoch,
     create_study_epoch_codelists_ret_cat_and_lib,
+    create_units,
 )
 from clinical_mdr_api.tests.integration.utils.utils import TestUtils
 from common import exceptions
@@ -40,6 +41,7 @@ class TestStudyEpochManagement(unittest.TestCase):
             study_uid=self.study.uid, create_codelists_and_terms_for_package=False
         )
         create_study_epoch_codelists_ret_cat_and_lib()
+        create_units()
 
         fix_study_preferred_time_unit(self.study.uid)
 

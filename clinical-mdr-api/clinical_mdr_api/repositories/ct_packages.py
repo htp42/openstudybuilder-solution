@@ -239,8 +239,6 @@ def are_terms_different(left_term, right_term):
         left_term["change_date"] != right_term["change_date"]
         or left_value["preferred_term"] != right_value["preferred_term"]
         or are_optional_lists_different(left_value["synonyms"], right_value["synonyms"])
-        or left_value["code_submission_value"] != right_value["code_submission_value"]
-        or left_value["name_submission_value"] != right_value["name_submission_value"]
         or left_value["definition"] != right_value["definition"]
     )
 

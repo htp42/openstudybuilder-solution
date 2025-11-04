@@ -4,6 +4,7 @@ Feature: Studies - Manage Study - Study Status
     Background: User must be logged in
         Given The user is logged in
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to the Study Status page
         Given A test study is selected
         Given The '/studies' page is opened
@@ -11,6 +12,7 @@ Feature: Studies - Manage Study - Study Status
         And The 'Study Status' tab is selected
         Then The current URL is '/study_status/study_status'
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the Study Status page table with correct columns
         Given A test study is selected
         Given The test study '/study_status/study_status' page is opened

@@ -28,6 +28,8 @@ Then('The pop up displays {string}', (message) => {
   cy.checkSnackbarMessage(message)
 })
 
+Then('Validation message {string} is displayed', (message) => cy.contains('.v-messages', message))
+
 Then('The table contain only selected column', () => {
     checkTableHeaders(false)
 })

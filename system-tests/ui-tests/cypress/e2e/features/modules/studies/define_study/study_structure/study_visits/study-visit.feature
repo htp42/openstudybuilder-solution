@@ -10,6 +10,7 @@ Feature: Studies - Define Study - Study Structure - Study Visits
     Background: User is logged in and study has been selected
         Given The user is logged in
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to Study Visit page using side menu
         Given A test study is selected
         And The '/studies' page is opened
@@ -29,6 +30,7 @@ Feature: Studies - Define Study - Study Structure - Study Visits
             | Export                                                          |
             | Add select boxes to table to allow selection of rows for export |
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the Study Visit table with following columns
         Given The test study '/study_structure/visits' page is opened
         And A table is visible with following headers
@@ -83,7 +85,7 @@ Feature: Studies - Define Study - Study Structure - Study Visits
 
     Scenario: [Create][Mandatory fields] User must not be able to create an visit without epoch selected
         Given The study with uid 'Study_000001' is selected
-        And [API] The epoch with type 'Pre Treatment' and subtype 'Screening' exists in selected study
+        And [API] The epoch with type 'Pre Treatment' and subtype 'Run-in' exists in selected study
         And User waits for 3 seconds
         And The '/studies/Study_000001/study_structure/visits' page is opened
         And User waits for epochs to load
@@ -94,7 +96,8 @@ Feature: Studies - Define Study - Study Structure - Study Visits
 
     Scenario: [Create][Mandatory fields] User must not be able to create an visit without type, contact mode, time reference and timing defined
         Given The study with uid 'Study_000001' is selected
-        And [API] The epoch with type 'Pre Treatment' and subtype 'Screening' exists in selected study
+        And [API] The epoch with type 'Pre Treatment' and subtype 'Run-in' exists in selected study
+        And User waits for 3 seconds
         And The '/studies/Study_000001/study_structure/visits' page is opened
         And User waits for epochs to load
         When Add visit button is clicked
@@ -116,25 +119,26 @@ Feature: Studies - Define Study - Study Structure - Study Visits
         And [API] Visits group 'V2,V3' is removed
         And [API] Study visits in study 'Study_000003' are cleaned-up
         And The study with uid 'Study_000003' is selected
-        And [API] The epoch with type 'Pre Treatment' and subtype 'Screening' exists in selected study
+        And [API] The epoch with type 'Pre Treatment' and subtype 'Run-in' exists in selected study
         And User waits for 3 seconds
         And The '/studies/Study_000003/study_structure/visits' page is opened
         And User waits for epochs to load
         When Add visit button is clicked
         And Form continue button is clicked
-        And Epoch 'Screening' is selected for the visit
+        And Epoch 'Run-in' is selected for the visit
         And Form continue button is clicked
         And Anchor visit checkbox is checked
         Then It is not possible to edit Time Reference for anchor visit
 
+    @smoke_test
     Scenario: [Create][Anchor visit][Positive case] User must be able to create an anchor visit
         Given The study with uid 'Study_000003' is selected
-        And [API] The epoch with type 'Pre Treatment' and subtype 'Screening' exists in selected study
+        And [API] The epoch with type 'Pre Treatment' and subtype 'Run-in' exists in selected study
         And The '/studies/Study_000003/study_structure/visits' page is opened
         And User waits for epochs to load
         When Add visit button is clicked
         And Form continue button is clicked
-        And Epoch 'Screening' is selected for the visit
+        And Epoch 'Run-in' is selected for the visit
         And Form continue button is clicked
         And Visit data is filled in: visit class 'single-visit', visit type 'Randomisation', contact mode 'On Site Visit', time unit 'day'
         And Anchor visit checkbox is checked
@@ -144,7 +148,7 @@ Feature: Studies - Define Study - Study Structure - Study Visits
     @manual_test
     Scenario: User must be able to create an information visit with visit 0
         Given The study with uid 'Study_000001' is selected
-        And [API] The epoch with type 'Pre Treatment' and subtype 'Screening' exists in selected study
+        And [API] The epoch with type 'Pre Treatment' and subtype 'Run-in' exists in selected study
         When The '/studies/Study_000001/study_structure/visits' page is opened
         Given A test study is selected
         And The epoch exists in selected study
@@ -159,14 +163,14 @@ Feature: Studies - Define Study - Study Structure - Study Visits
         And User waits for epochs to load
         When Add visit button is clicked
         And Form continue button is clicked
-        And Epoch 'Screening' is selected for the visit
+        And Epoch 'Run-in' is selected for the visit
         And Form continue button is clicked
         Then The Anchor visit checkbox is disabled
 
     Scenario: [Actions][Edit] User must be able to edit the study visit
         Given The study with uid 'Study_000003' is selected
         And [API] The static visit data is fetched
-        And [API] The dynamic visit data is fetched: contact mode 'On Site Visit', time reference 'Global anchor visit', type 'Randomisation', epoch 'Screening'
+        And [API] The dynamic visit data is fetched: contact mode 'On Site Visit', time reference 'Global anchor visit', type 'Randomisation', epoch 'Run-in'
         And [API] The visit with following attributes is created: isGlobalAnchor 0, visitWeek 1
         Given The '/studies/Study_000003/study_structure/visits' page is opened
         When User searches for 'V2'

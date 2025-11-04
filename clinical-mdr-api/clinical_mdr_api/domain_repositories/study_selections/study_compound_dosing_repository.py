@@ -6,6 +6,9 @@ from neomodel import db
 
 from clinical_mdr_api import utils
 from clinical_mdr_api.domain_repositories._utils import helpers
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.concepts import (
     NumericValueWithUnitRoot,
 )
@@ -26,6 +29,7 @@ from clinical_mdr_api.domains.study_selections.study_compound_dosing import (
     StudyCompoundDosingVO,
     StudySelectionCompoundDosingsAR,
 )
+from common.config import settings
 from common.exceptions import BusinessLogicException, NotFoundException
 from common.utils import convert_to_datetime
 
@@ -169,11 +173,20 @@ class StudyCompoundDosingRepository:
 
             NotFoundException.raise_if(
                 node is None,
-                "CT Term for 'dose form'",
+                "CT Term for 'dose frequency'",
                 field_value=selection.dose_frequency_uid,
             )
 
-            selection_node.has_dose_frequency.connect(node)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    node,
+                    codelist_submission_value=settings.dose_frequency_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+
+            # connect to reason_for_missing node
+            selection_node.has_dose_frequency.connect(selected_term_node)
 
     def _get_audit_node(
         self, study_selection: StudySelectionCompoundDosingsAR, study_selection_uid: str
@@ -321,7 +334,7 @@ class StudyCompoundDosingRepository:
             OPTIONAL MATCH (sc)-[:HAS_SELECTED_COMPOUND]->(:CompoundAliasValue)-[:IS_COMPOUND]->(cr:CompoundRoot)
             OPTIONAL MATCH (sc)-[:HAS_MEDICINAL_PRODUCT]->(:MedicinalProductValue)<-[:HAS_VERSION]-(mpr:MedicinalProductRoot)
             OPTIONAL MATCH (all_scd)-[:HAS_DOSE_VALUE]->(dvr:NumericValueWithUnitRoot)
-            OPTIONAL MATCH (all_scd)-[:HAS_DOSE_FREQUENCY]->(df:CTTermRoot)
+            OPTIONAL MATCH (all_scd)-[:HAS_DOSE_FREQUENCY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(df:CTTermRoot)
             WITH all_scd, sc, se, asa, bsa, car, cr, mpr, dvr, df
             ORDER BY all_scd.uid, asa.date DESC
             RETURN
@@ -405,7 +418,7 @@ class StudyCompoundDosingRepository:
         OPTIONAL MATCH (scd)<-[:STUDY_COMPOUND_HAS_COMPOUND_DOSING]-(sc)--(sv)
         WITH DISTINCT sr, sv, scd, sc, se, car, cr, mpr
         OPTIONAL MATCH (scd)-[:HAS_DOSE_VALUE]->(dvr:NumericValueWithUnitRoot)
-        OPTIONAL MATCH (scd)-[:HAS_DOSE_FREQUENCY]->(df:CTTermRoot)
+        OPTIONAL MATCH (scd)-[:HAS_DOSE_FREQUENCY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(df:CTTermRoot)
 
         MATCH (sc)<-[:AFTER]-(sa:StudyAction)
 

@@ -19,7 +19,7 @@
             :hide-export-button="true"
             hide-default-switches
             :show-filter-bar-by-default="false"
-            :disable-filtering="false"
+            :disable-filtering="true"
             :hide-search-field="false"
             :modifiable-table="true"
             :no-padding="true"

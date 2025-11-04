@@ -68,7 +68,7 @@ In the Row Actions to the left (the 3 dots) several options are available:
 - Update Instance to new version: only available when a new version of the activity instance is available in the library. A small form will ask if you wish to update, with the option to select Yes, No, or Cancel.
 - Row History: shows all changes
 
-Currently you cannot request new activity instances from inside StudyBuilder. If needed, this must go through the study Standards Developer.
+Currently you cannot request new activity instances from inside OpenStudyBuilder. If needed, this must go through the study Standards Developer.
 
 The page comes with two default filters on Activity and Activity Instance. These can be removed or replaced using the filter button.
 

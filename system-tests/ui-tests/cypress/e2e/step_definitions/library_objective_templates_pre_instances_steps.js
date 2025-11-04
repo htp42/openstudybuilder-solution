@@ -36,13 +36,14 @@ When('The pre-instantiation is created from that objective template', () => {
 
 Then('The newly added Objective Template Pre-instantiation is visible as a new row in the table', () => {
   cy.clickTab('Pre-instance')
-  cy.searchAndCheckPresence(preInstanceName, true)
+  cy.waitForTable()
+  cy.get(`[data-cy="search-field"] input`).eq(1).type(preInstanceName)
   cy.checkRowByIndex(0, 'Parent template', preInstanceName)
 })
 
 When('The objective pre-instantiation metadata is updated', () => {
   fillTemplateNameAndContinue(newObjectiveNameUpdated)
-  cy.selectLastMultipleSelect('template-indication-dropdown')
+  cy.checkLastMultipleSelect('template-indication-dropdown')
   cy.selectRadioGroup('template-confirmatory-testing', 'Yes')
   cy.clickFormActionButton('continue')
   cy.fillInput('template-change-description', 'updated for test')

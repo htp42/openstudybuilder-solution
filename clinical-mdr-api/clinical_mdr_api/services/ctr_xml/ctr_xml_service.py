@@ -47,7 +47,7 @@ def iso639_shortest(code: str) -> str:
 class CTRXMLService:
     """Assemble and visualize Study Protocol Flowchart data"""
 
-    serializer = XmlSerializer(config=SerializerConfig(pretty_print=True))
+    serializer = XmlSerializer(config=SerializerConfig(indent="  "))
 
     namespaces = {
         None: "http://www.cdisc.org/ns/odm/v1.3",

@@ -5,12 +5,14 @@ Feature: Studies - Define Study - Study Criteria - Exclusion Criteria
         Given The user is logged in   
         And A test study is selected
 
+    @smoke_test
     Scenario: [Navigaion] User must be able to navigate to the Exclusion Criteria page
         Given The '/studies' page is opened
         When The 'Study Criteria' submenu is clicked in the 'Define Study' section
         And The 'Exclusion Criteria' tab is selected
         Then The current URL is '/selection_criteria/Exclusion%20Criteria'
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the page table with correct columns
         Given The test study '/selection_criteria/Exclusion%20Criteria' page is opened
         Then A table is visible with following headers
@@ -39,6 +41,7 @@ Feature: Studies - Define Study - Study Criteria - Exclusion Criteria
         When The 'exclusion' criteria is copied from existing template
         Then The 'exclusion' criteria created from existing template is visible within the table with correct data
 
+    @smoke_test
     Scenario: [Create][From scratch] User must be able to create the Exclusion Criteria from scratch
         Given The test study '/selection_criteria/Exclusion%20Criteria' page is opened
         When The 'exclusion' criteria is created from scratch

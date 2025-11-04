@@ -1,6 +1,6 @@
 # Architectural Decision Records
 
-This section describes the [Architectural Decision Record](https://adr.github.io/) (ADR) for the StudyBuilder system.
+This section describes the [Architectural Decision Record](https://adr.github.io/) (ADR) for the OpenStudyBuilder system.
 
 The ADR is described as:
 
@@ -13,7 +13,7 @@ The ADR is described as:
 
 ### Context
 
-The StudyBuilder solution will be an MDR solution holding highly interrelated clinical data standards - both imported from external sources as well as sponsor defined extensions. These will be enriched with biomedical concepts definitions binding these with end-to-end lineage across data standards for various needs.
+The OpenStudyBuilder solution will be an MDR solution holding highly interrelated clinical data standards - both imported from external sources as well as sponsor defined extensions. These will be enriched with biomedical concepts definitions binding these with end-to-end lineage across data standards for various needs.
 
 The data standards in the MDR component (the library part) will then be applied in study specifications in the SDR part, with relationship to the standard elements in the MDR (library part).
 
@@ -23,7 +23,7 @@ Many previous attempts in managing this in large relational data models, or very
 
 ### Decision
 
-The data structures in the StudyBuilder solution, as a combined MDR and SDR, will apply highly connected data with many relationships. The data domain is very large and complex.
+The data structures in the OpenStudyBuilder solution, as a combined MDR and SDR, will apply highly connected data with many relationships. The data domain is very large and complex.
 
 Therefore, we have decided to use a label property graph database, applying a semantic domain driven data model design close to the clinical data standards domain. The Neo4j labeled property graph database system has been chosen as the most widely used and supported graph database.
 
@@ -37,13 +37,13 @@ The system database will actually represent a knowledge graph of clinical data s
 
 ### Consequences
 
-The StudyBuilder solution is fully API based, so the API service layer must be managing all transactions, including managing the versioning and audit trail capabilities in the label property graph database.
+The OpenStudyBuilder solution is fully API based, so the API service layer must be managing all transactions, including managing the versioning and audit trail capabilities in the label property graph database.
 
 As the end users also have direct database access, the graph database must support named Single Sign On (SSO) and data level access control.
 
 Any non-graph enabled tools must connect to the system using the API, as relational SQL database based data integrations will not be possible.
 
-RDF based tools can be connected to the system via the [neosemantic](https://neo4j.com/labs/neosemantics/) toolkit. This is however currently not set up for the StudyBuilder system.
+RDF based tools can be connected to the system via the [neosemantic](https://neo4j.com/labs/neosemantics/) toolkit. This is however currently not set up for the OpenStudyBuilder system.
 
 
 

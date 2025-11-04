@@ -13,7 +13,7 @@ from neomodel import (
 
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
     CTCodelistRoot,
-    CTTermRoot,
+    CTTermContext,
 )
 from clinical_mdr_api.domain_repositories.models.generic import (
     ClinicalMdrNode,
@@ -379,7 +379,7 @@ class DatasetVariableInstance(VersionValue):
         CTCodelistRoot, "REFERENCES_CODELIST", model=ClinicalMdrRel
     )
     references_term = RelationshipTo(
-        CTTermRoot, "REFERENCES_TERM", model=ClinicalMdrRel
+        CTTermContext, "REFERENCES_TERM", model=ClinicalMdrRel
     )
 
 
@@ -436,7 +436,7 @@ class SponsorModelDatasetVariableInstance(VersionValue):
         CTCodelistRoot, "REFERENCES_CODELIST", model=ClinicalMdrRel
     )
     references_term = RelationshipTo(
-        CTTermRoot, "REFERENCES_TERM", model=ClinicalMdrRel
+        CTTermContext, "REFERENCES_TERM", model=ClinicalMdrRel
     )
 
 

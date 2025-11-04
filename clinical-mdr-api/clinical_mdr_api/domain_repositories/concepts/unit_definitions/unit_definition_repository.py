@@ -5,6 +5,9 @@ from neomodel import db
 from clinical_mdr_api.domain_repositories.concepts.concept_generic_repository import (
     ConceptGenericRepository,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.concepts import (
     UnitDefinitionRoot,
     UnitDefinitionValue,
@@ -36,6 +39,7 @@ from clinical_mdr_api.domains.versioned_object_aggregate import (
 from clinical_mdr_api.models.concepts.unit_definitions.unit_definition import (
     UnitDefinitionModel,
 )
+from common.config import settings
 from common.utils import convert_to_datetime
 
 
@@ -61,11 +65,11 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
             concept_value.conversion_factor_to_master as conversion_factor_to_master,
             concept_value.order as order,
             concept_value.comment as comment,
-            [(concept_value)-[:HAS_CT_UNIT]->(term_root)-[:HAS_NAME_ROOT]-()-[:LATEST_FINAL]-(value) 
+            [(concept_value)-[:HAS_CT_UNIT]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term_root)-[:HAS_NAME_ROOT]-()-[:LATEST_FINAL]-(value) 
                 | {uid:term_root.uid, name: value.name}] AS ct_units,
-            [(concept_value)-[:HAS_UNIT_SUBSET]->(term_root)-[:HAS_NAME_ROOT]-()-[:LATEST_FINAL]-(value) 
+            [(concept_value)-[:HAS_UNIT_SUBSET]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term_root)-[:HAS_NAME_ROOT]-()-[:LATEST_FINAL]-(value) 
                 | {uid:term_root.uid, name: value.name}] AS unit_subsets,
-            head([(concept_value)-[:HAS_CT_DIMENSION]->(term_root)-[:HAS_NAME_ROOT]-()-[:LATEST_FINAL]-(value) 
+            head([(concept_value)-[:HAS_CT_DIMENSION]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term_root)-[:HAS_NAME_ROOT]-()-[:LATEST_FINAL]-(value) 
                 | {uid:term_root.uid, name: value.name}]) AS unit_dimension,
             head([(concept_value)-[:HAS_UCUM_TERM]->(ucum_term_root)-[:LATEST_FINAL]->(value) 
                 | {uid:ucum_term_root.uid, name:value.name}]) AS ucum
@@ -82,7 +86,7 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
         if kwargs.get("dimension") is not None:
             unit_dimension_name = kwargs.get("dimension")
             filter_by_unit_dimension_name = """
-            head([(concept_value)-[:HAS_CT_DIMENSION]->(term_root)-[:HAS_NAME_ROOT]->
+            head([(concept_value)-[:HAS_CT_DIMENSION]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term_root)-[:HAS_NAME_ROOT]->
             (term_name_root)-[:LATEST_FINAL]->(term_name_value) | 
             term_name_value.name])=$unit_dimension_name"""
             filter_parameters.append(filter_by_unit_dimension_name)
@@ -90,7 +94,7 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
         if kwargs.get("subset") is not None:
             subset_value = kwargs.get("subset")
             filter_by_subset_name = """
-            $subset_value IN [(concept_value)-[:HAS_UNIT_SUBSET]->(term_root)-[:HAS_NAME_ROOT]->
+            $subset_value IN [(concept_value)-[:HAS_UNIT_SUBSET]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term_root)-[:HAS_NAME_ROOT]->
             (term_name_root)-[:LATEST_FINAL]->(term_name_value) | term_name_value.name]"""
             filter_parameters.append(filter_by_subset_name)
             filter_query_parameters["subset_value"] = subset_value
@@ -180,21 +184,25 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
 
         ct_units = []
         for ct_unit in value.has_ct_unit.all():
+            selected_ct_unit = ct_unit.has_selected_term.get_or_none()
             ct_term = CTTerm(
-                uid=ct_unit.uid,
-                name=ct_unit.has_name_root.get().latest_final.get().name,
+                uid=selected_ct_unit.uid,
+                name=selected_ct_unit.has_name_root.get().latest_final.get().name,
             )
             ct_units.append(ct_term)
 
         unit_subsets = []
         for unit_subset in value.has_unit_subset.all():
+            selected_unit_subset = unit_subset.has_selected_term.get_or_none()
             unit_subset_term = CTTerm(
-                uid=unit_subset.uid,
-                name=unit_subset.has_name_root.get().latest_final.get().name,
+                uid=selected_unit_subset.uid,
+                name=selected_unit_subset.has_name_root.get().latest_final.get().name,
             )
             unit_subsets.append(unit_subset_term)
 
         ct_dimension = ar_value.has_ct_dimension.get_or_none()
+        if ct_dimension:
+            ct_dimension = ct_dimension.has_selected_term.get_or_none()
         ucum_term = ar_value.has_ucum_term.get_or_none()
 
         result = UnitDefinitionAR.from_repository_values(
@@ -317,16 +325,37 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
                 UCUMTermRoot.nodes.get(uid=ar.concept_vo.ucum_uid)
             )
         if ar.concept_vo.unit_dimension_uid:
-            value_node.has_ct_dimension.connect(
-                CTTermRoot.nodes.get(uid=ar.concept_vo.unit_dimension_uid)
+            unit_dim_node = CTTermRoot.nodes.get(uid=ar.concept_vo.unit_dimension_uid)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    unit_dim_node,
+                    codelist_submission_value=settings.unit_dimension_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
             )
+            value_node.has_ct_dimension.connect(selected_term_node)
 
         for ct_unit in ar.concept_vo.ct_units:
-            value_node.has_ct_unit.connect(CTTermRoot.nodes.get(uid=ct_unit.uid))
-        for unit_subset in ar.concept_vo.unit_subsets:
-            value_node.has_unit_subset.connect(
-                CTTermRoot.nodes.get(uid=unit_subset.uid)
+            unit_node = CTTermRoot.nodes.get(uid=ct_unit.uid)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    unit_node,
+                    codelist_submission_value=settings.unit_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
             )
+            value_node.has_ct_unit.connect(selected_term_node)
+
+        for unit_subset in ar.concept_vo.unit_subsets:
+            unit_subset_node = CTTermRoot.nodes.get(uid=unit_subset.uid)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    unit_subset_node,
+                    codelist_submission_value=settings.unit_subset_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            value_node.has_unit_subset.connect(selected_term_node)
 
         return value_node
 
@@ -335,12 +364,18 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
     ) -> bool:
         ucum_term = value.has_ucum_term.get_or_none()
         unit_dimension = value.has_ct_dimension.get_or_none()
+        if unit_dimension:
+            unit_dimension = unit_dimension.has_selected_term.get_or_none()
         ar_ct_units = set(unit.uid for unit in ar.concept_vo.ct_units)
         ar_unit_subsets = set(subset.uid for subset in ar.concept_vo.unit_subsets)
         value_ct_unit_nodes = value.has_ct_unit.all()
-        value_ct_units = set(unit.uid for unit in value_ct_unit_nodes)
+        value_ct_units = set(
+            unit.has_selected_term.get_or_none().uid for unit in value_ct_unit_nodes
+        )
         value_ct_unit_subset_nodes = value.has_unit_subset.all()
-        value_ct_unit_subsets = set(ss.uid for ss in value_ct_unit_subset_nodes)
+        value_ct_unit_subsets = set(
+            ss.has_selected_term.get_or_none().uid for ss in value_ct_unit_subset_nodes
+        )
         return (
             ar.concept_vo.name != value.name
             or ar.concept_vo.name_sentence_case != value.name_sentence_case
@@ -377,7 +412,8 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
             if unit_subsets:
                 for unit_subset in unit_subsets:
                     template_parameter_name = (
-                        unit_subset.has_name_root.single()
+                        unit_subset.has_selected_term.single()
+                        .has_name_root.single()
                         .has_latest_value.single()
                         .name
                     )
@@ -411,7 +447,7 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
     def master_unit_exists_by_unit_dimension(self, unit_dimension: str) -> bool:
         cypher_query = f"""
             MATCH (or:{self.root_class.__label__})-[:LATEST]->(ov:{self.value_class.__label__} {{master_unit: true}})
-            -[:HAS_CT_DIMENSION]->(term_root:CTTermRoot {{uid: $unit_dimension_uid}})
+            -[:HAS_CT_DIMENSION]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term_root:CTTermRoot {{uid: $unit_dimension_uid}})
             RETURN or.uid
         """
         items, _ = db.cypher_query(cypher_query, {"unit_dimension_uid": unit_dimension})
@@ -443,7 +479,7 @@ class UnitDefinitionRepository(ConceptGenericRepository[UnitDefinitionAR]):
         cypher_query = """
 MATCH (udr:UnitDefinitionRoot)-[:LATEST]->(udv:UnitDefinitionValue)
 WHERE udr.uid IN $unit_definition_uids
-MATCH (udv)-[:HAS_CT_DIMENSION]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(CTTermNameRoot)-[:LATEST]->(ctnv:CTTermNameValue)
+MATCH (udv)-[:HAS_CT_DIMENSION]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(CTTermNameRoot)-[:LATEST]->(ctnv:CTTermNameValue)
 RETURN ctnv.name
 """
 

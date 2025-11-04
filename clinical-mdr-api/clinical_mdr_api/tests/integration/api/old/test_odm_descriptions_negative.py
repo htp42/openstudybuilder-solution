@@ -34,7 +34,6 @@ def test_creating_a_new_odm_form_with_description(api_client):
         "oid": "oid1",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": None,
         "descriptions": [
             {
                 "name": "name1",
@@ -64,7 +63,6 @@ def test_creating_a_new_odm_form_with_description(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == [
         {
             "uid": "OdmDescription_000001",
@@ -132,7 +130,7 @@ def test_cannot_create_an_odm_form_while_attaching_it_to_a_used_odm_description(
     assert res["type"] == "AlreadyExistsException"
     assert (
         res["message"]
-        == "ODM Form already exists with UID (OdmForm_000001) and data {'library_name': 'Sponsor', 'alias_uids': [], 'scope_uid': None, 'name': 'name1', 'oid': 'oid1', 'sdtm_version': '0.1', 'repeating': False}"
+        == "ODM Form already exists with UID (OdmForm_000001) and data {'library_name': 'Sponsor', 'alias_uids': [], 'name': 'name1', 'oid': 'oid1', 'sdtm_version': '0.1', 'repeating': False}"
     )
 
 

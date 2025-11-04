@@ -11,6 +11,9 @@ from neomodel.sync_.match import (
     RelationNameResolver,
 )
 
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.library_item_repository import (
     LibraryItemRepositoryImplBase,
     _AggregateRootType,
@@ -37,11 +40,13 @@ from clinical_mdr_api.domains.biomedical_concepts.activity_item_class import (
     ActivityInstanceClassActivityItemClassRelVO,
     ActivityItemClassAR,
     ActivityItemClassVO,
+    CTTermItem,
 )
 from clinical_mdr_api.domains.versioned_object_aggregate import LibraryVO
 from clinical_mdr_api.models.biomedical_concepts.activity_item_class import (
     ActivityItemClass,
 )
+from common.config import settings
 
 
 class ActivityItemClassRepository(  # type: ignore[misc]
@@ -56,8 +61,10 @@ class ActivityItemClassRepository(  # type: ignore[misc]
             ActivityItemClassRoot.nodes.fetch_relations(
                 "has_latest_value",
                 "has_library",
-                "has_latest_value__has_role__has_name_root__has_latest_value",
-                "has_latest_value__has_data_type__has_name_root__has_latest_value",
+                "has_latest_value__has_role__has_selected_term__has_name_root__has_latest_value",
+                "has_latest_value__has_role__has_selected_codelist",
+                "has_latest_value__has_data_type__has_selected_term__has_name_root__has_latest_value",
+                "has_latest_value__has_data_type__has_selected_codelist",
                 Optional("has_activity_instance_class"),
                 Optional("has_activity_instance_class__has_latest_value"),
                 Optional("maps_variable_class"),
@@ -159,14 +166,38 @@ RETURN collect(DISTINCT m.uid)
             key=json.dumps,
         )
 
+        if _role := value.has_role.single():
+            _role = (
+                _role.has_selected_term.single().uid,
+                _role.has_selected_codelist.single().uid,
+            )
+        else:
+            _role = (None, None)
+
+        if _data_type := value.has_data_type.single():
+            _data_type = (
+                _data_type.has_selected_term.single().uid,
+                _data_type.has_selected_codelist.single().uid,
+            )
+        else:
+            _data_type = (None, None)
+
         return (
             ar.activity_item_class_vo.name != value.name
             or ar.activity_item_class_vo.definition != value.definition
             or ar.activity_item_class_vo.nci_concept_id != value.nci_concept_id
             or ar.activity_item_class_vo.order != value.order
             or new_activity_instance_classes != existing_activity_instance_classes
-            or ar.activity_item_class_vo.role_uid != value.has_role.get().uid
-            or ar.activity_item_class_vo.data_type_uid != value.has_data_type.get().uid
+            or (
+                ar.activity_item_class_vo.role.uid,
+                ar.activity_item_class_vo.role.codelist_uid,
+            )
+            != _role
+            or (
+                ar.activity_item_class_vo.data_type.uid,
+                ar.activity_item_class_vo.data_type.codelist_uid,
+            )
+            != _data_type
         )
 
     def _get_or_create_value(
@@ -203,12 +234,23 @@ RETURN collect(DISTINCT m.uid)
                         "is_adam_param_specific_enabled": activity_instance_class_uid.is_adam_param_specific_enabled,
                     },
                 )
-        new_value.has_data_type.connect(
-            CTTermRoot.nodes.get(uid=ar.activity_item_class_vo.data_type_uid)
+
+        data_type = CTTermRoot.nodes.get(uid=ar.activity_item_class_vo.data_type.uid)
+        selected_term_node = (
+            CTCodelistAttributesRepository().get_or_create_selected_term(
+                data_type,
+                codelist_submission_value=settings.stdm_odm_data_type_cl_submval,
+            )
         )
-        new_value.has_role.connect(
-            CTTermRoot.nodes.get(uid=ar.activity_item_class_vo.role_uid)
+        new_value.has_data_type.connect(selected_term_node)
+
+        role = CTTermRoot.nodes.get(uid=ar.activity_item_class_vo.role.uid)
+        selected_term_node = (
+            CTCodelistAttributesRepository().get_or_create_selected_term(
+                role, codelist_submission_value=settings.stdm_role_cl_submval
+            )
         )
+        new_value.has_role.connect(selected_term_node)
 
         return new_value
 
@@ -224,8 +266,23 @@ RETURN collect(DISTINCT m.uid)
         **_kwargs,
     ) -> ActivityItemClassAR:
         activity_instance_classes = root.has_activity_instance_class.all()
-        role_term = value.has_role.get()
-        data_type_term = value.has_data_type.get()
+
+        role_term_context = value.has_role.get()
+        term_root = role_term_context.has_selected_term.single()
+        role = CTTermItem(
+            uid=term_root.uid,
+            name=term_root.has_name_root.single().has_version.single().name,
+            codelist_uid=role_term_context.has_selected_codelist.single().uid,
+        )
+
+        data_type_term_context = value.has_data_type.get()
+        term_root = data_type_term_context.has_selected_term.single()
+        data_type = CTTermItem(
+            uid=term_root.uid,
+            name=term_root.has_name_root.single().has_version.single().name,
+            codelist_uid=data_type_term_context.has_selected_codelist.single().uid,
+        )
+
         variable_class_uids = [node.uid for node in root.maps_variable_class.all()]
         return ActivityItemClassAR.from_repository_values(
             uid=root.uid,
@@ -246,12 +303,8 @@ RETURN collect(DISTINCT m.uid)
                     )
                     for activity_instance_class in activity_instance_classes
                 ],
-                role_uid=role_term.uid,
-                role_name=role_term.has_name_root.get().has_latest_value.get().name,
-                data_type_uid=data_type_term.uid,
-                data_type_name=data_type_term.has_name_root.get()
-                .has_latest_value.get()
-                .name,
+                role=role,
+                data_type=data_type,
                 variable_class_uids=variable_class_uids,
             ),
             library=LibraryVO.from_input_values_2(
@@ -280,7 +333,7 @@ RETURN collect(DISTINCT m.uid)
 
     def get_referenced_codelist_and_term_uids(
         self, activity_item_class_uid: str, dataset_uid: str, use_sponsor_model: bool
-    ) -> tuple[list[str], list[str]]:
+    ) -> dict[str, list[str] | None]:
 
         uids_for_standard_model = (
             ActivityItemClassRoot.nodes.filter(
@@ -290,7 +343,7 @@ RETURN collect(DISTINCT m.uid)
             .traverse(
                 "maps_variable_class__has_instance__implemented_by_variable__references_codelist",
                 Path(
-                    value="maps_variable_class__has_instance__implemented_by_variable__references_term",
+                    value="maps_variable_class__has_instance__implemented_by_variable__references_term__has_selected_term",
                     optional=True,
                     include_rels_in_return=False,
                 ),
@@ -309,7 +362,7 @@ RETURN collect(DISTINCT m.uid)
                     },
                     "term_uid": {
                         "source": NodeNameResolver(
-                            "maps_variable_class__has_instance__implemented_by_variable__references_term"
+                            "maps_variable_class__has_instance__implemented_by_variable__references_term__has_selected_term"
                         ),
                         "source_prop": "uid",
                         "include_in_return": True,
@@ -319,12 +372,18 @@ RETURN collect(DISTINCT m.uid)
             )
             .all()
         )
-        codelist_uids_for_standard_model = list(
-            {el[0] for el in uids_for_standard_model}
-        )
-        term_uids_for_standard_model = list(
-            {el[1] for el in uids_for_standard_model if el[1] is not None}
-        )
+
+        codelist_term_sets: dict[str, set[str] | None] = {}
+        for cl_uid, term_uid in uids_for_standard_model:
+            if cl_uid not in codelist_term_sets:
+                if term_uid is None:
+                    codelist_term_sets[cl_uid] = None
+                else:
+                    codelist_term_sets[cl_uid] = {term_uid}
+            elif term_uid is not None:
+                if codelist_term_sets[cl_uid] is None:
+                    codelist_term_sets[cl_uid] = set()
+                codelist_term_sets[cl_uid].add(term_uid)
 
         if use_sponsor_model:
             uids_for_sponsor_model = (
@@ -335,7 +394,7 @@ RETURN collect(DISTINCT m.uid)
                 .traverse(
                     "maps_variable_class__has_instance__implemented_by_sponsor_variable__references_codelist",
                     Path(
-                        value="maps_variable_class__has_instance__implemented_by_sponsor_variable__references_term",
+                        value="maps_variable_class__has_instance__implemented_by_sponsor_variable__references_term__has_selected_term",
                         optional=True,
                         include_rels_in_return=False,
                     ),
@@ -354,7 +413,7 @@ RETURN collect(DISTINCT m.uid)
                         },
                         "term_uid": {
                             "source": NodeNameResolver(
-                                "maps_variable_class__has_instance__implemented_by_sponsor_variable__references_term"
+                                "maps_variable_class__has_instance__implemented_by_sponsor_variable__references_term__has_selected_term"
                             ),
                             "source_prop": "uid",
                             "include_in_return": True,
@@ -364,13 +423,22 @@ RETURN collect(DISTINCT m.uid)
                 )
                 .all()
             )
-            codelist_uids_for_sponsor_model = list(
-                {el[0] for el in uids_for_sponsor_model}
-            )
-            term_uids_for_sponsor_model = list(
-                {el[1] for el in uids_for_sponsor_model if el[1] is not None}
-            )
-            return list(
-                set(codelist_uids_for_standard_model + codelist_uids_for_sponsor_model)
-            ), list(set(term_uids_for_standard_model + term_uids_for_sponsor_model))
-        return codelist_uids_for_standard_model, term_uids_for_standard_model
+            for cl_uid, term_uid in uids_for_sponsor_model:
+                if cl_uid not in codelist_term_sets:
+                    if term_uid is None:
+                        codelist_term_sets[cl_uid] = None
+                    else:
+                        codelist_term_sets[cl_uid] = {term_uid}
+                elif term_uid is not None:
+                    if codelist_term_sets[cl_uid] is None:
+                        codelist_term_sets[cl_uid] = set()
+                    codelist_term_sets[cl_uid].add(term_uid)
+
+        # Convert the sets to lists before returning
+        codelists_and_terms: dict[str, list[str] | None] = {}
+        for cl_uid, term_uids in codelist_term_sets.items():
+            if isinstance(term_uids, set):
+                codelists_and_terms[cl_uid] = list(term_uids)
+            else:
+                codelists_and_terms[cl_uid] = term_uids
+        return codelists_and_terms

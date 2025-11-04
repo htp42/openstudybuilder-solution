@@ -9,6 +9,7 @@ Feature: Studies - Define Study - Study Structure - Disease Milestones
         Given The user is logged in
         And A test study is selected
 
+    @smoke_test
     Scenario: [Navigation] Navigation to Study Disease Milestones page
         Given The '/studies' page is opened
         When The 'Study Structure' submenu is clicked in the 'Define Study' section
@@ -23,6 +24,7 @@ Feature: Studies - Define Study - Study Structure - Disease Milestones
             | Columns                                                         |
             | Add select boxes to table to allow selection of rows for export |
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the Study Disease Milestones table with following columns
         Given The test study '/study_structure/disease_milestones' page is opened
         And A table is visible with following headers
@@ -39,6 +41,7 @@ Feature: Studies - Define Study - Study Structure - Disease Milestones
         When The first column is selected from Select Columns option for table with actions
         Then The table contain only selected column and actions column
     
+    @smoke_test
     Scenario: [Create][Positive case] User can add a new Study Disease Milestone
         Given The test study '/study_structure/disease_milestones' page is opened
         When The new Study Disease Milestone is added

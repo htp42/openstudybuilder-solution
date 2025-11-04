@@ -346,7 +346,7 @@ export default {
       .then((resp) => {
         this.studyElements = resp.data.items
       })
-    terms.getByCodelist('elementTypes').then((resp) => {
+    terms.getTermsByCodelist('elementTypes').then((resp) => {
       this.studyElementTypes = resp.data.items
     })
   },
@@ -380,7 +380,7 @@ export default {
         (el) => el.term_uid === item.code
       )[0]
       if (item.code && type) {
-        return type.name.sponsor_preferred_name
+        return type.sponsor_preferred_name
       }
     },
     async submit() {

@@ -22,7 +22,7 @@ from clinical_mdr_api.domain_repositories.models.concepts import (
     UnitDefinitionRoot,
 )
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
-    CTTermRoot,
+    CTTermContext,
 )
 from clinical_mdr_api.domain_repositories.models.generic import (
     ClinicalMdrNodeWithUID,
@@ -105,7 +105,10 @@ class StudyObjective(StudySelection):
         cardinality=ZeroOrOne,
     )
     has_objective_level = RelationshipTo(
-        CTTermRoot, "HAS_OBJECTIVE_LEVEL", model=ClinicalMdrRel, cardinality=ZeroOrOne
+        CTTermContext,
+        "HAS_OBJECTIVE_LEVEL",
+        model=ClinicalMdrRel,
+        cardinality=ZeroOrOne,
     )
     study_endpoint_has_study_objective = RelationshipFrom(
         "StudyEndpoint", "STUDY_ENDPOINT_HAS_STUDY_OBJECTIVE", model=ClinicalMdrRel
@@ -148,13 +151,13 @@ class StudyEndpoint(StudySelection):
         TimeframeValue, "HAS_SELECTED_TIMEFRAME", model=ClinicalMdrRel
     )
     has_endpoint_level = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_ENDPOINT_LEVEL",
         model=ClinicalMdrRel,
         cardinality=ZeroOrOne,
     )
     has_endpoint_sublevel = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_ENDPOINT_SUB_LEVEL",
         model=ClinicalMdrRel,
         cardinality=ZeroOrOne,
@@ -188,7 +191,10 @@ class StudyCompound(StudySelection):
         cardinality=One,
     )
     has_type_of_treatment = RelationshipTo(
-        CTTermRoot, "HAS_TYPE_OF_TREATMENT", model=ClinicalMdrRel, cardinality=ZeroOrOne
+        CTTermContext,
+        "HAS_TYPE_OF_TREATMENT",
+        model=ClinicalMdrRel,
+        cardinality=ZeroOrOne,
     )
     has_medicinal_product = RelationshipTo(
         MedicinalProductValue,
@@ -203,10 +209,13 @@ class StudyCompound(StudySelection):
         cardinality=ZeroOrMore,
     )
     has_dose_frequency = RelationshipTo(
-        CTTermRoot, "HAS_DOSE_FREQUENCY", model=ClinicalMdrRel, cardinality=ZeroOrOne
+        CTTermContext, "HAS_DOSE_FREQUENCY", model=ClinicalMdrRel, cardinality=ZeroOrOne
     )
     has_delivery_device = RelationshipTo(
-        CTTermRoot, "HAS_DELIVERY_DEVICE", model=ClinicalMdrRel, cardinality=ZeroOrOne
+        CTTermContext,
+        "HAS_DELIVERY_DEVICE",
+        model=ClinicalMdrRel,
+        cardinality=ZeroOrOne,
     )
     has_dose_value = RelationshipTo(
         NumericValueWithUnitRoot,
@@ -215,10 +224,10 @@ class StudyCompound(StudySelection):
         cardinality=ZeroOrOne,
     )
     has_dispenser = RelationshipTo(
-        CTTermRoot, "HAS_DISPENSED_IN", model=ClinicalMdrRel, cardinality=One
+        CTTermContext, "HAS_DISPENSED_IN", model=ClinicalMdrRel, cardinality=One
     )
     has_reason_for_missing = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_REASON_FOR_NULL_VALUE",
         model=ClinicalMdrRel,
         cardinality=ZeroOrOne,
@@ -267,7 +276,7 @@ class StudySoAGroup(StudySelection):
         cardinality=ZeroOrMore,
     )
     has_flowchart_group = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_FLOWCHART_GROUP",
         model=ClinicalMdrRel,
         cardinality=ZeroOrMore,
@@ -487,7 +496,7 @@ class StudyArm(StudySelection):
     )
 
     arm_type = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_ARM_TYPE",
         model=ClinicalMdrRel,
         cardinality=One,
@@ -528,7 +537,7 @@ class StudyElement(StudySelection):
         cardinality=ZeroOrMore,
     )
     element_subtype = RelationshipTo(
-        CTTermRoot,
+        CTTermContext,
         "HAS_ELEMENT_SUBTYPE",
         model=ClinicalMdrRel,
         cardinality=ZeroOrOne,
@@ -637,9 +646,8 @@ class StudyCompoundDosing(StudySelection):
         model=ClinicalMdrRel,
         cardinality=ZeroOrMore,
     )
-
     has_dose_frequency = RelationshipTo(
-        CTTermRoot, "HAS_DOSE_FREQUENCY", cardinality=ZeroOrOne
+        CTTermContext, "HAS_DOSE_FREQUENCY", cardinality=ZeroOrOne
     )
     has_dose_value = RelationshipTo(
         NumericValueWithUnitRoot, "HAS_DOSE_VALUE", cardinality=ZeroOrOne

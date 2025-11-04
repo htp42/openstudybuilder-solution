@@ -67,8 +67,8 @@
       <template #[`item.arm_connected_branch_arms`]="{ item }">
         {{ item.arm_connected_branch_arms?.length }}
       </template>
-      <template #[`item.arm_type.sponsor_preferred_name`]="{ item }">
-        <CTTermDisplay :term="item.arm_type" />
+      <template #[`item.arm_type.term_name`]="{ item }">
+        <CTCodelistTermDisplay :term="item.arm_type" />
       </template>
       <template #[`item.actions`]="{ item }">
         <ActionsMenu :actions="actions" :item="item" />
@@ -128,8 +128,8 @@
 <script setup>
 import NNTable from '@/components/tools/NNTable.vue'
 import armsApi from '@/api/arms'
+import CTCodelistTermDisplay from '../tools/CTCodelistTermDisplay.vue'
 import cohortsApi from '@/api/cohorts'
-import CTTermDisplay from '@/components/tools/CTTermDisplay.vue'
 import StudyArmsForm from '@/components/studies/StudyArmsForm.vue'
 import ActionsMenu from '@/components/tools/ActionsMenu.vue'
 import ConfirmDialog from '@/components/tools/ConfirmDialog.vue'
@@ -184,7 +184,7 @@ const headers = [
   { title: '#', key: 'order', width: '5%' },
   {
     title: t('StudyArmsTable.type'),
-    key: 'arm_type.sponsor_preferred_name',
+    key: 'arm_type.term_name',
     width: '7%',
   },
   { title: t('StudyArmsTable.name'), key: 'name' },

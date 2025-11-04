@@ -44,6 +44,7 @@ class StudySoAFootnoteVO:
     footnote_name: str | None
     footnote_name_plain: str | None
     footnote_library_name: str | None
+    footnote_status: str | None
     latest_footnote_version: str | None
     latest_footnote_name_plain: str | None
     footnote_template_uid: str | None
@@ -68,6 +69,7 @@ class StudySoAFootnoteVO:
         footnote_name_plain: str | None,
         footnote_name: str | None,
         footnote_library_name: str | None,
+        footnote_status: str | None,
         latest_footnote_version: str | None,
         latest_footnote_name_plain: str | None,
         footnote_template_uid: str | None,
@@ -91,6 +93,7 @@ class StudySoAFootnoteVO:
             footnote_name_plain=footnote_name_plain,
             footnote_name=footnote_name,
             footnote_library_name=footnote_library_name,
+            footnote_status=footnote_status,
             latest_footnote_name_plain=latest_footnote_name_plain,
             latest_footnote_version=latest_footnote_version,
             footnote_template_uid=footnote_template_uid,
@@ -122,6 +125,7 @@ class StudySoAFootnoteVO:
         footnote_name_plain: str | None = None,
         footnote_name: str | None = None,
         footnote_library_name: str | None = None,
+        footnote_status: str | None = None,
         latest_footnote_version: str | None = None,
         latest_footnote_name_plain: str | None = None,
         footnote_template_version: str | None = None,
@@ -139,6 +143,7 @@ class StudySoAFootnoteVO:
             footnote_name=footnote_name,
             footnote_name_plain=footnote_name_plain,
             footnote_library_name=footnote_library_name,
+            footnote_status=footnote_status,
             latest_footnote_name_plain=latest_footnote_name_plain,
             latest_footnote_version=latest_footnote_version,
             footnote_template_uid=footnote_template_uid,

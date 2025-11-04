@@ -84,15 +84,13 @@ Feature: Library - Concepts - Activities - Activity Group Overview Page (Version
         Then The Activity subgroups table should display the next page within 10 rows per page
 
 @manual_test
-Scenario: Verify that the filter and export functionality work in the Activity subgroups table
+Scenario: Verify that the export functionality work in the Activity subgroups table
         Given The '/library/activities/activity-groups' page is opened
         When I search for the test activity group through the filter field
         And Group created via API is searched for and found
         When User goes to group overview page by clicking its name
         Then Group overview page is opened
-        And The free text search field works in the Activity subgroups table
         And The Export functionality works in the Activity subgroups table
-        And The Filter functionality works in the Activity subgroups table
 
 Scenario: [Table][Search][Negative case] User must be able to search not existing subgroup and table will be correctly filtered
         And Group created via API is searched for and found
@@ -101,6 +99,7 @@ Scenario: [Table][Search][Negative case] User must be able to search not existin
         When User searches for non-existing item in 'Activity subgroups' table
         Then The Activity subgroups table is empty
 
+@smoke_test
 Scenario: [Table][Search][Postive case] User must be able to search subgroups connected to group
         When [API] A group connected to two subgroups is created
         And [API] Fetch names of group with two connected subgroups

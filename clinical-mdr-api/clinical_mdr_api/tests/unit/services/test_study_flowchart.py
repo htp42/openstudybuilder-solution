@@ -397,7 +397,11 @@ def check_flowchart_table_visit_rows(
         # THEN text in forth row
         if visit.min_visit_window_value == visit.max_visit_window_value == 0:
             assert table.rows[row_idx + 2].cells[i].text == "0"
-        elif visit.min_visit_window_value == -visit.max_visit_window_value:
+        elif (
+            visit.min_visit_window_value is not None
+            and visit.max_visit_window_value is not None
+            and visit.min_visit_window_value == -visit.max_visit_window_value
+        ):
             assert (
                 table.rows[row_idx + 2].cells[i].text
                 == f"±{visit.max_visit_window_value:0.0f}"

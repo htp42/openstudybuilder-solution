@@ -438,7 +438,7 @@ class StudyService:
         study_standard_versions_sdtm = [
             study_standard_version
             for study_standard_version in study_standard_versions
-            if "SDTM CT" in study_standard_version.ct_package_uid
+            if settings.sdtm_ct_catalogue_name in study_standard_version.ct_package_uid
         ]
         study_standard_version_sdtm = (
             study_standard_versions_sdtm[0] if study_standard_versions_sdtm else None
@@ -495,7 +495,8 @@ class StudyService:
             study_standard_versions_sdtm = [
                 study_standard_version
                 for study_standard_version in study_standard_versions
-                if "SDTM CT" in study_standard_version.ct_package_uid
+                if settings.sdtm_ct_catalogue_name
+                in study_standard_version.ct_package_uid
             ]
             study_standard_version_sdtm = (
                 study_standard_versions_sdtm[0]
@@ -506,7 +507,7 @@ class StudyService:
             if not study_standard_version_sdtm:
                 # get the ct_package latest (is at the end of the list)
                 all_ct_packages = self._repos.ct_package_repository.find_all(
-                    catalogue_name="SDTM CT",
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
                     standards_only=True,
                     sponsor_only=False,
                 )
@@ -514,7 +515,7 @@ class StudyService:
                 sponsor_ct_package_with_latest_ct_package = [
                     ith
                     for ith in self._repos.ct_package_repository.find_all(
-                        catalogue_name="SDTM CT",
+                        catalogue_name=settings.sdtm_ct_catalogue_name,
                         standards_only=True,
                         sponsor_only=True,
                     )
@@ -566,7 +567,8 @@ class StudyService:
             study_standard_versions_sdtm = [
                 study_standard_version
                 for study_standard_version in study_standard_versions
-                if "SDTM CT" in study_standard_version.ct_package_uid
+                if settings.sdtm_ct_catalogue_name
+                in study_standard_version.ct_package_uid
             ]
             study_standard_version_sdtm = (
                 study_standard_versions_sdtm[0]
@@ -639,7 +641,8 @@ class StudyService:
             study_standard_versions_sdtm = [
                 study_standard_version
                 for study_standard_version in study_standard_versions
-                if "SDTM CT" in study_standard_version.ct_package_uid
+                if settings.sdtm_ct_catalogue_name
+                in study_standard_version.ct_package_uid
             ]
             study_standard_version_sdtm = (
                 study_standard_versions_sdtm[0]
@@ -830,14 +833,14 @@ class StudyService:
             self._close_all_repos()
 
     def get_studies_list(
-        self, minimal_response=True
+        self, minimal_response=True, deleted=False
     ) -> list[StudySimple | StudyMinimal]:
-        items = self._repos.study_definition_repository.get_studies_list()
+        items = self._repos.study_definition_repository.get_studies_list(deleted)
 
         if minimal_response:
             return [StudyMinimal.from_input(item) for item in items]
 
-        return [StudySimple.from_input(item) for item in items]
+        return [StudySimple.from_input(item, deleted) for item in items]
 
     @trace_calls
     def get_all(
@@ -2072,6 +2075,7 @@ class StudyService:
         )
 
     @staticmethod
+    @trace_calls
     def check_if_study_uid_and_version_exists(
         study_uid: str, study_value_version: str | None = None
     ):
@@ -2336,8 +2340,9 @@ class StudyService:
     ) -> StudySoaPreferences:
         """Gets StudySoaPreferences using defaults for missing properties or NotFoundException if none defined"""
 
-        self.check_if_study_exists(study_uid=study_uid)
-
+        self.check_if_study_uid_and_version_exists(
+            study_uid=study_uid, study_value_version=study_value_version
+        )
         nodes = self._repos.study_definition_repository.get_soa_preferences(
             study_uid=study_uid, study_value_version=study_value_version
         )

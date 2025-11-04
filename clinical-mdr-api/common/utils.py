@@ -482,6 +482,19 @@ def get_edit_input_or_previous_value(
     return getattr(existing_vo, field_name_in_vo)
 
 
+def is_larger_than_or_equal(value_a: int | None, value_b: int | None) -> bool:
+    if value_a is not None and value_b is not None:
+        # If both values are not None, compare them directly
+        return value_a >= value_b
+    if value_a is not None and value_b is None:
+        # If value_b is None, value_a is larger than or equal to it
+        return True
+    if value_a is None and value_b is not None:
+        # If value_a is None, it cannot be larger than or equal to value_b
+        return False
+    return True  # both are None, so they are equal
+
+
 def get_db_result_as_dict(row: list[Any], columns: list[str]) -> dict[str, Any]:
     item = {}
     for key, value in zip(columns, row):

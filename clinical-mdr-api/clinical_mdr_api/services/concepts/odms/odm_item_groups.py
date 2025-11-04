@@ -53,7 +53,6 @@ class OdmItemGroupService(OdmGenericService[OdmItemGroupAR]):
             odm_item_group_ar=item_ar,
             find_odm_description_by_uid=self._repos.odm_description_repository.find_by_uid_2,
             find_odm_alias_by_uid=self._repos.odm_alias_repository.find_by_uid_2,
-            find_term_by_uid=self._repos.ct_term_attributes_repository.find_by_uid,
             find_activity_subgroup_by_uid=self._repos.activity_subgroup_repository.find_by_uid_2,
             find_odm_vendor_attribute_by_uid=self._repos.odm_vendor_attribute_repository.find_by_uid_2,
             find_odm_item_by_uid_with_item_group_relation=self._repos.odm_item_repository.find_by_uid_with_item_group_relation,

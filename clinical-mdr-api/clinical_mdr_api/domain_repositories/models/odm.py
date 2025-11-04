@@ -6,6 +6,7 @@ from neomodel import (
     RelationshipFrom,
     RelationshipTo,
     StringProperty,
+    ZeroOrMore,
 )
 
 from clinical_mdr_api.domain_repositories.models.activities import (
@@ -20,7 +21,7 @@ from clinical_mdr_api.domain_repositories.models.concepts import (
 )
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
     CTCodelistRoot,
-    CTTermRoot,
+    CTTermContext,
 )
 from clinical_mdr_api.domain_repositories.models.generic import (
     ClinicalMdrRel,
@@ -200,7 +201,6 @@ class OdmFormRoot(ConceptRoot):
     form_ref = RelationshipFrom(
         "OdmStudyEventRoot", "FORM_REF", model=OdmFormRefRelation
     )
-    has_scope = RelationshipTo(CTTermRoot, "HAS_SCOPE")
     has_description = RelationshipTo(
         OdmDescriptionRoot, "HAS_DESCRIPTION", model=ClinicalMdrRel
     )
@@ -266,7 +266,7 @@ class OdmItemGroupRoot(ConceptRoot):
     )
     has_alias = RelationshipTo(OdmAliasRoot, "HAS_ALIAS", model=ClinicalMdrRel)
     has_sdtm_domain = RelationshipTo(
-        CTTermRoot, "HAS_SDTM_DOMAIN", model=ClinicalMdrRel
+        CTTermContext, "HAS_SDTM_DOMAIN", cardinality=ZeroOrMore, model=ClinicalMdrRel
     )
     has_activity_subgroup = RelationshipTo(
         ActivitySubGroupRoot, "HAS_ACTIVITY_SUB_GROUP", model=ClinicalMdrRel
@@ -342,7 +342,10 @@ class OdmItemRoot(ConceptRoot):
     )
     has_codelist = RelationshipTo(CTCodelistRoot, "HAS_CODELIST", model=ClinicalMdrRel)
     has_codelist_term = RelationshipTo(
-        CTTermRoot, "HAS_CODELIST_TERM", model=OdmItemTermRelationship
+        CTTermContext,
+        "HAS_CODELIST_TERM",
+        cardinality=ZeroOrMore,
+        model=OdmItemTermRelationship,
     )
     item_ref = RelationshipFrom(OdmItemGroupRoot, "ITEM_REF", model=OdmItemRefRelation)
     has_vendor_element = RelationshipTo(

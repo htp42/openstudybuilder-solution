@@ -41,6 +41,7 @@ from clinical_mdr_api.services.studies.study_selection_base import StudySelectio
 from clinical_mdr_api.services.syntax_instances.endpoints import EndpointService
 from common import exceptions
 from common.auth.user import user
+from common.config import settings
 
 
 class StudyEndpointSelectionService(StudySelectionMixin):
@@ -77,7 +78,7 @@ class StudyEndpointSelectionService(StudySelectionMixin):
             order=order,
             get_objective_by_uid_callback=self._transform_latest_objective_model,
             get_objective_by_uid_version_callback=self._transform_objective_model,
-            get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+            find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
             no_brackets=no_brackets,
             find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
@@ -155,7 +156,7 @@ class StudyEndpointSelectionService(StudySelectionMixin):
             get_latest_endpoint_by_uid=get_latest_endpoint_by_uid,
             get_timeframe_by_uid_and_version=self._transform_timeframe_model,
             get_latest_timeframe=self._transform_latest_timeframe_model,
-            get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+            find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             get_study_objective_by_uid=self._transform_single_study_objective_to_model,
             order=order,
             accepted_version=study_selection.accepted_version,
@@ -237,10 +238,9 @@ class StudyEndpointSelectionService(StudySelectionMixin):
 
             # get order from the endpoint level CT term
             if selection_create_input.endpoint_level_uid is not None:
-                endpoint_level_order = (
-                    self._repos.ct_term_name_repository.term_specific_order_by_uid(
-                        uid=selection_create_input.endpoint_level_uid
-                    )
+                endpoint_level_order = self._repos.ct_term_name_repository.term_specific_order_by_uid_and_cl_submval(
+                    uid=selection_create_input.endpoint_level_uid,
+                    cl_submval=settings.study_endpoint_level_cl_submval,
                 )
             else:
                 endpoint_level_order = None
@@ -273,10 +273,8 @@ class StudyEndpointSelectionService(StudySelectionMixin):
                 unit_definition_exists_callback=repos.unit_definition_repository.check_exists_final_version,
             )
             selection_aggregate.validate()
-
             # sync with DB and save the update
             repos.study_endpoint_repository.save(selection_aggregate, self.author)
-
             # Fetch the new selection which was just added
             new_selection, order = selection_aggregate.get_specific_endpoint_selection(
                 new_selection.study_selection_uid
@@ -1234,7 +1232,7 @@ class StudyEndpointSelectionService(StudySelectionMixin):
                     get_endpoint_by_uid=self._transform_endpoint_model,
                     get_timeframe_by_uid=self._transform_timeframe_model,
                     get_study_objective_by_uid=self._transform_single_study_objective_to_model,
-                    get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+                    find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                     effective_date=effective_date,
                 )
             )

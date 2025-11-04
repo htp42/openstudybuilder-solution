@@ -68,6 +68,10 @@ class LibraryItemRepositoryImplBase(
         maxsize=settings.cache_max_size, ttl=settings.cache_ttl
     )
     lock_store_item_by_uid = Lock()
+    cache_store_term_by_uid_and_submval = TTLCache(
+        maxsize=settings.cache_max_size, ttl=settings.cache_ttl
+    )
+    lock_store_term_by_uid_and_submval = Lock()
     has_library = True
 
     @abc.abstractmethod
@@ -1789,7 +1793,7 @@ class LibraryItemRepositoryImplBase(
                 "type.term_uid": "type_root.uid",
                 "type.name.sponsor_preferred_name": "type_ct_term_name_value.name",
                 "type.name.sponsor_preferred_name_sentence_case": "type_ct_term_name_value.name_sentence_case",
-                "type.attributes.code_submission_value": "type_ct_term_attributes_value.code_submission_value",
+                "type.attributes.submission_value": "type_ct_term_attributes_value.submission_value",
                 "type.attributes.preferred_term": "type_ct_term_attributes_value.preferred_term",
             }
 
@@ -1798,7 +1802,7 @@ class LibraryItemRepositoryImplBase(
                 "categories.term_uid": "category_root.uid",
                 "categories.name.sponsor_preferred_name": "category_ct_term_name_value.name",
                 "categories.name.sponsor_preferred_name_sentence_case": "category_ct_term_name_value.name_sentence_case",
-                "categories.attributes.code_submission_value": "category_ct_term_attributes_value.code_submission_value",
+                "categories.attributes.submission_value": "category_ct_term_attributes_value.submission_value",
                 "categories.attributes.preferred_term": "category_ct_term_attributes_value.preferred_term",
             }
 
@@ -1807,12 +1811,12 @@ class LibraryItemRepositoryImplBase(
                 "sub_categories.term_uid": "subcategory_root.uid",
                 "sub_categories.name.sponsor_preferred_name": "subcategory_ct_term_name_value.name",
                 "sub_categories.name.sponsor_preferred_name_sentence_case": "subcategory_ct_term_name_value.name_sentence_case",
-                "sub_categories.attributes.code_submission_value": "subcategory_ct_term_attributes_value.code_submission_value",
+                "sub_categories.attributes.submission_value": "subcategory_ct_term_attributes_value.submission_value",
                 "sub_categories.attributes.preferred_term": "subcategory_ct_term_attributes_value.preferred_term",
                 "subCategories.term_uid": "subcategory_root.uid",
                 "subCategories.name.sponsor_preferred_name": "subcategory_ct_term_name_value.name",
                 "subCategories.name.sponsor_preferred_name_sentence_case": "subcategory_ct_term_name_value.name_sentence_case",
-                "subCategories.attributes.code_submission_value": "subcategory_ct_term_attributes_value.code_submission_value",
+                "subCategories.attributes.submission_value": "subcategory_ct_term_attributes_value.submission_value",
                 "subCategories.attributes.preferred_term": "subcategory_ct_term_attributes_value.preferred_term",
             }
 
@@ -2489,25 +2493,14 @@ END
 
     def _ctterm_name_match_return_stmt(self):
         match_stmt = """
-            MATCH (root)<-[root_has_name_root__ctterm_root:HAS_NAME_ROOT]-(ctterm_root)
-            CALL{
-                WITH ctterm_root
-                MATCH (ctterm_root)<-[ctterm_root__ct_codelist_root:HAS_TERM]-(ctcodelist_root:CTCodelistRoot)<-[:HAS_CODELIST]-(ct_catalogue:CTCatalogue)
-                MATCH (ctcodelist_root)<-[:CONTAINS_CODELIST]-(codelist_library:Library)
-                RETURN collect(DISTINCT {
-                    uid: ctcodelist_root.uid
-                    ,order: ctterm_root__ct_codelist_root.order
-                    ,codelist_library_name: codelist_library.name
-                    ,ct_catalogue_name: ct_catalogue.name
-                }) as codelists
-            } 
+            MATCH (root)<-[:HAS_NAME_ROOT]-(ctterm_root)
+            OPTIONAL MATCH (ctterm_root)<-[:HAS_TERM_ROOT]-(ctcodelistterm)<-[ctterm_root__ct_codelist_root]-(ctcodelist_root:CTCodelistRoot)<-[:CONTAINS_CODELIST]-(codelist_library:Library)
+            OPTIONAL MATCH (ctcodelist_root)<-[:HAS_CODELIST]-(ct_catalogue:CTCatalogue)
         """
         ctterm_names_return = """,
             {
-                ctterm_root_uid: ctterm_root.uid
-                ,catalogue: codelists[0].ct_catalogue_name
-                ,codelists: codelists
-                ,ctterm_name_element_id: elementID(root)
+                ctterm_root_uid: ctterm_root.uid,
+                ctterm_name_element_id: elementID(root)
             } as ctterm_name
         """
         return match_stmt, ctterm_names_return
@@ -2565,7 +2558,7 @@ END
                 //ACTIVITY ITEM CTTERMS
                 CALL{
                     WITH activity_item
-                    MATCH (activity_item)-[:HAS_CT_TERM]->(activity_item_ctterm_root:CTTermRoot)
+                    MATCH (activity_item)-[:HAS_CT_TERM]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(activity_item_ctterm_root:CTTermRoot)
                     MATCH (activity_item_ctterm_root)-->(:CTTermNameRoot)-[:LATEST_FINAL]->(ct_name_value:CTTermNameValue)
                     RETURN collect(DISTINCT {uid:activity_item_ctterm_root.uid, name:ct_name_value.name }) as ct_terms
                 }
@@ -2638,7 +2631,7 @@ END
                 WITH *, [(root)-[ver_rel]->(activity_value:ActivityValue)-[:HAS_GROUPING]->(:ActivityGrouping)-[:IN_SUBGROUP]->(activity_valid_group:ActivityValidGroup) | 
                     {
                         activity_subgroup: head(apoc.coll.sortMulti([(activity_valid_group)<-[:HAS_GROUP]-(activity_subgroup_value:ActivitySubGroupValue)<-[has_version:HAS_VERSION]-
-                            (activity_subgroup_root:ActivitySubGroupRoot) | 
+                            (activity_subgroup_root:ActivitySubGroupRoot) WHERE has_version.status in ["Final", "Retired"]| 
                             {
                                 uid:activity_subgroup_root.uid,
                                 major_version: toInteger(split(has_version.version,'.')[0]),
@@ -2646,7 +2639,7 @@ END
                                 name: activity_subgroup_value.name
                             }], ['major_version', 'minor_version'])), 
                         activity_group: head(apoc.coll.sortMulti([(activity_valid_group)-[:IN_GROUP]-(activity_group_value:ActivityGroupValue)<-[has_version:HAS_VERSION]-
-                            (activity_group_root:ActivityGroupRoot) | 
+                            (activity_group_root:ActivityGroupRoot) WHERE has_version.status in ["Final", "Retired"] | 
                             {
                                 uid:activity_group_root.uid,
                                 major_version: toInteger(split(has_version.version,'.')[0]),
@@ -2712,7 +2705,7 @@ END
                 MATCH (root)-[:LATEST]->(:UnitDefinitionValue)-[:HAS_UNIT_SUBSET]-(ct_unit_subset:CTTermRoot)-->(:CTTermNameRoot)-[:LATEST_FINAL]->(name_value:CTTermNameValue)
                 return collect(DISTINCT {uid:ct_unit_subset.uid, name:name_value.name})  as unit_subsets
             }
-            OPTIONAL MATCH (root)-[:LATEST]->(:UnitDefinitionValue)-[:HAS_CT_DIMENSION]->(ct_dimension:CTTermRoot)
+            OPTIONAL MATCH (root)-[:LATEST]->(:UnitDefinitionValue)-[:HAS_CT_DIMENSION]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(ct_dimension:CTTermRoot)
             OPTIONAL MATCH (root)-[:LATEST]->(:UnitDefinitionValue)-[:HAS_UCUM_TERM]->(ucum_term_root:UCUMTermRoot)
 
         """
@@ -2783,7 +2776,7 @@ WHERE cnt > 0
 
     def _subcategory_match_return_stmt(self):
         match_stmt = """
-            OPTIONAL MATCH (root)-[:HAS_SUBCATEGORY]->(subcategory_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(subcategory_ct_term_name_value:CTTermNameValue)
+            OPTIONAL MATCH (root)-[:HAS_SUBCATEGORY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(subcategory_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(subcategory_ct_term_name_value:CTTermNameValue)
             OPTIONAL MATCH (subcategory_root:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTTermAttributesRoot)-[:LATEST]->(subcategory_ct_term_attributes_value:CTTermAttributesValue)
         """
 
@@ -2792,7 +2785,7 @@ WHERE cnt > 0
                 term_uid: subcategory_root.uid,
                 name: subcategory_ct_term_name_value.name,
                 name_sentence_case: subcategory_ct_term_name_value.name_sentence_case,
-                code_submission_value: subcategory_ct_term_attributes_value.code_submission_value,
+                submission_value: subcategory_ct_term_attributes_value.submission_value,
                 preferred_term: subcategory_ct_term_attributes_value.preferred_term
             }) as subcategories
         """
@@ -2801,7 +2794,7 @@ WHERE cnt > 0
 
     def _category_match_return_stmt(self):
         match_stmt = """
-            OPTIONAL MATCH (root)-[:HAS_CATEGORY]->(category_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(category_ct_term_name_value:CTTermNameValue)
+            OPTIONAL MATCH (root)-[:HAS_CATEGORY]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(category_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(category_ct_term_name_value:CTTermNameValue)
             OPTIONAL MATCH (category_root:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTTermAttributesRoot)-[:LATEST]->(category_ct_term_attributes_value:CTTermAttributesValue)
         """
 
@@ -2810,7 +2803,7 @@ WHERE cnt > 0
                 term_uid: category_root.uid,
                 name: category_ct_term_name_value.name,
                 name_sentence_case: category_ct_term_name_value.name_sentence_case,
-                code_submission_value: category_ct_term_attributes_value.code_submission_value,
+                submission_value: category_ct_term_attributes_value.submission_value,
                 preferred_term: category_ct_term_attributes_value.preferred_term
             }) as categories
         """
@@ -2838,7 +2831,8 @@ WHERE cnt > 0
                     ORDER BY template_rel.start_date DESC
                     LIMIT 1
                 }}
-                OPTIONAL MATCH (template_root)-[:HAS_TYPE]->(type_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(type_ct_term_name_value:CTTermNameValue)
+                OPTIONAL MATCH (template_root)-[:HAS_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->
+                  (type_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(type_ct_term_name_value:CTTermNameValue)
                 OPTIONAL MATCH (type_root)-[:HAS_ATTRIBUTES_ROOT]->(:CTTermAttributesRoot)-[:LATEST]->(type_ct_term_attributes_value:CTTermAttributesValue)
             """
 
@@ -2852,7 +2846,7 @@ WHERE cnt > 0
                     term_uid: type_root.uid,
                     name: type_ct_term_name_value.name,
                     name_sentence_case: type_ct_term_name_value.name_sentence_case,
-                    code_submission_value: type_ct_term_attributes_value.code_submission_value,
+                    submission_value: type_ct_term_attributes_value.submission_value,
                     preferred_term: type_ct_term_attributes_value.preferred_term
                 } as instance_template_return
             """
@@ -2877,7 +2871,7 @@ WHERE cnt > 0
     def _template_type_match_return_stmt(self):
         if hasattr(self.root_class, "has_type"):
             match_stmt = """
-                OPTIONAL MATCH (root)-[:HAS_TYPE]->(type_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(type_ct_term_name_value:CTTermNameValue)
+                OPTIONAL MATCH (root)-[:HAS_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(type_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(type_ct_term_name_value:CTTermNameValue)
                 OPTIONAL MATCH (type_root)-[:HAS_ATTRIBUTES_ROOT]->(:CTTermAttributesRoot)-[:LATEST]->(type_ct_term_attributes_value:CTTermAttributesValue)
             """
 
@@ -2886,13 +2880,13 @@ WHERE cnt > 0
                     term_uid: type_root.uid,
                     name: type_ct_term_name_value.name,
                     name_sentence_case: type_ct_term_name_value.name_sentence_case,
-                    code_submission_value: type_ct_term_attributes_value.code_submission_value,
+                    submission_value: type_ct_term_attributes_value.submission_value,
                     preferred_term: type_ct_term_attributes_value.preferred_term
                 } as template_type
             """
         else:
             match_stmt = """
-                OPTIONAL MATCH (root)-[:CREATED_FROM]->(template_root)-[:HAS_TYPE]->(type_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(type_ct_term_name_value:CTTermNameValue)
+                OPTIONAL MATCH (root)-[:CREATED_FROM]->(template_root)-[:HAS_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(type_root:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(type_ct_term_name_value:CTTermNameValue)
                 OPTIONAL MATCH (type_root)-[:HAS_ATTRIBUTES_ROOT]->(:CTTermAttributesRoot)-[:LATEST]->(type_ct_term_attributes_value:CTTermAttributesValue)
                 OPTIONAL MATCH (template_root)-[:LATEST]->(template_value)
             """
@@ -2902,7 +2896,7 @@ WHERE cnt > 0
                     term_uid: type_root.uid,
                     name: type_ct_term_name_value.name,
                     name_sentence_case: type_ct_term_name_value.name_sentence_case,
-                    code_submission_value: type_ct_term_attributes_value.code_submission_value,
+                    submission_value: type_ct_term_attributes_value.submission_value,
                     preferred_term: type_ct_term_attributes_value.preferred_term
                 } as template_type
             """

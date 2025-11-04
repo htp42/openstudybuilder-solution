@@ -1,6 +1,6 @@
 # Clinical MDR Database Architecture
 
-This document holds the design documentation for the StudyBuilder database architecture - named as the Clinical MDR database component.
+This document holds the design documentation for the OpenStudyBuilder database architecture - named as the Clinical MDR database component.
 
 The database is implemented as a linked graph database in Neo4j, and the solution design utilizes a number of capabilities uniquely supported by the label property graph model.
 

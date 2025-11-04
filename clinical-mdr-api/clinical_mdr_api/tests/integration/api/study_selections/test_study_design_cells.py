@@ -84,18 +84,28 @@ def test_data():
     db.cypher_query(STARTUP_CT_CATALOGUE_CYPHER)
     TestUtils.set_study_standard_version(study_uid=study.uid)
 
-    catalogue_name, library_name = get_catalogue_name_library_name()
+    _catalogue_name, library_name = get_catalogue_name_library_name()
+    catalogue_name = "SDTM CT"
     # Create a study arm
     arm_type_codelist = create_codelist(
-        "Arm Type", "CTCodelist_ArmType", catalogue_name, library_name
-    )
-    arm_type_term = create_ct_term(
-        arm_type_codelist.codelist_uid,
         "Arm Type",
-        "ArmType_0001",
-        1,
+        "CTCodelist_ArmType",
         catalogue_name,
         library_name,
+        submission_value="ARMTTP",
+    )
+    arm_type_term = create_ct_term(
+        "Arm Type",
+        "ArmType_0001",
+        catalogue_name,
+        library_name,
+        codelists=[
+            {
+                "uid": arm_type_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Arm Type",
+            }
+        ],
     )
     study_arm = create_study_arm(
         study_uid=study.uid,
@@ -131,17 +141,26 @@ def test_data():
     study_epoch = create_study_epoch("EpochSubType_0001", study_uid=study.uid)
     global epoch_uid
     epoch_uid = study_epoch.uid
-    element_type_codelist = create_codelist(
-        "Element Type", "CTCodelist_ElementType", catalogue_name, library_name
+    element_subtype_codelist = create_codelist(
+        "Element Subtype",
+        "CTCodelist_ElementType",
+        catalogue_name,
+        library_name,
+        submission_value="ELEMSTP",
     )
     global element_type_term
     element_type_term = create_ct_term(
-        element_type_codelist.codelist_uid,
         "Element Type",
         "ElementType_0001",
-        1,
         catalogue_name,
         library_name,
+        codelists=[
+            {
+                "uid": element_subtype_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Element Type",
+            }
+        ],
     )
     yield
 

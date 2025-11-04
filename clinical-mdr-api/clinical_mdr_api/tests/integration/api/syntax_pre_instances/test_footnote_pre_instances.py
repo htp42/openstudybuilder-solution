@@ -24,6 +24,7 @@ from clinical_mdr_api.models.concepts.activities.activity_sub_group import (
     ActivitySubGroup,
 )
 from clinical_mdr_api.models.concepts.concept import TextValue
+from clinical_mdr_api.models.controlled_terminologies.ct_codelist import CTCodelist
 from clinical_mdr_api.models.controlled_terminologies.ct_term import CTTerm
 from clinical_mdr_api.models.dictionaries.dictionary_codelist import DictionaryCodelist
 from clinical_mdr_api.models.dictionaries.dictionary_term import DictionaryTerm
@@ -47,6 +48,7 @@ log = logging.getLogger(__name__)
 # Global variables shared between fixtures and tests
 footnote_pre_instances: list[FootnotePreInstance]
 footnote_template: FootnoteTemplate
+type_codelist: CTCodelist
 ct_term_schedule_of_activities: CTTerm
 dictionary_term_indication: DictionaryTerm
 indications_codelist: DictionaryCodelist
@@ -75,6 +77,7 @@ def test_data():
 
     global footnote_pre_instances
     global footnote_template
+    global type_codelist
     global ct_term_schedule_of_activities
     global dictionary_term_indication
     global indications_codelist
@@ -91,6 +94,13 @@ def test_data():
     text_value_1 = TestUtils.create_text_value()
     text_value_2 = TestUtils.create_text_value()
 
+    type_codelist = TestUtils.create_ct_codelist(
+        name="Footnote Type",
+        submission_value="FTNTTP",
+        extensible=True,
+        approve=True,
+    )
+
     activity_group = TestUtils.create_activity_group(name="test activity group")
     activity_subgroup = TestUtils.create_activity_subgroup(
         name="test activity subgroup", activity_groups=[activity_group.uid]
@@ -104,7 +114,8 @@ def test_data():
 
     # Create Dictionary/CT Terms
     ct_term_schedule_of_activities = TestUtils.create_ct_term(
-        sponsor_preferred_name="Schedule of Activities"
+        sponsor_preferred_name="Schedule of Activities",
+        codelist_uid=type_codelist.codelist_uid,
     )
     indications_library_name = "SNOMED"
     indications_codelist = TestUtils.create_dictionary_codelist(
@@ -1015,7 +1026,10 @@ def test_keep_original_case_of_unit_definition_parameter_if_it_is_in_the_start_o
 
 
 def test_footnote_pre_instance_sequence_id_generation(api_client):
-    ct_term = TestUtils.create_ct_term(sponsor_preferred_name="Other Activities")
+    ct_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Other Activities",
+        codelist_uid=type_codelist.codelist_uid,
+    )
     template = TestUtils.create_footnote_template(
         name="Default [TextValue]",
         study_uid=None,

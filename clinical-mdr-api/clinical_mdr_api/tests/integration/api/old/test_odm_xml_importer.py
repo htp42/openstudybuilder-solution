@@ -23,6 +23,7 @@ from clinical_mdr_api.tests.data.odm_xml import (
 from clinical_mdr_api.tests.integration.utils.api import drop_db, inject_and_clear_db
 from clinical_mdr_api.tests.integration.utils.data_library import (
     STARTUP_CT_TERM_ATTRIBUTES_CYPHER,
+    STARTUP_DOMAIN_CL_CYPHER,
     STARTUP_ODM_VENDOR_ATTRIBUTES,
     STARTUP_ODM_VENDOR_ELEMENTS,
     STARTUP_ODM_VENDOR_NAMESPACES,
@@ -47,6 +48,7 @@ def test_data():
     db.cypher_query(STARTUP_ODM_VENDOR_ATTRIBUTES)
     db.cypher_query(STARTUP_UNIT_DEFINITIONS)
     db.cypher_query(STARTUP_CT_TERM_ATTRIBUTES_CYPHER)
+    db.cypher_query(STARTUP_DOMAIN_CL_CYPHER)
 
     yield
 

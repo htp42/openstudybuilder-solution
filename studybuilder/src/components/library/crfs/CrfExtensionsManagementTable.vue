@@ -6,6 +6,7 @@
           :headers="selectedExtensionsHeaders"
           item-value="uid"
           :items="selectedExtensions"
+          :items-length="selectedExtensions.length"
           hide-export-button
           disable-filtering
           :modifiable-table="false"
@@ -35,7 +36,6 @@
                     @click="toggleExpand(internalItem)"
                   />
                   <v-btn v-else icon variant="text" class="hide" />
-                  <ActionsMenu :actions="actions" :item="item" />
                   <div class="mt-3">
                     {{
                       item.type
@@ -95,7 +95,6 @@
                     <td width="25%">
                       <v-row>
                         <v-btn icon variant="text" class="hide" />
-                        <ActionsMenu :actions="actions" :item="props.item" />
                         <div class="mt-3">
                           {{ $t('CrfExtensions.attribute') }}
                         </div>
@@ -164,7 +163,6 @@
                     @click="toggleExpand(internalItem)"
                   />
                   <v-btn v-else icon variant="text" class="hide" />
-                  <ActionsMenu :actions="actions" :item="item" />
                   <div class="mt-3">
                     {{
                       item.type
@@ -214,7 +212,6 @@
                     <td width="25%">
                       <v-row>
                         <v-btn icon variant="text" class="hide" />
-                        <ActionsMenu :actions="actions" :item="item" />
                         <div class="mt-3">
                           {{ $t('CrfExtensions.attribute') }}
                         </div>
@@ -299,27 +296,6 @@ onMounted(async () => {
 function setExtensions() {
   if (props.editExtensions) {
     selectedExtensions.value = props.editExtensions
-    selectedExtensions.value.forEach((ex, index) => {
-      const extension = elements.value.find((el) => el.uid === ex.uid)
-      if (extension) {
-        const value = selectedExtensions.value[index].value
-        selectedExtensions.value[index] = extension
-        if (value) {
-          selectedExtensions.value[index].value = value
-        }
-      }
-    })
-    selectedExtensions.value.forEach((ex, index) => {
-      if (ex.vendor_attributes) {
-        selectedExtensions.value[index].vendor_attributes.forEach((attr, i) => {
-          selectedExtensions.value[index].vendor_attributes[i].value =
-            selectedExtensions.value.find((ex) => ex.uid === attr.uid).value
-        })
-      }
-    })
-    selectedExtensions.value = selectedExtensions.value.filter((ex) => {
-      return ex.library_name
-    })
   }
 }
 

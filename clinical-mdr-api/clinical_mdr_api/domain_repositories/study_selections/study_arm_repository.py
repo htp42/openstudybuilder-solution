@@ -8,6 +8,9 @@ from clinical_mdr_api import utils
 from clinical_mdr_api.domain_repositories._utils.helpers import (
     acquire_write_lock_study_value,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.generic_repository import (
     manage_previous_connected_study_selection_relationships,
 )
@@ -27,6 +30,7 @@ from clinical_mdr_api.domains.study_selections.study_selection_arm import (
     StudySelectionArmAR,
     StudySelectionArmVO,
 )
+from common.config import settings
 from common.exceptions import BusinessLogicException
 from common.utils import convert_to_datetime, get_db_result_as_dict
 
@@ -207,8 +211,7 @@ class StudySelectionArmRepository:
             WITH sr, sv
             MATCH (sv)-[:HAS_STUDY_ARM]->(sar:StudyArm)
             WITH DISTINCT sr, sar, sv
-            
-            OPTIONAL MATCH (sar)-[:HAS_ARM_TYPE]->(elr:CTTermRoot)
+            OPTIONAL MATCH (sar)-[:HAS_ARM_TYPE]->(st:CTTermContext)-[:HAS_SELECTED_TERM]->(elr:CTTermRoot)
             OPTIONAL MATCH (sv)-[:HAS_STUDY_BRANCH_ARM]-(bars:StudyBranchArm)<-[:STUDY_ARM_HAS_BRANCH_ARM]-(sar)
             WITH DISTINCT 
                 bars.uid as branch_arm_uid, elr, sr, sar,
@@ -520,9 +523,18 @@ class StudySelectionArmRepository:
         if selection.arm_type_uid:
             # find the CTTermRoot (but be sure that it is the actual one!!)
             study_arm_type = CTTermRoot.nodes.get(uid=selection.arm_type_uid)
+
+            selected_arm_type_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    study_arm_type,
+                    codelist_submission_value=settings.study_arm_type_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+
             # connect to node
             # pylint: disable=no-member
-            study_arm_selection_node.arm_type.connect(study_arm_type)
+            study_arm_selection_node.arm_type.connect(selected_arm_type_node)
 
     def generate_uid(self) -> str:
         return StudyArm.get_next_free_uid_and_increment_counter()
@@ -561,7 +573,7 @@ class StudySelectionArmRepository:
             cypher
             + """
             WITH DISTINCT all_sa
-            OPTIONAL MATCH (all_sa)-[:HAS_ARM_TYPE]->(at:CTTermRoot)
+            OPTIONAL MATCH (all_sa)-[:HAS_ARM_TYPE]->(st:CTTermContext)-[:HAS_SELECTED_TERM]->(at:CTTermRoot)
             OPTIONAL MATCH (bars:StudyBranchArm)<-[:STUDY_ARM_HAS_BRANCH_ARM]-(all_sa)
             WITH DISTINCT bars.uid as branch_arm_uid, at, all_sa 
             CALL {

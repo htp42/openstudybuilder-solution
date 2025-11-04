@@ -2,6 +2,9 @@ import abc
 from datetime import datetime
 from typing import Any, Generic, Literal, TypeVar, overload
 
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.library_item_repository import (
     LibraryItemRepositoryImplBase,
 )
@@ -37,6 +40,7 @@ from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryItemStatus,
 )
 from clinical_mdr_api.repositories._utils import FilterOperator, sb_clear_cache
+from common.config import settings
 from common.exceptions import NotFoundException
 
 _AggregateRootType = TypeVar("_AggregateRootType", bound=LibraryItemAggregateRootBase)
@@ -324,6 +328,9 @@ class GenericSyntaxRepository(
 
         ct_term = syntax_node.has_type.get_or_none()
 
+        if ct_term:
+            ct_term = ct_term.has_selected_term.get_or_none()
+
         return ct_term.uid if ct_term else None
 
     def _get_indication(self, uid: str) -> DictionaryTermRoot:
@@ -358,23 +365,63 @@ class GenericSyntaxRepository(
             indication = self._get_indication(indication)
             root.has_indication.connect(indication)
 
+    def _get_mapped_codelist_submission_value(self):
+        mapping = {
+            "Endpoint": (
+                settings.syntax_endpoint_category_cl_submval,
+                settings.syntax_endpoint_sub_category_cl_submval,
+            ),
+            "Criteria": (
+                settings.syntax_criteria_category_cl_submval,
+                settings.syntax_criteria_sub_category_cl_submval,
+            ),
+            "Objective": (settings.syntax_objective_category_cl_submval, None),
+        }
+
+        target = getattr(self, "template_class", None) or self.root_class
+        target = (
+            target.__label__.removesuffix("Root")
+            .removesuffix("Template")
+            .removesuffix("PreInstance")
+        )
+
+        return mapping.get(target)
+
     @sb_clear_cache(caches=["cache_store_item_by_uid"])
     def patch_categories(self, uid: str, category_uids: list[str] | None) -> None:
+        cl_submval = self._get_mapped_codelist_submission_value()
+
         root = self.root_class.nodes.get(uid=uid)
         root.has_category.disconnect_all()
-        for category in category_uids or []:
-            category = self._get_category(category)
-            root.has_category.connect(category)
+        for category_uid in category_uids or []:
+            if category := self._get_category(category_uid):
+                selected_term_node = (
+                    CTCodelistAttributesRepository().get_or_create_selected_term(
+                        category,
+                        codelist_submission_value=cl_submval[0],
+                        catalogue_name=settings.sdtm_ct_catalogue_name,
+                    )
+                )
+                root.has_category.connect(selected_term_node)
 
     @sb_clear_cache(caches=["cache_store_item_by_uid"])
     def patch_subcategories(
         self, uid: str, sub_category_uids: list[str] | None
     ) -> None:
+        cl_submval = self._get_mapped_codelist_submission_value()
+
         root = self.root_class.nodes.get(uid=uid)
         root.has_subcategory.disconnect_all()
-        for sub_category in sub_category_uids or []:
-            sub_category = self._get_category(sub_category)
-            root.has_subcategory.connect(sub_category)
+        for sub_category_uid in sub_category_uids or []:
+            if sub_category := self._get_category(sub_category_uid):
+                selected_term_node = (
+                    CTCodelistAttributesRepository().get_or_create_selected_term(
+                        sub_category,
+                        codelist_submission_value=cl_submval[1],
+                        catalogue_name=settings.sdtm_ct_catalogue_name,
+                    )
+                )
+                root.has_subcategory.connect(selected_term_node)
 
     @sb_clear_cache(caches=["cache_store_item_by_uid"])
     def patch_activities(self, uid: str, activity_uids: list[str] | None) -> None:

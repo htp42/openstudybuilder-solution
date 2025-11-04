@@ -86,7 +86,7 @@ class StudyArmSelectionService(StudySelectionMixin):
             study_uid=study_uid,
             selection=study_selection,
             order=order,
-            find_simple_term_arm_type_by_term_uid=self._find_by_uid_or_raise_not_found,
+            find_codelist_term_arm_type=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             find_multiple_connected_branch_arm=self._find_branch_arms_connected_to_arm_uid,
             study_value_version=study_value_version,
             terms_at_specific_datetime=terms_at_specific_datetime,
@@ -410,7 +410,7 @@ class StudyArmSelectionService(StudySelectionMixin):
         return StudySelectionArm.from_study_selection_history(
             study_selection_history=study_selection_history,
             study_uid=study_uid,
-            get_ct_term_arm_type=self._find_by_uid_or_raise_not_found,
+            find_codelist_term_arm_type=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             effective_date=effective_date,
         )
 
@@ -557,7 +557,7 @@ class StudyArmSelectionService(StudySelectionMixin):
                 study_uid=study_uid,
                 selection=new_selection,
                 order=order,
-                find_simple_term_arm_type_by_term_uid=self._find_by_uid_or_raise_not_found,
+                find_codelist_term_arm_type=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 terms_at_specific_datetime=terms_at_specific_datetime,
             )
         finally:
@@ -662,7 +662,7 @@ class StudyArmSelectionService(StudySelectionMixin):
                 study_uid=study_uid,
                 selection=selection_vo,
                 order=order,
-                find_simple_term_arm_type_by_term_uid=self._find_by_uid_or_raise_not_found,
+                find_codelist_term_arm_type=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 find_multiple_connected_branch_arm=self._find_branch_arms_connected_to_arm_uid,
                 terms_at_specific_datetime=terms_at_specific_datetime,
             )
@@ -693,7 +693,7 @@ class StudyArmSelectionService(StudySelectionMixin):
             study_uid=study_uid,
             selection=new_selection,
             order=order,
-            find_simple_term_arm_type_by_term_uid=self._find_by_uid_or_raise_not_found,
+            find_codelist_term_arm_type=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             find_multiple_connected_branch_arm=self._find_branch_arms_connected_to_arm_uid,
             study_value_version=study_value_version,
             terms_at_specific_datetime=terms_at_specific_datetime,

@@ -716,7 +716,6 @@ with the same content will succeed.
             "- One of the parameters wasn't found.",
         },
         403: _generic_descriptions.ERROR_403,
-        422: _generic_descriptions.ERROR_422,
     },
 )
 def pre_validate(

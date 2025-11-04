@@ -12,12 +12,14 @@ Feature: Studies - Define Study - Study Data Specifications - Operational SoA
         Given The user is logged in
         And A test study is selected
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to Operational SoA page using side menu
         Given The '/studies' page is opened
         When The 'Data Specifications' submenu is clicked in the 'Define Study' section
         When The 'Operational SoA' tab is selected
         Then The current URL is '/data_specifications/operational'
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the Operational SoA matrix table with options listed in this scenario
         Given The '/studies/Study_000004/data_specifications/operational' page is opened
         Then expand table and Show SoA groups is available on the page

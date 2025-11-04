@@ -1,6 +1,6 @@
 # Introduction to 4+1 architectural views
 
-This section describes the StudyBuilder solution architecture from both a functional and technical point of view.  This section thereby fulfils the need for the overall functional and technical system documentation.
+This section describes the OpenStudyBuilder solution architecture from both a functional and technical point of view.  This section thereby fulfils the need for the overall functional and technical system documentation.
 
 The architectural description is structured by the [4+1 architectural view model](https://en.wikipedia.org/wiki/4%2B1_architectural_view_model).
 
@@ -15,7 +15,7 @@ Within each of the 4+1 views the following diagrams or artifacts are currently u
   - [**System user guides**](../userguide/userguides_introduction.md)
     - The user guides are part of the system documentation including screen layout and user instructions.
   - **Conceptual, logical and physical data models**
-    - As StudyBuilder is a very data centric repository solution the data models is important for the end-users understanding of the system usage
+    - As OpenStudyBuilder is a very data centric repository solution the data models is important for the end-users understanding of the system usage
     - The conceptual model defines the information scope of the system; the logical the semantic definitions of the various data structures in the system; and the physical the actual implementation in the database.
     - As the end-user also has direct access to the underlying linked graph database, the physical model is part of the 'logical view'.
     - The data models are not yet shared in this online documentation portal, but will be added in a release soon.
@@ -33,7 +33,7 @@ Within each of the 4+1 views the following diagrams or artifacts are currently u
 ## Development View
 
   - [**Conceptual Architecture**](conceptual_architecture)
-    - Visual overview of the StudyBuilder solution with generic upstream and downstream systems and main internal system components including short description of each component.
+    - Visual overview of the OpenStudyBuilder solution with generic upstream and downstream systems and main internal system components including short description of each component.
   - [**System Component Architecture**](system_component_architecture)
     - Detailed overview of system components and interaction/data flows with description of each component, license, technology, git code repository.
   - [**Architectural Decision Records**](architectural_decision_records)
@@ -44,7 +44,7 @@ Within each of the 4+1 views the following diagrams or artifacts are currently u
   - [**Cloud Architecture**](cloud_architecture)
     - Detailed Azure infrastructure schema diagrams and resource overviews.
   - [**Application Architecture**](application_architecture)
-    - General description of the internal application architecture for the StudyBuilder API service layer component.
+    - General description of the internal application architecture for the OpenStudyBuilder API service layer component.
   - [**API Architecture**](mdr_api_architecture)
     - General description of the API service layer from an API usage point of view.
     - Include reference to the OpenAPI (Swagger) online documentation for the API service.

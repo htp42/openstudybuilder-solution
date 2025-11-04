@@ -212,7 +212,7 @@
               v-model="form.dose_frequency_uids"
               :label="$t('CompoundForm.dosing_frequency')"
               :items="frequencies"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               item-value="term_uid"
             />
           </v-col>
@@ -223,7 +223,7 @@
               v-model="form.route_of_administration_uids"
               :label="$t('CompoundForm.route_of_administration')"
               :items="routesOfAdmin"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               item-value="term_uid"
             />
           </v-col>
@@ -234,7 +234,7 @@
               v-model="form.dosage_form_uids"
               :label="$t('CompoundForm.dosage_form')"
               :items="dosageForms"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               item-value="term_uid"
             />
           </v-col>
@@ -245,7 +245,7 @@
               v-model="form.dispensers_uids"
               :label="$t('CompoundForm.dispensed_in')"
               :items="dispensers"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               item-value="term_uid"
             />
           </v-col>
@@ -256,7 +256,7 @@
               v-model="form.delivery_devices_uids"
               :label="$t('CompoundForm.device')"
               :items="devices"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               item-value="term_uid"
             />
           </v-col>
@@ -591,22 +591,24 @@ export default {
     this.fetchSubstances().then(() => {
       this.transformSubstances()
     })
-    terms.getByCodelist('frequency', { all: true }).then((resp) => {
+    terms.getTermsByCodelist('frequency', { all: true }).then((resp) => {
       this.frequencies = resp.data.items
     })
-    terms.getByCodelist('routeOfAdministration', { all: true }).then((resp) => {
-      this.routesOfAdmin = resp.data.items
-    })
-    terms.getByCodelist('dosageForm', { all: true }).then((resp) => {
+    terms
+      .getTermsByCodelist('routeOfAdministration', { all: true })
+      .then((resp) => {
+        this.routesOfAdmin = resp.data.items
+      })
+    terms.getTermsByCodelist('dosageForm', { all: true }).then((resp) => {
       this.dosageForms = resp.data.items
     })
-    terms.getByCodelist('dispensedIn', { all: true }).then((resp) => {
+    terms.getTermsByCodelist('dispensedIn', { all: true }).then((resp) => {
       this.dispensers = resp.data.items
     })
-    terms.getByCodelist('deliveryDevice', { all: true }).then((resp) => {
+    terms.getTermsByCodelist('deliveryDevice', { all: true }).then((resp) => {
       this.devices = resp.data.items
     })
-    terms.getByCodelist('adverseEvents', { all: true }).then((resp) => {
+    terms.getTermsByCodelist('adverseEvents', { all: true }).then((resp) => {
       this.adverseEvents = resp.data.items
     })
     brands.getAll().then((resp) => {

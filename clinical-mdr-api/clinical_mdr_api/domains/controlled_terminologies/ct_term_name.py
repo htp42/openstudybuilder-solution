@@ -19,8 +19,19 @@ from common.exceptions import (
 @dataclass(frozen=True)
 class CTTermCodelistVO:
     codelist_uid: str
+    submission_value: str
+    start_date: datetime
     order: int | None
-    library_name: str | None = None
+    codelist_name: str
+    codelist_submission_value: str
+    library_name: str
+    codelist_concept_id: str | None = None
+
+
+@dataclass(frozen=True)
+class CTTermVO:
+    codelists: list[CTTermCodelistVO]
+    catalogues: list[str]
 
 
 @dataclass(frozen=True)
@@ -31,26 +42,23 @@ class CTTermNameVO:
 
     name: str
     name_sentence_case: str
-    catalogue_name: str
-    codelists: list[CTTermCodelistVO]
+    catalogue_names: list[str] | None = None
     queried_effective_date: datetime | None = None
     date_conflict: bool = False
 
     @classmethod
     def from_repository_values(
         cls,
-        codelists: list[CTTermCodelistVO],
         name: str,
         name_sentence_case: str,
-        catalogue_name: str,
+        catalogue_names: list[str],
         queried_effective_date: datetime | None = None,
         date_conflict: bool = False,
     ) -> Self:
         ct_term_name_vo = cls(
-            codelists=codelists,
-            catalogue_name=catalogue_name,
             name=name,
             name_sentence_case=name_sentence_case,
+            catalogue_names=catalogue_names,
             queried_effective_date=queried_effective_date,
             date_conflict=date_conflict,
         )
@@ -60,40 +68,15 @@ class CTTermNameVO:
     @classmethod
     def from_input_values(
         cls,
-        codelists: list[CTTermCodelistVO],
         name: str,
         name_sentence_case: str,
-        catalogue_name: str,
-        codelist_exists_callback: Callable[[str], bool],
-        catalogue_exists_callback: Callable[[str], bool],
-        term_exists_by_name_in_codelists_callback: Callable[
-            [str, list[str]], bool
-        ] = lambda x, y: False,
+        catalogue_names: list[str] | None = None,
     ) -> Self:
-        for codelist in codelists:
-            ValidationException.raise_if_not(
-                codelist_exists_callback(codelist.codelist_uid),
-                msg=f"Codelist with UID '{ codelist.codelist_uid}' doesn't exist.",
-            )
-        BusinessLogicException.raise_if_not(
-            catalogue_exists_callback(catalogue_name),
-            msg=f"Catalogue with Name '{catalogue_name}' doesn't exist.",
-        )
-        AlreadyExistsException.raise_if(
-            name
-            and term_exists_by_name_in_codelists_callback(
-                name, [codelist.codelist_uid for codelist in codelists]
-            ),
-            "CT Term Name",
-            name,
-            "Name",
-        )
 
         ct_term_name_vo = cls(
-            codelists=codelists,
-            catalogue_name=catalogue_name,
             name=name,
             name_sentence_case=name_sentence_case,
+            catalogue_names=catalogue_names,
         )
 
         return ct_term_name_vo
@@ -167,7 +150,8 @@ class CTTermNameAR(LibraryItemAggregateRootBase):
         author_id: str,
         change_description: str,
         ct_term_vo: CTTermNameVO,
-        term_exists_by_name_in_codelists_callback: Callable[[str, list[str]], bool],
+        term_uid: str,
+        term_exists_by_name_in_codelists_callback: Callable[[str, str], bool],
     ) -> None:
         """
         Creates a new draft version for the object.
@@ -176,7 +160,7 @@ class CTTermNameAR(LibraryItemAggregateRootBase):
             ct_term_vo.name
             and term_exists_by_name_in_codelists_callback(
                 ct_term_vo.name,
-                [codelist.codelist_uid for codelist in self.ct_term_vo.codelists],
+                term_uid,
             )
             and self.ct_term_vo.name != ct_term_vo.name,
             "CT Term Name",
@@ -212,24 +196,3 @@ class CTTermNameAR(LibraryItemAggregateRootBase):
         if self._item_metadata.status == LibraryItemStatus.RETIRED:
             return {ObjectAction.REACTIVATE}
         return frozenset()
-
-    def set_new_order(
-        self, codelist_uid: str, new_order: int, codelist_library_name: str
-    ) -> None:
-        ct_term_vo = CTTermNameVO.from_input_values(
-            codelists=[
-                CTTermCodelistVO(
-                    codelist_uid=codelist_uid,
-                    order=new_order,
-                    library_name=codelist_library_name,
-                )
-            ],
-            catalogue_name=self.ct_term_vo.catalogue_name,
-            name=self.name,
-            name_sentence_case=self.ct_term_vo.name_sentence_case,
-            # passing always True callbacks, as we can't change catalogue
-            # in scope of CTTermName or CTTermAttributes, it can be only changed via CTTermRoot
-            codelist_exists_callback=lambda _: True,
-            catalogue_exists_callback=lambda _: True,
-        )
-        self._ct_term_name_vo = ct_term_vo

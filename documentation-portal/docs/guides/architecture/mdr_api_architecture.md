@@ -436,7 +436,7 @@ https://www.atlassian.com/de/git/tutorials/comparing-workflows/gitflow-workflow
 ## Authentication setup
 
 See `clinical-mdr-api/doc/Auth.md` on how to set up authentication and 
-role-based access control for clinical-mdr-api and StudyBuilder UI.
+role-based access control for clinical-mdr-api and OpenStudyBuilder UI.
 
 ---
 

@@ -114,7 +114,6 @@ def test_create_an_odm_form_and_attach_the_odm_alias_to_it(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == [
         {
             "uid": "odm_description3",

@@ -9,7 +9,7 @@ from clinical_mdr_api.domains.concepts.activities.activity_group import Activity
 from clinical_mdr_api.domains.concepts.activities.activity_instance import (
     ActivityInstanceAR,
 )
-from clinical_mdr_api.domains.concepts.activities.activity_item import LibraryItem
+from clinical_mdr_api.domains.concepts.activities.activity_item import CTTermItem
 from clinical_mdr_api.domains.concepts.activities.activity_sub_group import (
     ActivitySubGroupAR,
 )
@@ -143,7 +143,11 @@ class ActivityInstance(ActivityBase):
                 )
             unit_definitions.sort(key=lambda x: x.uid or "")
             for term in activity_item.ct_terms:
-                ct_terms.append(CompactCTTerm(uid=term.uid, name=term.name))
+                ct_terms.append(
+                    CompactCTTerm(
+                        uid=term.uid, name=term.name, codelist_uid=term.codelist_uid
+                    )
+                )
             ct_terms.sort(key=lambda x: x.uid or "")
             for odm_form in activity_item.odm_forms:
                 odm_forms.append(
@@ -491,7 +495,7 @@ class SimpleActivityItemClass(BaseModel):
 class SimplifiedActivityItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    ct_terms: list[LibraryItem] = Field(default_factory=list)
+    ct_terms: list[CTTermItem] = Field(default_factory=list)
     unit_definitions: list[CompactUnitDefinition] = Field(default_factory=list)
     activity_item_class: Annotated[SimpleActivityItemClass, Field()]
     is_adam_param_specific: Annotated[bool, Field()]
@@ -527,7 +531,11 @@ class ActivityInstanceOverview(BaseModel):
             )
             terms = sorted(
                 [
-                    LibraryItem(name=term.get("name"), uid=term.get("uid"))
+                    CTTermItem(
+                        name=term.get("name"),
+                        uid=term.get("uid"),
+                        codelist_uid=term.get("codelist_uid"),
+                    )
                     for term in activity_item.get("ct_terms", {})
                 ],
                 key=lambda x: x.uid or "",
