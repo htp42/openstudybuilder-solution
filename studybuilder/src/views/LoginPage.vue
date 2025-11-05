@@ -173,7 +173,8 @@
 
 <script>
 import { useAuthStore } from '@/stores/auth'
-import { pb, login, adminLogin, isAuthenticated } from '@/utils/pocketbase'
+import { pb } from '@/utils/pocketbase'
+import { login, adminLogin, checkAuth, getCustomTokenPayload } from '@/composables/useAuth'
 
 export default {
   setup() {
@@ -212,7 +213,7 @@ export default {
     console.log('PocketBase URL:', pb.baseUrl)
     
     // Check if already authenticated
-    if (isAuthenticated()) {
+    if (checkAuth()) {
       console.log('Already authenticated, redirecting to home...')
       this.$router.push({ name: 'Studies' })
     }
@@ -242,13 +243,44 @@ export default {
         }
         
         if (result.success) {
-          console.log('Authentication successful!')
-          console.log('User Type:', result.userType)
-          console.log('Auth token:', pb.authStore.token)
-          console.log('User ID:', result.data.record.id)
-          console.log('User email:', result.data.record.email)
-          console.log('Collection:', result.data.record.collectionName)
-          console.log('User data:', result.data.record)
+          console.log('✅ Authentication successful!')
+          console.log('\n=== ENHANCED API RESPONSE ===')
+          console.log('Response structure (mimics PocketBase but with custom JWT):')
+          console.log(JSON.stringify({
+            success: result.success,
+            token: result.token.substring(0, 50) + '...',
+            originalToken: result.originalToken.substring(0, 50) + '...',
+            record: {
+              id: result.record.id,
+              email: result.record.email,
+              name: result.record.name,
+              roles: result.record.roles
+            },
+            userType: result.userType
+          }, null, 2))
+          
+          console.log('\n=== TOKEN COMPARISON ===')
+          console.log('1️⃣ result.token (Custom JWT with roles):')
+          console.log('   Token:', result.token.substring(0, 60) + '...')
+          console.log('   Decoded:', result.decodedToken)
+          console.log('   ✅ Use for: Client-side role checks, UI authorization')
+          console.log('   🔐 Roles included:', result.decodedToken?.roles)
+          
+          console.log('\n2️⃣ result.originalToken (PocketBase JWT):')
+          console.log('   Token:', result.originalToken.substring(0, 60) + '...')
+          console.log('   ✅ Use for: API calls to PocketBase')
+          console.log('   ⚠️  No roles in payload (by design)')
+          
+          console.log('\n=== USER INFO ===')
+          console.log('User ID:', result.record.id)
+          console.log('Email:', result.record.email)
+          console.log('Name:', result.record.name)
+          console.log('Roles:', result.record.roles)
+          console.log('Type:', result.userType)
+          
+          console.log('\n=== DECODED CUSTOM JWT PAYLOAD ===')
+          console.log(JSON.stringify(result.decodedToken, null, 2))
+          console.log('===================================\n')
           
           // Redirect to home page (Studies)
           this.$router.push({ name: 'Studies' })

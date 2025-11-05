@@ -15,12 +15,12 @@ import vuetify from '@/plugins/vuetify'
 // Filters
 import filters from '@/filters'
 
-// PocketBase
-import { restoreAuth } from '@/utils/pocketbase'
+// Auth Composable
+import { restoreAuth } from '@/composables/useAuth'
 
 let globalConfig
 
-// Restore PocketBase authentication from localStorage
+// Restore authentication from localStorage (including custom JWT with roles)
 restoreAuth()
 
 /*

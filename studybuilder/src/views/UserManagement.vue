@@ -20,7 +20,7 @@
       <v-card-text>
         <!-- Summary Stats -->
         <v-row v-if="!loading && users.length > 0" class="mb-4">
-          <v-col cols="3">
+          <v-col cols="12" md="3">
             <v-card color="primary" variant="tonal">
               <v-card-text class="text-center">
                 <div class="text-h4">{{ users.length }}</div>
@@ -28,23 +28,23 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="3">
-            <v-card color="error" variant="tonal">
+          <v-col cols="12" md="3">
+            <v-card color="secondary" variant="tonal">
               <v-card-text class="text-center">
-                <div class="text-h4">{{ users.filter(u => u.role === 1).length }}</div>
-                <div class="text-caption">Admin Users</div>
+                <div class="text-h4">{{ users.filter(u => u.userType === 'admin').length }}</div>
+                <div class="text-caption">Super Users</div>
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="3">
+          <v-col cols="12" md="3">
             <v-card color="info" variant="tonal">
               <v-card-text class="text-center">
-                <div class="text-h4">{{ users.filter(u => u.role === 0).length }}</div>
+                <div class="text-h4">{{ users.filter(u => u.userType === 'user').length }}</div>
                 <div class="text-caption">Regular Users</div>
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="3">
+          <v-col cols="12" md="3">
             <v-card color="success" variant="tonal">
               <v-card-text class="text-center">
                 <div class="text-h4">{{ users.filter(u => u.verified).length }}</div>
@@ -92,6 +92,20 @@
             </div>
           </template>
 
+          <!-- User Type Column -->
+          <template #item.userType="{ item }">
+            <v-chip
+              :color="item.userType === 'admin' ? 'secondary' : 'info'"
+              size="small"
+              variant="tonal"
+            >
+              <v-icon start size="small">
+                {{ item.userType === 'admin' ? 'mdi-shield-star' : 'mdi-account-circle' }}
+              </v-icon>
+              {{ item.userType === 'admin' ? 'Super User' : 'Regular User' }}
+            </v-chip>
+          </template>
+
           <!-- Role Column -->
           <template #item.role="{ item }">
             <v-chip
@@ -104,6 +118,22 @@
               </v-icon>
               {{ item.role === 1 ? 'Admin' : 'User' }}
             </v-chip>
+          </template>
+
+          <!-- Permissions/Roles Column -->
+          <template #item.roles="{ item }">
+            <div v-if="item.roles && item.roles.length > 0" class="d-flex flex-wrap ga-1">
+              <v-chip
+                v-for="(role, index) in item.roles"
+                :key="index"
+                size="x-small"
+                :color="item.userType === 'admin' ? 'secondary' : 'info'"
+                variant="outlined"
+              >
+                {{ role }}
+              </v-chip>
+            </div>
+            <span v-else class="text-caption text-grey">No permissions</span>
           </template>
 
           <!-- Created Date Column -->
@@ -179,11 +209,72 @@
           <!-- Info for create mode -->
           <v-alert v-if="!editMode" type="info" variant="tonal" density="compact" class="mb-4">
             <div class="text-caption">
-              New users are created with: <strong>Role = User</strong> and <strong>Email Verified = True</strong>
+              <strong>User:</strong> Regular user account (users collection) with category-based roles<br>
+              <strong>Admin:</strong> Super user account (_superusers collection, role=1) with category-based roles
             </div>
           </v-alert>
           
           <v-form ref="userForm" v-model="userFormValid">
+            <!-- User Type Selection (Create Mode Only) -->
+            <v-select
+              v-if="!editMode"
+              v-model="userFormData.userType"
+              label="User Type"
+              :items="userTypeOptions"
+              item-title="text"
+              item-value="value"
+              prepend-inner-icon="mdi-account-cog"
+              variant="outlined"
+              required
+              class="mb-3"
+            >
+              <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <template #prepend>
+                    <v-icon :color="item.raw.value === 'admin' ? 'error' : 'primary'">
+                      {{ item.raw.icon }}
+                    </v-icon>
+                  </template>
+                  <template #subtitle>
+                    <span class="text-caption">{{ item.raw.description }}</span>
+                  </template>
+                </v-list-item>
+              </template>
+            </v-select>
+
+            <!-- Category Selection (Create Mode - for both User and Admin) -->
+            <v-select
+              v-if="!editMode"
+              v-model="userFormData.category"
+              :label="userFormData.userType === 'admin' ? 'Admin Category' : 'User Category'"
+              :items="userFormData.userType === 'admin' ? adminCategoryOptions : userCategoryOptions"
+              item-title="text"
+              item-value="value"
+              prepend-inner-icon="mdi-shield-account"
+              variant="outlined"
+              required
+              class="mb-3"
+            >
+              <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <template #subtitle>
+                    <div class="text-caption mt-1">
+                      <v-chip
+                        v-for="role in item.raw.roles"
+                        :key="role"
+                        size="x-small"
+                        class="mr-1 mt-1"
+                        :color="userFormData.userType === 'admin' ? 'error' : 'info'"
+                        variant="outlined"
+                      >
+                        {{ role }}
+                      </v-chip>
+                    </div>
+                  </template>
+                </v-list-item>
+              </template>
+            </v-select>
+
             <v-text-field
               v-model="userFormData.email"
               label="Email"
@@ -230,7 +321,7 @@
               class="mb-3"
             />
 
-            <!-- Only show Role and Verified when editing -->
+            <!-- Only show Role, Category, and Verified when editing -->
             <v-select
               v-if="editMode"
               v-model="userFormData.role"
@@ -243,6 +334,57 @@
               required
               class="mb-3"
             />
+
+            <!-- Category Selection for Edit Mode -->
+            <v-select
+              v-if="editMode"
+              v-model="userFormData.category"
+              :label="selectedUser?.userType === 'admin' ? 'Admin Category' : 'User Category'"
+              :items="selectedUser?.userType === 'admin' ? adminCategoryOptions : userCategoryOptions"
+              item-title="text"
+              item-value="value"
+              prepend-inner-icon="mdi-account-cog"
+              variant="outlined"
+              required
+              class="mb-3"
+            >
+              <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <template #subtitle>
+                    <div class="text-caption mt-1">
+                      <v-chip
+                        v-for="role in item.raw.roles"
+                        :key="role"
+                        size="x-small"
+                        class="mr-1 mt-1"
+                        :color="selectedUser?.userType === 'admin' ? 'error' : 'info'"
+                        variant="outlined"
+                      >
+                        {{ role }}
+                      </v-chip>
+                    </div>
+                  </template>
+                </v-list-item>
+              </template>
+            </v-select>
+
+            <!-- Show current roles as chips in edit mode -->
+            <v-card v-if="editMode && userFormData.roles && userFormData.roles.length > 0" variant="tonal" color="info" class="mb-3">
+              <v-card-text>
+                <div class="text-caption mb-2">Current Permissions:</div>
+                <div class="d-flex flex-wrap ga-1">
+                  <v-chip
+                    v-for="(role, index) in userFormData.roles"
+                    :key="index"
+                    size="small"
+                    :color="selectedUser?.userType === 'admin' ? 'secondary' : 'info'"
+                    variant="outlined"
+                  >
+                    {{ role }}
+                  </v-chip>
+                </div>
+              </v-card-text>
+            </v-card>
 
             <v-switch
               v-if="editMode"
@@ -369,6 +511,9 @@
           <div class="text-body-1 mb-2">
             <strong>Name:</strong> {{ selectedUser?.name }}
           </div>
+          <div class="text-body-1 mb-2">
+            <strong>Type:</strong> {{ selectedUser?.userType === 'admin' ? 'Super User' : 'Regular User' }}
+          </div>
           <div class="text-body-1">
             <strong>Role:</strong> {{ selectedUser?.role === 1 ? 'Admin' : 'User' }}
           </div>
@@ -416,7 +561,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { pb, currentUser } from '@/utils/pocketbase'
 
@@ -456,6 +601,9 @@ const userFormData = ref({
   passwordConfirm: '',
   role: 0,
   verified: true,
+  userType: 'user', // 'user' or 'admin'
+  category: 'studybuilder_readers', // category with roles for both user types
+  roles: [], // array of permission strings
 })
 
 const newPassword = ref('')
@@ -465,7 +613,9 @@ const confirmNewPassword = ref('')
 const headers = [
   { title: 'Email', key: 'email', sortable: true },
   { title: 'Name', key: 'name', sortable: true },
+  { title: 'Type', key: 'userType', sortable: true },
   { title: 'Role', key: 'role', sortable: true },
+  { title: 'Permissions', key: 'roles', sortable: false },
   { title: 'Created', key: 'created', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false, align: 'center' },
 ]
@@ -474,6 +624,70 @@ const headers = [
 const roleOptions = [
   { text: 'User', value: 0 },
   { text: 'Admin', value: 1 },
+]
+
+// User Type options
+const userTypeOptions = [
+  { 
+    text: 'Regular User', 
+    value: 'user',
+    icon: 'mdi-account',
+    description: 'Standard user account with basic permissions'
+  },
+  { 
+    text: 'Admin/Super User', 
+    value: 'admin',
+    icon: 'mdi-shield-crown',
+    description: 'Administrator with role-based permissions'
+  },
+]
+
+// Regular User Category options with roles
+const userCategoryOptions = [
+  {
+    text: 'StudyBuilder Readers',
+    value: 'studybuilder_readers',
+    roles: ['Study.Read', 'Library.Read']
+  },
+  {
+    text: 'Library Contributors',
+    value: 'library_contributors',
+    roles: ['Study.Read', 'Library.Write', 'Library.Read']
+  },
+  {
+    text: 'Study Contributors',
+    value: 'study_contributors',
+    roles: ['Study.Write', 'Study.Read', 'Library.Read']
+  },
+  {
+    text: 'StudyBuilder Superusers',
+    value: 'studybuilder_superusers',
+    roles: ['Study.Write', 'Library.Write', 'Study.Read', 'Library.Read']
+  },
+]
+
+// Admin Category options with roles (same as user categories)
+const adminCategoryOptions = [
+  {
+    text: 'StudyBuilder Readers',
+    value: 'studybuilder_readers',
+    roles: ['Study.Read', 'Library.Read']
+  },
+  {
+    text: 'Library Contributors',
+    value: 'library_contributors',
+    roles: ['Study.Read', 'Library.Write', 'Library.Read']
+  },
+  {
+    text: 'Study Contributors',
+    value: 'study_contributors',
+    roles: ['Study.Write', 'Study.Read', 'Library.Read']
+  },
+  {
+    text: 'StudyBuilder Superusers',
+    value: 'studybuilder_superusers',
+    roles: ['Study.Write', 'Library.Write', 'Study.Read', 'Library.Read']
+  },
 ]
 
 // Validation rules
@@ -535,23 +749,34 @@ const fetchUsers = async () => {
   }
   
   try {
-    console.log('📡 Fetching users from collection...')
+    console.log('📡 Fetching users from both collections...')
     
-    // Fetch ALL users from the users collection (maps to _pb_users_auth_)
-    // Using getFullList with a high limit to ensure we get everyone
-    const records = await pb.collection('users').getFullList({
+    // Fetch regular users from users collection
+    const regularUsers = await pb.collection('users').getFullList({
       sort: '-created',
       $autoCancel: false,
-      // Explicitly request all fields including role
-      fields: 'id,email,name,role,verified,created,updated',
+      fields: 'id,email,name,role,verified,created,updated,roles',
+    }).catch(err => {
+      console.warn('⚠️ Error fetching regular users:', err)
+      return []
     })
     
-    console.log(`✅ Successfully fetched ${records.length} users`)
-    console.log('First user sample:', records[0])
-    console.log('All users roles:', records.map(u => ({ email: u.email, role: u.role })))
+    console.log(`✅ Fetched ${regularUsers.length} regular users`)
     
-    // Map to clean user objects
-    users.value = records.map(user => ({
+    // Fetch super users from _superusers collection
+    const superUsers = await pb.collection('_superusers').getFullList({
+      sort: '-created',
+      $autoCancel: false,
+      fields: 'id,email,name,role,verified,created,updated,roles',
+    }).catch(err => {
+      console.warn('⚠️ Error fetching super users:', err)
+      return []
+    })
+    
+    console.log(`✅ Fetched ${superUsers.length} super users`)
+    
+    // Map regular users with collection info
+    const mappedRegularUsers = regularUsers.map(user => ({
       id: user.id,
       email: user.email,
       name: user.name,
@@ -559,14 +784,42 @@ const fetchUsers = async () => {
       verified: user.verified,
       created: user.created,
       updated: user.updated,
+      roles: user.roles || [],
+      collectionName: 'users', // Track which collection this user is from
+      userType: 'user',
     }))
     
-    console.log('Mapped users:', users.value)
+    // Map super users with collection info
+    const mappedSuperUsers = superUsers.map(user => ({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      verified: user.verified,
+      created: user.created,
+      updated: user.updated,
+      roles: user.roles || [],
+      collectionName: '_superusers', // Track which collection this user is from
+      userType: 'admin',
+    }))
+    
+    // Combine both arrays
+    users.value = [...mappedRegularUsers, ...mappedSuperUsers].sort((a, b) => {
+      // Sort by created date descending
+      return new Date(b.created) - new Date(a.created)
+    })
+    
+    console.log('All users roles:', users.value.map(u => ({ 
+      email: u.email, 
+      role: u.role, 
+      type: u.userType,
+      roles: u.roles 
+    })))
     
     if (users.value.length === 0) {
       showSnackbar('No users found in the system', 'info')
     } else {
-      console.log(`✅ ${users.value.length} users loaded successfully`)
+      console.log(`✅ ${users.value.length} total users loaded (${regularUsers.length} regular, ${superUsers.length} super)`)
     }
   } catch (error) {
     console.error('❌ Error fetching users:', error)
@@ -594,6 +847,7 @@ const fetchUsers = async () => {
 
 const openCreateDialog = () => {
   editMode.value = false
+  const defaultCategory = userCategoryOptions.find(cat => cat.value === 'studybuilder_readers')
   userFormData.value = {
     email: '',
     name: '',
@@ -601,6 +855,9 @@ const openCreateDialog = () => {
     passwordConfirm: '',
     role: 0,
     verified: true,
+    userType: 'user',
+    category: 'studybuilder_readers',
+    roles: defaultCategory?.roles || [],
   }
   userFormError.value = ''
   userDialog.value = true
@@ -609,6 +866,17 @@ const openCreateDialog = () => {
 const openEditDialog = (user) => {
   editMode.value = true
   selectedUser.value = user
+  
+  // Find the category based on current roles
+  const categoryOptions = user.userType === 'admin' ? adminCategoryOptions : userCategoryOptions
+  const matchingCategory = categoryOptions.find(cat => {
+    // Check if roles arrays are equal
+    if (!user.roles || user.roles.length === 0) return false
+    if (cat.roles.length !== user.roles.length) return false
+    return cat.roles.every(role => user.roles.includes(role)) && 
+           user.roles.every(role => cat.roles.includes(role))
+  })
+  
   userFormData.value = {
     email: user.email,
     name: user.name,
@@ -616,7 +884,13 @@ const openEditDialog = (user) => {
     verified: user.verified,
     password: '',
     passwordConfirm: '',
+    userType: user.userType,
+    category: matchingCategory?.value || 'studybuilder_readers',
+    roles: user.roles || [],
   }
+  
+  console.log('Edit user - detected category:', matchingCategory?.text || 'None', 'with roles:', user.roles)
+  
   userFormError.value = ''
   userDialog.value = true
 }
@@ -632,6 +906,9 @@ const closeUserDialog = () => {
     passwordConfirm: '',
     role: 0,
     verified: true,
+    userType: 'user',
+    category: 'studybuilder_readers',
+    roles: [],
   }
   userFormError.value = ''
   if (userForm.value) {
@@ -649,49 +926,100 @@ const saveUser = async () => {
   submitting.value = true
   try {
     if (editMode.value) {
-      // Update existing user
-      await pb.collection('users').update(selectedUser.value.id, {
+      // Update existing user - use the correct collection based on user type
+      const collectionName = selectedUser.value.collectionName || 'users'
+      
+      // Get the selected category roles
+      const categoryOptions = selectedUser.value.userType === 'admin' ? adminCategoryOptions : userCategoryOptions
+      const selectedCategory = categoryOptions.find(cat => cat.value === userFormData.value.category)
+      const updatedRoles = selectedCategory?.roles || []
+      
+      console.log('Updating user with:', {
         email: userFormData.value.email,
         name: userFormData.value.name,
         role: userFormData.value.role,
         verified: userFormData.value.verified,
+        category: userFormData.value.category,
+        roles: updatedRoles,
       })
-      showSnackbar('User updated successfully', 'success')
+      
+      await pb.collection(collectionName).update(selectedUser.value.id, {
+        email: userFormData.value.email,
+        name: userFormData.value.name,
+        role: userFormData.value.role,
+        verified: userFormData.value.verified,
+        roles: updatedRoles, // Update roles array based on selected category
+      })
+      
+      showSnackbar(`User updated successfully (${selectedCategory?.text})`, 'success')
     } else {
-      // Create new user - defaults: role=0, verified=true
-      console.log('Creating user with data:', {
-        email: userFormData.value.email,
-        name: userFormData.value.name,
-        role: 0, // Always default to regular user
-        verified: true, // Always default to verified
-      })
-      
-      const newUser = await pb.collection('users').create({
-        email: userFormData.value.email,
-        emailVisibility: true,
-        verified: true,
-        name: userFormData.value.name,
-        password: userFormData.value.password,
-        passwordConfirm: userFormData.value.passwordConfirm,
-        role: 0, // Always create as regular user (role = 0)
-      })
-      
-      console.log('User created (initial):', newUser)
-      console.log('Initial verified status:', newUser.verified)
-      
-      // Always update to set verified = true (default for new users)
-      console.log('Setting verified status to true...')
-      try {
-        const updatedUser = await pb.collection('users').update(newUser.id, {
+      // Create new user based on type
+      if (userFormData.value.userType === 'admin') {
+        // Create admin user in _superusers collection
+        const selectedCategory = adminCategoryOptions.find(
+          cat => cat.value === userFormData.value.category
+        )
+        
+        console.log('Creating admin user with category:', userFormData.value.category)
+        console.log('Roles:', selectedCategory?.roles)
+        
+        const newAdmin = await pb.collection('_superusers').create({
+          email: userFormData.value.email,
+          emailVisibility: true,
           verified: true,
+          name: userFormData.value.name,
+          password: userFormData.value.password,
+          passwordConfirm: userFormData.value.passwordConfirm,
+          role: 1, // Admin role
+          roles: selectedCategory?.roles || [], // Store roles as JSON array
         })
-        console.log('✅ User after verification update:', updatedUser)
-        console.log('✅ Final verified status:', updatedUser.verified)
-        showSnackbar('User created and verified successfully', 'success')
-      } catch (updateError) {
-        console.error('❌ Failed to update verified status:', updateError)
-        console.error('Update error details:', updateError.data)
-        showSnackbar('User created but failed to verify. Check PocketBase update permissions.', 'warning')
+        
+        console.log('✅ Admin user created:', newAdmin)
+        showSnackbar(`Admin user created successfully (${selectedCategory?.text})`, 'success')
+      } else {
+        // Create regular user in users collection with roles
+        const selectedCategory = userCategoryOptions.find(
+          cat => cat.value === userFormData.value.category
+        )
+        
+        console.log('Creating regular user with data:', {
+          email: userFormData.value.email,
+          name: userFormData.value.name,
+          role: 0,
+          verified: true,
+          category: userFormData.value.category,
+          roles: selectedCategory?.roles,
+        })
+        
+        const newUser = await pb.collection('users').create({
+          email: userFormData.value.email,
+          emailVisibility: true,
+          verified: true,
+          name: userFormData.value.name,
+          password: userFormData.value.password,
+          passwordConfirm: userFormData.value.passwordConfirm,
+          role: 0, // Regular user role
+          roles: selectedCategory?.roles || [], // Store roles as JSON array
+        })
+        
+        console.log('User created (initial):', newUser)
+        console.log('Initial verified status:', newUser.verified)
+        console.log('User roles:', newUser.roles)
+        
+        // Update to ensure verified = true
+        console.log('Setting verified status to true...')
+        try {
+          const updatedUser = await pb.collection('users').update(newUser.id, {
+            verified: true,
+          })
+          console.log('✅ User after verification update:', updatedUser)
+          console.log('✅ Final verified status:', updatedUser.verified)
+          showSnackbar(`User created successfully (${selectedCategory?.text})`, 'success')
+        } catch (updateError) {
+          console.error('❌ Failed to update verified status:', updateError)
+          console.error('Update error details:', updateError.data)
+          showSnackbar('User created but failed to verify. Check PocketBase update permissions.', 'warning')
+        }
       }
     }
     
@@ -699,6 +1027,7 @@ const saveUser = async () => {
     closeUserDialog()
   } catch (error) {
     console.error('Error saving user:', error)
+    console.error('Error details:', error.data)
     userFormError.value = error.message || 'Failed to save user'
   } finally {
     submitting.value = false
@@ -733,7 +1062,9 @@ const resetPassword = async () => {
 
   resetting.value = true
   try {
-    await pb.collection('users').update(selectedUser.value.id, {
+    // Use the correct collection based on user type
+    const collectionName = selectedUser.value.collectionName || 'users'
+    await pb.collection(collectionName).update(selectedUser.value.id, {
       password: newPassword.value,
       passwordConfirm: confirmNewPassword.value,
     })
@@ -755,7 +1086,9 @@ const toggleVerified = async (user) => {
   try {
     console.log(`Toggling verified status for ${user.email} to ${newVerifiedStatus}`)
     
-    await pb.collection('users').update(user.id, {
+    // Use the correct collection based on user type
+    const collectionName = user.collectionName || 'users'
+    await pb.collection(collectionName).update(user.id, {
       verified: newVerifiedStatus,
     })
     
@@ -790,9 +1123,11 @@ const deleteUser = async () => {
   
   deleting.value = true
   try {
-    console.log(`Deleting user: ${selectedUser.value.email}`)
+    console.log(`Deleting user: ${selectedUser.value.email} from ${selectedUser.value.collectionName}`)
     
-    await pb.collection('users').delete(selectedUser.value.id)
+    // Use the correct collection based on user type
+    const collectionName = selectedUser.value.collectionName || 'users'
+    await pb.collection(collectionName).delete(selectedUser.value.id)
     
     showSnackbar(`User "${selectedUser.value.email}" deleted successfully`, 'success')
     await fetchUsers()
@@ -865,6 +1200,41 @@ const testConnection = async () => {
     showSnackbar('Connection test failed: ' + error.message, 'error')
   }
 }
+
+// Watchers
+// Watch category changes to update roles in real-time
+watch(() => userFormData.value.category, (newCategory) => {
+  if (!userDialog.value) return // Only when dialog is open
+  
+  const categoryOptions = editMode.value && selectedUser.value?.userType === 'admin' 
+    ? adminCategoryOptions 
+    : editMode.value && selectedUser.value?.userType === 'user'
+    ? userCategoryOptions
+    : userFormData.value.userType === 'admin'
+    ? adminCategoryOptions
+    : userCategoryOptions
+    
+  const selectedCategory = categoryOptions.find(cat => cat.value === newCategory)
+  if (selectedCategory) {
+    userFormData.value.roles = selectedCategory.roles
+    console.log('Category changed to:', selectedCategory.text, 'Roles updated to:', selectedCategory.roles)
+  }
+})
+
+// Watch user type changes in create mode to reset category and roles
+watch(() => userFormData.value.userType, (newUserType) => {
+  if (!userDialog.value || editMode.value) return // Only in create mode
+  
+  // Reset to first category of the new user type
+  const defaultCategory = newUserType === 'admin' 
+    ? adminCategoryOptions[0] 
+    : userCategoryOptions[0]
+  
+  userFormData.value.category = defaultCategory.value
+  userFormData.value.roles = defaultCategory.roles
+  
+  console.log('User type changed to:', newUserType, 'Reset category to:', defaultCategory.text)
+})
 
 // Lifecycle
 onMounted(() => {
