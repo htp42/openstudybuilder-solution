@@ -17,7 +17,7 @@
                 :label="$t('StudyActivityForm.flowchart_group')"
                 data-cy="flowchart-group"
                 :items="flowchartGroups"
-                item-title="name.sponsor_preferred_name"
+                item-title="sponsor_preferred_name"
                 item-value="term_uid"
                 :rules="[formRules.required]"
                 :hint="$t('_help.StudyActivityForm.flowchart_group')"
@@ -179,7 +179,7 @@ export default {
     },
   },
   mounted() {
-    terms.getByCodelist('flowchartGroups').then((resp) => {
+    terms.getTermsByCodelist('flowchartGroups').then((resp) => {
       this.flowchartGroups = resp.data.items
     })
     this.getGroups()

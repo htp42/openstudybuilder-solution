@@ -75,6 +75,13 @@ class ConceptGenericRepository(
     def specific_header_match_clause(self) -> str | None:
         return None
 
+    # pylint: disable=unused-argument
+    def specific_header_match_clause_lite(self, field_name: str) -> str | None:
+        """This is a lightweight version of the header match clause.
+        It should fetch only the required field, without supporting wildcard filtering.
+        """
+        return None
+
     def _create_new_value_node(self, ar: _AggregateRootType) -> VersionValue:
         return self.value_class(  # type: ignore[call-overload]
             nci_concept_id=getattr(ar.concept_vo, "nci_concept_id", None),
@@ -247,6 +254,16 @@ class ConceptGenericRepository(
         """
         return key
 
+    @classmethod
+    def format_filter_sort_keys_for_headers_lite(cls, key: str):
+        """
+        Maps a fieldname as provided by the API query (equal to output model) to the corresponding fieldname as defined in the database and/or Cypher query
+
+        :param key: Fieldname to map
+        :return str:
+        """
+        return key.replace(".", "_")
+
     def find_all(
         self,
         library: str | None = None,
@@ -414,6 +431,177 @@ class ConceptGenericRepository(
             else []
         )
 
+    def get_distinct_headers_lite(
+        self,
+        field_name: str,
+        search_string: str = "",
+        library: str | None = None,
+        page_size: int = 10,
+        **kwargs,
+    ) -> list[Any]:
+        match_clause = self.generic_match_clause()
+
+        # Set header field name in the `filter_by` dict,
+        # which will be used to generate `WHERE toLower(toString(field_name)) CONTAINS ...` clause
+        filter_by = validate_filters_and_add_search_string(
+            search_string, field_name, filter_by=None
+        )
+
+        # This will allow filtering by library (if specified)
+        filter_statements, filter_query_parameters = self.create_query_filter_statement(
+            library=library, kwargs=kwargs
+        )
+
+        match_clause += filter_statements
+
+        # Specific match clauses for each field, so that only necessary data is fetched
+
+        if field_name in [
+            "abbreviation",
+            "adam_param_code",
+            "analyte_number",
+            "comment",
+            "compatible_types",
+            "contact_person",
+            "context",
+            "conversion_factor_to_master",
+            "convertible_unit",
+            "data_type",
+            "datatype",
+            "definition",
+            "description",
+            "display_in_tree",
+            "display_unit",
+            "effective_date",
+            "external_id",
+            "inn",
+            "instruction",
+            "is_data_collected",
+            "is_data_sharing",
+            "is_default_selected_for_activity",
+            "is_derived",
+            "is_legacy_usage",
+            "is_multiple_selection_allowed",
+            "is_preferred_synonym",
+            "is_reference_data",
+            "is_request_final",
+            "is_request_rejected",
+            "is_required_for_activity",
+            "is_research_lab",
+            "is_sponsor_compound",
+            "language",
+            "legacy_code",
+            "legacy_description",
+            "length",
+            "long_number",
+            "master_unit",
+            "molecular_weight",
+            "name",
+            "name_sentence_case",
+            "nci_concept_id",
+            "nci_concept_name",
+            "oid",
+            "order",
+            "origin",
+            "prefix",
+            "prompt",
+            "purpose",
+            "reason_for_rejecting",
+            "repeating",
+            "request_rationale",
+            "retired_date",
+            "sas_dataset_name",
+            "sas_field_name",
+            "sds_var_name",
+            "short_number",
+            "si_unit",
+            "significant_digits",
+            "sponsor_instruction",
+            "synonyms",
+            "topic_code",
+            "url",
+            "us_conventional_unit",
+            "use_complex_unit_conversion",
+            "use_molecular_weight",
+            "value",
+            "value_regex",
+        ]:
+            match_clause += f"""
+                WITH concept_value.{field_name} AS {field_name}
+            """
+
+        elif field_name in ["version", "start_date", "status"]:
+            match_clause += """
+                CALL {
+                    WITH concept_root, concept_value
+                    MATCH (concept_root)-[hv:HAS_VERSION]-(concept_value)
+                    WITH hv
+                    ORDER BY
+                        toInteger(split(hv.version, '.')[0]) ASC,
+                        toInteger(split(hv.version, '.')[1]) ASC,
+                        hv.start_date ASC
+                    WITH collect(hv) as hvs
+                    RETURN last(hvs) AS version_rel
+                }
+                WITH version_rel.version AS version,
+                     version_rel.start_date AS start_date,
+                     version_rel.status AS status
+            """
+
+        elif field_name == "library_name":
+            match_clause += """
+                WITH DISTINCT concept_root,
+                    head([(library)-[:CONTAINS_CONCEPT]->(concept_root) | library]) AS library
+                WITH library.name AS library_name
+            """
+
+        elif field_name == "author_username":
+            match_clause += """
+                CALL {
+                    WITH concept_root, concept_value
+                    MATCH (concept_root)-[hv:HAS_VERSION]-(concept_value)
+                    WITH hv
+                    ORDER BY
+                        toInteger(split(hv.version, '.')[0]) ASC,
+                        toInteger(split(hv.version, '.')[1]) ASC,
+                        hv.start_date ASC
+                    WITH collect(hv) as hvs
+                    RETURN last(hvs) AS version_rel
+                }
+                CALL {
+                    WITH version_rel
+                    OPTIONAL MATCH (author: User)
+                    WHERE author.user_id = version_rel.author_id
+                    RETURN author
+                }
+                WITH author.username AS author_username
+            """
+
+        else:
+            if self.specific_header_match_clause_lite(field_name):
+                match_clause += self.specific_header_match_clause_lite(field_name)
+
+        query = CypherQueryBuilder(
+            filter_by=FilterDict.model_validate({"elements": filter_by}),
+            match_clause=match_clause,
+            alias_clause=field_name.replace(".", "_"),
+            return_model=self.return_model,
+            format_filter_sort_keys=self.format_filter_sort_keys_for_headers_lite,
+        )
+
+        query.parameters.update(filter_query_parameters)
+
+        query.full_query = query.build_header_query(
+            header_alias=field_name.replace(".", "_"), page_size=page_size
+        )
+        result_array, _ = query.execute()
+
+        return (
+            format_generic_header_values(result_array[0][0])
+            if len(result_array) > 0
+            else []
+        )
+
     @sb_clear_cache(caches=["cache_store_item_by_uid"])
     def save(self, item: _AggregateRootType) -> None:
         if item.uid is not None and item.repository_closure_data is None:
@@ -472,6 +660,41 @@ class ConceptGenericRepository(
         result, _ = db.cypher_query(query, {"uid": uid})
         if len(result) > 0 and len(result[0]) > 0:
             return result[0][0]
+        return None
+
+    def latest_concept_is_final(self, uid: str) -> bool:
+        """Check if the LATEST version of a concept has Final status.
+        Uses the HAS_VERSION relationship's status property for the current version."""
+        # The current version is determined by HAS_VERSION relationship where end_date IS NULL
+        # This is more reliable than LATEST_* relationships after retire/reactivate cycles
+
+        query = f"""
+            MATCH (concept_root:{self.root_class.__label__} {{uid: $uid}})
+            MATCH (concept_root)-[hv:HAS_VERSION]->(version_value:{self.value_class.__label__})
+            WHERE hv.end_date IS NULL
+            RETURN hv.status = 'Final' as is_final
+            """
+        result, _ = db.cypher_query(query, {"uid": uid})
+
+        if len(result) > 0 and len(result[0]) > 0:
+            return result[0][0] is True
+
+        return False
+
+    def get_latest_concept_name(self, uid: str) -> str | None:
+        """Get the name of the LATEST version of a concept.
+        Uses the HAS_VERSION relationship to find the current version."""
+        query = f"""
+            MATCH (concept_root:{self.root_class.__label__} {{uid: $uid}})
+            MATCH (concept_root)-[hv:HAS_VERSION]->(version_value:{self.value_class.__label__})
+            WHERE hv.end_date IS NULL
+            RETURN version_value.name as name
+            """
+        result, _ = db.cypher_query(query, {"uid": uid})
+
+        if len(result) > 0 and len(result[0]) > 0:
+            return result[0][0]
+
         return None
 
     def latest_concept_in_library_exists_by_name(

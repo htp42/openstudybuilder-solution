@@ -21,7 +21,7 @@ When('The CRF Item definition container is filled with data and saved', () => {
     crfItemOid = `Oid${Date.now()}`
     cy.fillInput('item-oid', crfItemOid)
     cy.fillInput('item-name', crfItemName)
-    cy.fixture('crfItem.js').then(item => cy.selectVSelect('item-data-type', item.details.data_type))
+    cy.selectVSelect('item-data-type', 'INTEGER')
 })
 
 When('The CRF Item metadata are updated and saved', () => {

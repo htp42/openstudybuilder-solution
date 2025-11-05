@@ -3,6 +3,9 @@ from typing import Any
 from clinical_mdr_api.domain_repositories.concepts.simple_concepts.simple_concept_generic_repository import (
     SimpleConceptGenericRepository,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.concepts import (
     NumericValueRoot,
     TimePointRoot,
@@ -29,6 +32,7 @@ from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryVO,
 )
 from clinical_mdr_api.models.concepts.concept import TimePoint
+from common.config import settings
 from common.utils import convert_to_datetime
 
 
@@ -50,9 +54,15 @@ class TimePointRepository(SimpleConceptGenericRepository[TimePointAR]):
                 NumericValueRoot.nodes.get(uid=ar.concept_vo.numeric_value_uid)
             )
         if ar.concept_vo.time_reference_uid is not None:
-            value_node.has_time_reference.connect(
-                CTTermRoot.nodes.get(uid=ar.concept_vo.time_reference_uid)
+            term_root = CTTermRoot.nodes.get(uid=ar.concept_vo.time_reference_uid)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    term_root,
+                    codelist_submission_value=settings.time_ref_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
             )
+            value_node.has_time_reference.connect(selected_term_node)
 
         return value_node
 
@@ -139,5 +149,5 @@ class TimePointRepository(SimpleConceptGenericRepository[TimePointAR]):
         WITH *,
             head([(concept_value)-[:HAS_UNIT_DEFINITION]->(unit_definition) | unit_definition.uid]) AS unit_definition_uid,
             head([(concept_value)-[:HAS_VALUE]->(numeric_value_root) | numeric_value_root.uid]) AS numeric_value_uid,
-            head([(concept_value)-[:HAS_TIME_REFERENCE]->(ct_term_root) | ct_term_root.uid]) as time_reference_uid
+            head([(concept_value)-[:HAS_TIME_REFERENCE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(ct_term_root) | ct_term_root.uid]) as time_reference_uid
         """

@@ -68,7 +68,7 @@ def _extract_values_from_data(data: dict[Any, Any], headers: dict[Any, Any]):
     for item in data:
         result = {}
         if not isinstance(item, dict):
-            item = item.dict()
+            item = item.model_dump()
         for header, target in headers.items():
             if "." in target:
                 value = item

@@ -143,6 +143,7 @@ def test_create_a_new_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }
@@ -310,6 +311,7 @@ def test_add_odm_vendor_element_to_an_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }
@@ -399,6 +401,7 @@ def test_add_odm_vendor_element_attribute_to_an_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }
@@ -758,6 +761,7 @@ def test_approve_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }
@@ -853,6 +857,7 @@ def test_inactivate_odm_item(api_client):
             "name": "term_value_name1",
             "mandatory": True,
             "order": 1,
+            "submission_value": "submission_value_1",
             "display_text": None,
             "version": "1.0",
         }

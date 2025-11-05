@@ -59,7 +59,7 @@ class CTCodelistNameRepository(CTCodelistGenericRepository[CTCodelistNameAR]):
             uid=codelist_dict["codelist_uid"],
             ct_codelist_name_vo=CTCodelistNameVO.from_repository_values(
                 name=codelist_dict.get("value_node").get("name"),
-                catalogue_name=codelist_dict["catalogue_name"],
+                catalogue_names=codelist_dict["catalogue_names"],
                 is_template_parameter="TemplateParameter"
                 in codelist_dict.get("value_node").labels,
             ),
@@ -96,7 +96,9 @@ class CTCodelistNameRepository(CTCodelistGenericRepository[CTCodelistNameAR]):
             uid=ct_codelist_root_node.uid,
             ct_codelist_name_vo=CTCodelistNameVO.from_repository_values(
                 name=value.name,
-                catalogue_name=ct_codelist_root_node.has_codelist.single().name,
+                catalogue_names=[
+                    cat.name for cat in ct_codelist_root_node.has_codelist.all()
+                ],
                 is_template_parameter=self.is_ct_node_a_tp(value),
             ),
             library=LibraryVO.from_input_values_2(
@@ -126,7 +128,6 @@ class CTCodelistNameRepository(CTCodelistGenericRepository[CTCodelistNameAR]):
         ) = self._db_create_and_link_nodes(
             root, value, self._library_item_metadata_vo_to_datadict(relation_data)
         )
-
         ct_codelist_root_node = CTCodelistRoot.nodes.get_or_none(uid=item.uid)
         ct_codelist_root_node.has_name_root.connect(root)
         self._maintain_parameters(item, root, value)

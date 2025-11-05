@@ -61,7 +61,6 @@ def test_creating_a_new_odm_form(api_client):
         "oid": "oid1",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": "term1",
         "descriptions": ["odm_description2", "odm_description3"],
         "alias_uids": ["odm_alias1"],
     }
@@ -82,11 +81,6 @@ def test_creating_a_new_odm_form(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -136,11 +130,6 @@ def test_getting_non_empty_list_of_odm_forms(api_client):
     assert res["items"][0]["version"] == "0.1"
     assert res["items"][0]["change_description"] == "Initial version"
     assert res["items"][0]["author_username"] == "unknown-user@example.com"
-    assert res["items"][0]["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["items"][0]["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -200,11 +189,6 @@ def test_getting_a_specific_odm_form(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -254,11 +238,6 @@ def test_getting_versions_of_a_specific_odm_form(api_client):
     assert res[0]["version"] == "0.1"
     assert res[0]["change_description"] == "Initial version"
     assert res[0]["author_username"] == "unknown-user@example.com"
-    assert res[0]["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res[0]["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -298,7 +277,6 @@ def test_updating_an_existing_odm_form(api_client):
         "sdtm_version": "0.1",
         "repeating": "Yes",
         "change_description": "repeating changed to Yes",
-        "scope_uid": "term1",
         "descriptions": ["odm_description2", "odm_description3"],
         "alias_uids": ["odm_alias1"],
     }
@@ -319,11 +297,6 @@ def test_updating_an_existing_odm_form(api_client):
     assert res["version"] == "0.2"
     assert res["change_description"] == "repeating changed to Yes"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -373,11 +346,6 @@ def test_approving_an_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Approved version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -427,11 +395,6 @@ def test_inactivating_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Inactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -481,11 +444,6 @@ def test_reactivating_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -538,11 +496,6 @@ def test_adding_activity_groups_to_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -595,11 +548,6 @@ def test_overriding_activity_groups_from_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -661,11 +609,6 @@ def test_adding_odm_item_groups_to_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -748,11 +691,6 @@ def test_overriding_odm_item_groups_from_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -826,11 +764,6 @@ def test_adding_odm_vendor_element_to_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -906,11 +839,6 @@ def test_overriding_odm_vendor_element_from_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -986,11 +914,6 @@ def test_adding_odm_vendor_attribute_to_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -1075,11 +998,6 @@ def test_overriding_odm_vendor_attribute_from_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -1164,11 +1082,6 @@ def test_adding_odm_vendor_element_attribute_to_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -1263,11 +1176,6 @@ def test_overriding_odm_vendor_element_attribute_from_a_specific_odm_form(api_cl
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -1363,11 +1271,6 @@ def test_managing_odm_vendors_of_a_specific_odm_form(api_client):
     assert res["version"] == "1.0"
     assert res["change_description"] == "Reactivated version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -1458,11 +1361,6 @@ def test_creating_a_new_odm_form_version(api_client):
     assert res["version"] == "1.1"
     assert res["change_description"] == "New draft created"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] == {
-        "uid": "term1",
-        "code_submission_value": "code_submission_value1",
-        "preferred_term": "preferred_term1",
-    }
     assert res["descriptions"] == [
         {
             "uid": "odm_description2",
@@ -1542,7 +1440,6 @@ def test_create_a_new_odm_form_for_deleting_it(api_client):
         "oid": "oid2",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope": None,
         "descriptions": [
             {
                 "name": "name - delete",
@@ -1571,7 +1468,6 @@ def test_create_a_new_odm_form_for_deleting_it(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == [
         {
             "uid": "OdmDescription_000001",
@@ -1605,7 +1501,6 @@ def test_creating_a_new_odm_form_with_relations(api_client):
         "oid": "string",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope": None,
         "descriptions": [
             {
                 "name": "string2",
@@ -1635,7 +1530,6 @@ def test_creating_a_new_odm_form_with_relations(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == [
         {
             "uid": "OdmDescription_000002",
@@ -1664,7 +1558,6 @@ def test_updating_an_existing_odm_form_with_relations(api_client):
         "sdtm_version": "0.1",
         "repeating": "Yes",
         "change_description": "repeating changed to Yes",
-        "scope_uid": None,
         "descriptions": [
             {
                 "name": "string3",
@@ -1694,7 +1587,6 @@ def test_updating_an_existing_odm_form_with_relations(api_client):
     assert res["version"] == "1.2"
     assert res["change_description"] == "repeating changed to Yes"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == [
         {
             "uid": "OdmDescription_000003",

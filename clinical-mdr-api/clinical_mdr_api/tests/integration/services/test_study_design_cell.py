@@ -40,22 +40,32 @@ class StudyDesignCellTestCase(unittest.TestCase):
         self.study = StudyRoot.nodes.all()[0]
 
         # Create an epoch
-        catalogue_name, library_name = get_catalogue_name_library_name()
+        _catalogue_name, library_name = get_catalogue_name_library_name()
+        catalogue_name = "SDTM CT"
         create_study_epoch_codelists_ret_cat_and_lib()
         self.study_epoch = create_study_epoch("EpochSubType_0001")
         self.study_epoch2 = create_study_epoch("EpochSubType_0001")
 
         # Create a study arm
         arm_type_codelist = create_codelist(
-            "Arm Type", "CTCodelist_ArmType", catalogue_name, library_name
-        )
-        arm_type_term = create_ct_term(
-            arm_type_codelist.codelist_uid,
             "Arm Type",
-            "ArmType_0001",
-            1,
+            "CTCodelist_ArmType",
             catalogue_name,
             library_name,
+            submission_value="ARMTTP",
+        )
+        arm_type_term = create_ct_term(
+            "Arm Type",
+            "ArmType_0001",
+            catalogue_name,
+            library_name,
+            codelists=[
+                {
+                    "uid": arm_type_codelist.codelist_uid,
+                    "order": 1,
+                    "submission_value": "Arm Type",
+                }
+            ],
         )
         self.study_arms = [
             create_study_arm(
@@ -111,28 +121,42 @@ class StudyDesignCellTestCase(unittest.TestCase):
         ]
 
         # Create a study element
-        element_type_codelist = create_codelist(
-            "Element Type", "CTCodelist_ElementType", catalogue_name, library_name
-        )
-        element_type_term = create_ct_term(
-            element_type_codelist.codelist_uid,
-            "Element Type",
-            "ElementType_0001",
-            1,
+        element_subtype_codelist = create_codelist(
+            "Element Subtype",
+            "CTCodelist_ElementType",
             catalogue_name,
             library_name,
+            submission_value="ELEMSTP",
         )
-        element_type_term_2 = create_ct_term(
-            element_type_codelist.codelist_uid,
-            "Element Type",
-            "ElementType_0002",
-            2,
+        element_subtype_term = create_ct_term(
+            "Element Subtype",
+            "ElementSubType_0001",
             catalogue_name,
             library_name,
+            codelists=[
+                {
+                    "uid": element_subtype_codelist.codelist_uid,
+                    "order": 1,
+                    "submission_value": "Element SubType",
+                }
+            ],
+        )
+        element_subtype_term_2 = create_ct_term(
+            "Element Subtype2",
+            "ElementSubType_0002",
+            catalogue_name,
+            library_name,
+            codelists=[
+                {
+                    "uid": element_subtype_codelist.codelist_uid,
+                    "order": 2,
+                    "submission_value": "Element SubType2",
+                }
+            ],
         )
         self.study_elements = [
-            create_study_element(element_type_term.uid, self.study.uid),
-            create_study_element(element_type_term_2.uid, self.study.uid),
+            create_study_element(element_subtype_term.uid, self.study.uid),
+            create_study_element(element_subtype_term_2.uid, self.study.uid),
         ]
 
         # Create a study branch arm

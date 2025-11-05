@@ -83,7 +83,7 @@ class StudyCompoundSelectionService(
                     compound_model=compound_model,
                     compound_alias_model=compound_alias_model,
                     medicinal_product_model=medicinal_product_model,
-                    find_simple_term_model_name_by_term_uid=self.find_term_name_by_uid,
+                    find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                     find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
                     study_value_version=study_value_version,
                     terms_at_specific_datetime=terms_at_specific_datetime,
@@ -125,7 +125,7 @@ class StudyCompoundSelectionService(
             compound_model=compound_model,
             compound_alias_model=compound_alias_model,
             medicinal_product_model=medicinal_product_model,
-            find_simple_term_model_name_by_term_uid=self.find_term_name_by_uid,
+            find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
             terms_at_specific_datetime=terms_at_specific_datetime,
         )
@@ -514,7 +514,7 @@ class StudyCompoundSelectionService(
                     get_compound_by_uid=self._transform_compound_model,
                     get_compound_alias_by_uid=self._transform_compound_alias_model,
                     get_medicinal_product_by_uid=self._transform_medicinal_product_model,
-                    find_simple_term_model_name_by_term_uid=self.find_term_name_by_uid,
+                    find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 )
             )
         return result

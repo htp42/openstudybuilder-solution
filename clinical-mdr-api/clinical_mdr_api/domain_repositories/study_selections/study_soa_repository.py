@@ -109,6 +109,7 @@ class StudySoARepository:
         )
         db.cypher_query(query, params)
 
+    @trace_calls(args=[1, 2, 3], kwargs=["study_uid", "study_value_version", "layout"])
     def load(
         self,
         study_uid: str,
@@ -366,6 +367,7 @@ class StudySoARepository:
                 """
             MATCH (study_activity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->
                 (study_soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->
+                (:CTTermContext)-[:HAS_SELECTED_TERM]->
                 (soa_group_term_root:CTTermRoot)
             WHERE (study_soa_group)<-[:HAS_STUDY_SOA_GROUP]-(study_value)
         """

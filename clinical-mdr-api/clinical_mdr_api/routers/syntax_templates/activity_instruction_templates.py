@@ -829,7 +829,6 @@ with the same content will succeed.
         },
         403: _generic_descriptions.ERROR_403,
         404: _generic_descriptions.ERROR_404,
-        422: _generic_descriptions.ERROR_422,
     },
 )
 def pre_validate(

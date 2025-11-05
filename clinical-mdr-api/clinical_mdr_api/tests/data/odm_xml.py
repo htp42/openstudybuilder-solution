@@ -1,77 +1,4 @@
 # pylint: disable=too-many-lines, line-too-long
-export_study_event = """<?xml version="1.0" encoding="utf-8"?>
-                <ODM xmlns:odm="http://www.cdisc.org/ns/odm/v1.3"
-                xmlns:osb="url2" xmlns:prefix="url1" ODMVersion="1.3.2" FileType="Snapshot" FileOID="OID.1653902417076" CreationDateTime="2022-09-22T08:02:21.594676" Granularity="All">
-                    <Study OID="name1-odm_study_event1">
-                        <GlobalVariables>
-                            <ProtocolName>name1</ProtocolName>
-                            <StudyName>name1</StudyName>
-                            <StudyDescription>name1</StudyDescription>
-                        </GlobalVariables>
-                        <BasicDefinitions>
-                            <MeasurementUnit OID="unit_definition_root1" Name="name1" osb:version="0.1">
-                                <Symbol>
-                                    <TranslatedText xml:lang="en">name1</TranslatedText>
-                                </Symbol>
-                            </MeasurementUnit>
-                        </BasicDefinitions>
-                        <MetaDataVersion OID="MDV.0.1" Name="MDV.0.1" Description="Draft version">
-                            <FormDef OID="oid1" Name="name1" Repeating="Yes" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
-                                <Description>
-                                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
-                                </Description>
-                                <Alias Name="name1" Context="context1" osb:version="0.1" />
-                                <ItemGroupRef ItemGroupOID="oid1" Mandatory="Yes" OrderNumber="1" CollectionExceptionConditionOID="oid2" prefix:nameThree="No" />
-                                <prefix:nameOne>test value</prefix:nameOne>
-                            </FormDef>
-                            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="code_submission_value1:preferred_term1|code_submission_value2:preferred_term2" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
-                                <osb:DomainColor>code_submission_value1:#bfffff !important;</osb:DomainColor>
-                                <osb:DomainColor>code_submission_value2:#ffff96 !important;</osb:DomainColor>
-                                <Description>
-                                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
-                                </Description>
-                                <Alias Name="name1" Context="context1" osb:version="0.1" />
-                                <ItemRef ItemOID="oid1" Mandatory="Yes" OrderNumber="1" MethodOID="oid1" CollectionExceptionConditionOID="oid1" prefix:nameThree="No" />
-                            </ItemGroupDef>
-                            <ItemDef OID="oid1" Name="name1" Origin="origin1" DataType="string" Length="1" SignificantDigits="1" SASFieldName="sasfieldname1" SDSVarName="sdsvarname1" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
-                                <Question>
-                                    <TranslatedText xml:lang="en" osb:version="1.0">name1</TranslatedText>
-                                </Question>
-                                <Description>
-                                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
-                                </Description>
-                                <Alias Name="name1" Context="context1" osb:version="0.1" />
-                                <CodeListRef CodeListOID="submission_value1@oid1" />
-                                <MeasurementUnitRef MeasurementUnitOID="unit_definition_root1" />
-                            </ItemDef>
-                            <ConditionDef OID="oid1" Name="name1" osb:version="1.0">
-                                <Description>
-                                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
-                                </Description>
-                                <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
-                            </ConditionDef>
-                            <ConditionDef OID="oid2" Name="name2" osb:version="1.0">
-                                <Description>
-                                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
-                                </Description>
-                                <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
-                            </ConditionDef>
-                            <MethodDef OID="oid1" Name="name1" Type="type1" osb:version="1.0">
-                                <Description>
-                                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
-                                </Description>
-                                <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
-                            </MethodDef>
-                            <CodeList OID="submission_value1@oid1" Name="codelist_root1" DataType="string" SASFormatName="submission_value1" osb:version="1.0">
-                                <CodeListItem CodedValue="code_submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
-                                    <Decode>
-                                        <TranslatedText xml:lang="en">custom text</TranslatedText>
-                                    </Decode>
-                                </CodeListItem>
-                            </CodeList>
-                        </MetaDataVersion>
-                    </Study>
-                </ODM>"""
 export_form = """<?xml version="1.0" encoding="utf-8"?>
 <ODM xmlns:odm="http://www.cdisc.org/ns/odm/v1.3" xmlns:osb="url2" xmlns:prefix="url1" ODMVersion="1.3.2" FileType="Snapshot" FileOID="OID.1653902417076" CreationDateTime="2022-09-22T08:02:21.594676" Granularity="All">
     <Study OID="name1-odm_form1">
@@ -96,9 +23,9 @@ export_form = """<?xml version="1.0" encoding="utf-8"?>
                 <ItemGroupRef ItemGroupOID="oid1" Mandatory="Yes" OrderNumber="1" CollectionExceptionConditionOID="oid2" prefix:nameThree="No" />
                 <prefix:nameOne>test value</prefix:nameOne>
             </FormDef>
-            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="code_submission_value1:preferred_term1|code_submission_value2:preferred_term2" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
-                <osb:DomainColor>code_submission_value1:#bfffff !important;</osb:DomainColor>
-                <osb:DomainColor>code_submission_value2:#ffff96 !important;</osb:DomainColor>
+            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="XX:Domain XX|YY:Domain YY" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
+                <osb:DomainColor>XX:#bfffff !important;</osb:DomainColor>
+                <osb:DomainColor>YY:#ffff96 !important;</osb:DomainColor>
                 <Description>
                     <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
                 </Description>
@@ -135,7 +62,85 @@ export_form = """<?xml version="1.0" encoding="utf-8"?>
                 <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
             </MethodDef>            
             <CodeList OID="submission_value1@oid1" Name="codelist_root1" DataType="string" SASFormatName="submission_value1" osb:version="1.0">
-                <CodeListItem CodedValue="code_submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
+                <CodeListItem CodedValue="submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
+                    <Decode>
+                        <TranslatedText xml:lang="en">custom text</TranslatedText>
+                    </Decode>
+                </CodeListItem>
+            </CodeList>
+        </MetaDataVersion>
+    </Study>
+</ODM>"""
+export_forms = """<?xml version="1.0" encoding="utf-8"?>
+<ODM xmlns:odm="http://www.cdisc.org/ns/odm/v1.3" xmlns:osb="url2" xmlns:prefix="url1" ODMVersion="1.3.2" FileType="Snapshot" FileOID="OID.1653902417076" CreationDateTime="2022-09-22T08:02:21.594676" Granularity="All">
+    <Study OID="name1-odm_form1">
+        <GlobalVariables>
+            <ProtocolName>name1</ProtocolName>
+            <StudyName>name1</StudyName>
+            <StudyDescription>name1</StudyDescription>
+        </GlobalVariables>
+        <BasicDefinitions>
+            <MeasurementUnit OID="unit_definition_root1" Name="name1" osb:version="0.1">
+                <Symbol>
+                    <TranslatedText xml:lang="en">name1</TranslatedText>
+                </Symbol>
+            </MeasurementUnit>
+        </BasicDefinitions>
+        <MetaDataVersion OID="MDV.0.1" Name="MDV.0.1" Description="Draft version">
+            <FormDef OID="oid1" Name="name1" Repeating="Yes" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
+                <Description>
+                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
+                </Description>
+                <Alias Name="name1" Context="context1" osb:version="0.1" />
+                <ItemGroupRef ItemGroupOID="oid1" Mandatory="Yes" OrderNumber="1" CollectionExceptionConditionOID="oid2" prefix:nameThree="No" />
+                <prefix:nameOne>test value</prefix:nameOne>
+            </FormDef>
+            <FormDef OID="oid2" Name="name2" Repeating="Yes" osb:version="1.0"
+                osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
+                <Description>
+                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
+                </Description>
+            </FormDef>
+            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="XX:Domain XX|YY:Domain YY" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
+                <osb:DomainColor>XX:#bfffff !important;</osb:DomainColor>
+                <osb:DomainColor>YY:#ffff96 !important;</osb:DomainColor>
+                <Description>
+                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
+                </Description>
+                <Alias Name="name1" Context="context1" osb:version="0.1" />
+                <ItemRef ItemOID="oid1" Mandatory="Yes" OrderNumber="1" MethodOID="oid1" CollectionExceptionConditionOID="oid1" prefix:nameThree="No" />
+            </ItemGroupDef>
+            <ItemDef OID="oid1" Name="name1" Origin="origin1" DataType="string" Length="1" SignificantDigits="1" SASFieldName="sasfieldname1" SDSVarName="sdsvarname1" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
+                <Question>
+                    <TranslatedText xml:lang="en" osb:version="1.0">name1</TranslatedText>
+                </Question>
+                <Description>
+                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
+                </Description>
+                <Alias Name="name1" Context="context1" osb:version="0.1" />
+                <CodeListRef CodeListOID="submission_value1@oid1" />
+                <MeasurementUnitRef MeasurementUnitOID="unit_definition_root1" />
+            </ItemDef>
+            <ConditionDef OID="oid1" Name="name1" osb:version="1.0">
+                <Description>
+                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
+                </Description>
+                <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
+            </ConditionDef>
+            <ConditionDef OID="oid2" Name="name2" osb:version="1.0">
+                <Description>
+                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
+                </Description>
+                <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
+            </ConditionDef>
+            <MethodDef OID="oid1" Name="name1" Type="type1" osb:version="1.0">
+                <Description>
+                    <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
+                </Description>
+                <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
+            </MethodDef>            
+            <CodeList OID="submission_value1@oid1" Name="codelist_root1" DataType="string" SASFormatName="submission_value1" osb:version="1.0">
+                <CodeListItem CodedValue="submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
                     <Decode>
                         <TranslatedText xml:lang="en">custom text</TranslatedText>
                     </Decode>
@@ -160,9 +165,9 @@ export_item_group = """<?xml version="1.0" encoding="utf-8"?>
             </MeasurementUnit>
         </BasicDefinitions>
         <MetaDataVersion OID="MDV.0.1" Name="MDV.0.1" Description="Draft version">
-            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="code_submission_value1:preferred_term1|code_submission_value2:preferred_term2" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
-                <osb:DomainColor>code_submission_value1:#bfffff !important;</osb:DomainColor>
-                <osb:DomainColor>code_submission_value2:#ffff96 !important;</osb:DomainColor>
+            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="XX:Domain XX|YY:Domain YY" osb:version="1.0" osb:instruction="instruction1" osb:sponsorInstruction="sponsor_instruction1">
+                <osb:DomainColor>XX:#bfffff !important;</osb:DomainColor>
+                <osb:DomainColor>YY:#ffff96 !important;</osb:DomainColor>
                 <Description>
                     <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
                 </Description>
@@ -193,7 +198,7 @@ export_item_group = """<?xml version="1.0" encoding="utf-8"?>
                 <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
             </MethodDef>
             <CodeList OID="submission_value1@oid1" Name="codelist_root1" DataType="string" SASFormatName="submission_value1" osb:version="1.0">
-                <CodeListItem CodedValue="code_submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
+                <CodeListItem CodedValue="submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
                     <Decode>
                         <TranslatedText xml:lang="en">custom text</TranslatedText>
                     </Decode>
@@ -232,7 +237,7 @@ export_item = """<?xml version="1.0" encoding="utf-8"?>
                                 <MeasurementUnitRef MeasurementUnitOID="unit_definition_root1" />
                             </ItemDef>
                             <CodeList OID="submission_value1@oid1" Name="codelist_root1" DataType="string" SASFormatName="submission_value1" osb:version="1.0">
-                                <CodeListItem CodedValue="code_submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
+                                <CodeListItem CodedValue="submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
                                     <Decode>
                                         <TranslatedText xml:lang="en">custom text</TranslatedText>
                                     </Decode>
@@ -243,7 +248,7 @@ export_item = """<?xml version="1.0" encoding="utf-8"?>
                 </ODM>"""
 export_with_csv = """<?xml version="1.0" encoding="utf-8"?>
 <ODM xmlns:odm="http://www.cdisc.org/ns/odm/v1.3" xmlns:osb="url2" xmlns:prefix="url1" ODMVersion="1.3.2" FileType="Snapshot" FileOID="OID.1653902417076" CreationDateTime="2022-09-22T08:02:21.594676" Granularity="All">
-    <Study OID="name1-odm_study_event1">
+    <Study OID="name1-odm_form1">
         <GlobalVariables>
             <ProtocolName>name1</ProtocolName>
             <StudyName>name1</StudyName>
@@ -267,9 +272,9 @@ export_with_csv = """<?xml version="1.0" encoding="utf-8"?>
                 <Alias Name="instruction1" Context="CompletionInstructions" />
                 <Alias Name="sponsor_instruction1" Context="ImplementationNotes" />
             </FormDef>
-            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="code_submission_value1:preferred_term1|code_submission_value2:preferred_term2" osb:version="1.0" CompletionInstructions="instruction1" ImplementationNotes="sponsor_instruction1">
-                <DomainColor>code_submission_value1:#bfffff !important;</DomainColor>
-                <DomainColor>code_submission_value2:#ffff96 !important;</DomainColor>
+            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="XX:Domain XX|YY:Domain YY" osb:version="1.0" CompletionInstructions="instruction1" ImplementationNotes="sponsor_instruction1">
+                <DomainColor>XX:#bfffff !important;</DomainColor>
+                <DomainColor>YY:#ffff96 !important;</DomainColor>
                 <Description>
                     <TranslatedText xml:lang="en" osb:version="1.0">description1</TranslatedText>
                 </Description>
@@ -310,7 +315,7 @@ export_with_csv = """<?xml version="1.0" encoding="utf-8"?>
                 <FormalExpression Context="context1" osb:version="0.1">expression1</FormalExpression>
             </MethodDef>
             <CodeList OID="submission_value1@oid1" Name="codelist_root1" DataType="string" SASFormatName="submission_value1" osb:version="1.0">
-                <CodeListItem CodedValue="code_submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
+                <CodeListItem CodedValue="submission_value1" OrderNumber="1" osb:mandatory="False" osb:name="name1" osb:OID="term1" osb:version="1.0">
                     <Decode>
                         <TranslatedText xml:lang="en">custom text</TranslatedText>
                     </Decode>
@@ -321,7 +326,7 @@ export_with_csv = """<?xml version="1.0" encoding="utf-8"?>
 </ODM>"""
 export_with_namespace = """<?xml version="1.0" encoding="utf-8"?>
 <ODM xmlns:odm="http://www.cdisc.org/ns/odm/v1.3" xmlns:prefix="url1" ODMVersion="1.3.2" FileType="Snapshot" FileOID="OID.1653902417076" CreationDateTime="2022-09-22T08:02:21.594676" Granularity="All">
-    <Study OID="name1-odm_study_event1">
+    <Study OID="name1-odm_form1">
         <GlobalVariables>
             <ProtocolName>name1</ProtocolName>
             <StudyName>name1</StudyName>
@@ -343,7 +348,7 @@ export_with_namespace = """<?xml version="1.0" encoding="utf-8"?>
                 <ItemGroupRef ItemGroupOID="oid1" Mandatory="Yes" OrderNumber="1" CollectionExceptionConditionOID="oid2" prefix:nameThree="No" />
                 <prefix:nameOne>test value</prefix:nameOne>
             </FormDef>
-            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="code_submission_value1:preferred_term1|code_submission_value2:preferred_term2">
+            <ItemGroupDef OID="oid1" Name="name1" Repeating="No" Purpose="purpose1" SASDatasetName="sas_dataset_name1" Domain="XX:Domain XX|YY:Domain YY">
                 <Description>
                     <TranslatedText xml:lang="en">description1</TranslatedText>
                 </Description>
@@ -380,7 +385,7 @@ export_with_namespace = """<?xml version="1.0" encoding="utf-8"?>
                 <FormalExpression Context="context1">expression1</FormalExpression>
             </MethodDef>
             <CodeList OID="submission_value1@oid1" Name="codelist_root1" DataType="string" SASFormatName="submission_value1">
-                <CodeListItem CodedValue="code_submission_value1" OrderNumber="1">
+                <CodeListItem CodedValue="submission_value1" OrderNumber="1">
                     <Decode>
                         <TranslatedText xml:lang="en">custom text</TranslatedText>
                     </Decode>
@@ -424,7 +429,7 @@ import_input1 = """<?xml version="1.0" encoding="utf-8"?>
                         <ItemGroupRef ItemGroupOID="G.VS.VS" Mandatory="Yes" OrderNumber="1" osb:locked="Yes" />
                         <ItemGroupRef ItemGroupOID="G.VS.BPP" Mandatory="Yes" OrderNumber="2" osb:locked="Yes" />
                     </FormDef>
-                    <ItemGroupDef OID="G.VS.BPP" Name="Blood pressure and pulse" Repeating="No" Purpose="Tabulation" SASDatasetName="VITALSIGNSBPP" Domain="code_submission_value1:preferred_term1|code_submission_value3:preferred_term3" osb:version="1.0" osb:instruction="item group instruction" osb:sponsorInstruction="item group sponsor instruction" osb:gr="ig1">
+                    <ItemGroupDef OID="G.VS.BPP" Name="Blood pressure and pulse" Repeating="No" Purpose="Tabulation" SASDatasetName="VITALSIGNSBPP" Domain="submission_value_1:preferred_term1|submission_value3:preferred_term3" osb:version="1.0" osb:instruction="item group instruction" osb:sponsorInstruction="item group sponsor instruction" osb:gr="ig1">
                         <osb:DomainColor>VS:#bfffff !important;</osb:DomainColor>
                         <Description>
                             <TranslatedText xml:lang="en" osb:version="0.1">Blood pressure and pulse</TranslatedText>
@@ -454,7 +459,7 @@ import_input1 = """<?xml version="1.0" encoding="utf-8"?>
                         <ItemRef ItemOID="I.PREVSUBJ" Mandatory="Yes" OrderNumber="10" osb:sdv="Yes" />
                         <Alias Name="name2" Context="context2" />
                     </ItemGroupDef>
-                    <ItemGroupDef OID="G.DM.IC" Name="Informed Consent" Repeating="No" Purpose="Tabulation" SASDatasetName="DEMOG" Domain="code_submission_value1" osb:version="1.0" osb:instruction="item group instruction" osb:sponsorInstruction="item group sponsor instruction" osb:gr="ig3">
+                    <ItemGroupDef OID="G.DM.IC" Name="Informed Consent" Repeating="No" Purpose="Tabulation" SASDatasetName="DEMOG" Domain="submission_value_1" osb:version="1.0" osb:instruction="item group instruction" osb:sponsorInstruction="item group sponsor instruction" osb:gr="ig3">
                         <osb:DomainColor>DM:#bfffff !important;</osb:DomainColor>
                         <Description>
                             <TranslatedText xml:lang="en" osb:version="0.1">Informed Consent item group</TranslatedText>
@@ -1164,7 +1169,6 @@ import_output1 = {
             "oid": "F.DM",
             "repeating": "No",
             "sdtm_version": "",
-            "scope": None,
             "descriptions": [
                 {
                     "uid": "OdmDescription_000036",
@@ -1270,7 +1274,6 @@ import_output1 = {
             "oid": "F.VS",
             "repeating": "No",
             "sdtm_version": "",
-            "scope": None,
             "descriptions": [
                 {
                     "uid": "OdmDescription_000037",
@@ -1387,14 +1390,28 @@ import_output1 = {
             ],
             "sdtm_domains": [
                 {
-                    "uid": "term_root_final",
-                    "code_submission_value": "code_submission_value1",
+                    "term_uid": "term_root_final",
+                    "submission_value": "submission_value_1",
                     "preferred_term": "preferred_term1",
+                    "term_name": "term_value_name1",
+                    "order": 1,
+                    "queried_effective_date": None,
+                    "codelist_uid": "domain_cl",
+                    "codelist_submission_value": "DOMAIN",
+                    "codelist_name": "SDTM Domain Abbreviation",
+                    "date_conflict": False,
                 },
                 {
-                    "uid": "term_root_final_non_edit",
-                    "code_submission_value": "code_submission_value3",
+                    "term_uid": "term_root_final_non_edit",
+                    "submission_value": "submission_value_3",
                     "preferred_term": "preferred_term3",
+                    "term_name": "term_value_name3",
+                    "order": 3,
+                    "queried_effective_date": None,
+                    "codelist_uid": "domain_cl",
+                    "codelist_submission_value": "DOMAIN",
+                    "codelist_name": "SDTM Domain Abbreviation",
+                    "date_conflict": False,
                 },
             ],
             "activity_subgroups": [],
@@ -1610,9 +1627,16 @@ import_output1 = {
             ],
             "sdtm_domains": [
                 {
-                    "uid": "term_root_final",
-                    "code_submission_value": "code_submission_value1",
+                    "term_uid": "term_root_final",
+                    "submission_value": "submission_value_1",
                     "preferred_term": "preferred_term1",
+                    "term_name": "term_value_name1",
+                    "order": 1,
+                    "queried_effective_date": None,
+                    "codelist_uid": "domain_cl",
+                    "codelist_submission_value": "DOMAIN",
+                    "codelist_name": "SDTM Domain Abbreviation",
+                    "date_conflict": False,
                 }
             ],
             "activity_subgroups": [],
@@ -1913,9 +1937,16 @@ import_output1 = {
             "aliases": [],
             "sdtm_domains": [
                 {
-                    "uid": "term_root_final",
-                    "code_submission_value": "code_submission_value1",
+                    "term_uid": "term_root_final",
+                    "submission_value": "submission_value_1",
                     "preferred_term": "preferred_term1",
+                    "term_name": "term_value_name1",
+                    "order": 1,
+                    "queried_effective_date": None,
+                    "codelist_uid": "domain_cl",
+                    "codelist_submission_value": "DOMAIN",
+                    "codelist_name": "SDTM Domain Abbreviation",
+                    "date_conflict": False,
                 }
             ],
             "activity_subgroups": [],
@@ -2293,6 +2324,7 @@ import_output1 = {
                     "order": 1,
                     "display_text": None,
                     "version": "1.0",
+                    "submission_value": "submission_value_1",
                 }
             ],
             "activity": None,
@@ -2595,6 +2627,7 @@ import_output1 = {
                     "order": 1,
                     "display_text": "preferred term for new codelist",
                     "version": "1.0",
+                    "submission_value": "codelistitem codedvalue",
                 }
             ],
             "activity": None,
@@ -3195,6 +3228,7 @@ import_output1 = {
                     "order": 2,
                     "display_text": None,
                     "version": "1.0",
+                    "submission_value": "submission_value_1",
                 }
             ],
             "activity": None,
@@ -3479,7 +3513,7 @@ import_output1 = {
     ],
     "codelists": [
         {
-            "catalogue_name": "SDTM CT",
+            "catalogue_names": ["SDTM CT"],
             "codelist_uid": "CTCodelist_000001",
             "parent_codelist_uid": None,
             "child_codelist_uids": [],
@@ -3492,22 +3526,27 @@ import_output1 = {
             "template_parameter": False,
             "library_name": "Sponsor",
             "possible_actions": ["new_version"],
+            "ordinal": False,
+            "paired_codes_codelist_uid": None,
+            "paired_names_codelist_uid": None,
         }
     ],
     "terms": [
         {
             "term_uid": "CTTerm_000001",
-            "catalogue_name": "SDTM CT",
+            "catalogue_names": ["SDTM CT"],
             "codelists": [
                 {
                     "codelist_uid": "CTCodelist_000001",
-                    "order": 999999,
+                    "order": None,
+                    "submission_value": "codelistitem codedvalue",
                     "library_name": "Sponsor",
+                    "codelist_name": "cnew codelist created by odm xml import",
+                    "codelist_submission_value": "cnew codelist created by odm xml import",
+                    "codelist_concept_id": None,
                 }
             ],
             "concept_id": None,
-            "code_submission_value": "codelistitem codedvalue",
-            "name_submission_value": None,
             "nci_preferred_name": "codelistitem codedvalue",
             "definition": "codelistitem codedvalue",
             "sponsor_preferred_name": "preferred term for new codelist",
@@ -3719,7 +3758,6 @@ import_output2 = {
             "oid": "oid1",
             "repeating": "Yes",
             "sdtm_version": "",
-            "scope": None,
             "descriptions": [
                 {
                     "uid": "OdmDescription_000001",
@@ -5116,7 +5154,6 @@ clinspark_output = {
             "oid": "F.38",
             "repeating": "Yes",
             "sdtm_version": "",
-            "scope": None,
             "descriptions": [],
             "aliases": [],
             "activity_groups": [],
@@ -5176,7 +5213,6 @@ clinspark_output = {
             "oid": "F.52",
             "repeating": "Yes",
             "sdtm_version": "",
-            "scope": None,
             "descriptions": [
                 {
                     "uid": "OdmDescription_000059",
@@ -5219,7 +5255,6 @@ clinspark_output = {
             "oid": "F.98",
             "repeating": "Yes",
             "sdtm_version": "",
-            "scope": None,
             "descriptions": [],
             "aliases": [],
             "activity_groups": [],
@@ -5252,7 +5287,6 @@ clinspark_output = {
             "oid": "F.47",
             "repeating": "No",
             "sdtm_version": "",
-            "scope": None,
             "descriptions": [],
             "aliases": [],
             "activity_groups": [],
@@ -5320,7 +5354,6 @@ clinspark_output = {
             "oid": "F.37",
             "repeating": "Yes",
             "sdtm_version": "",
-            "scope": None,
             "descriptions": [],
             "aliases": [],
             "activity_groups": [],
@@ -6724,6 +6757,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "F",
                     "version": "1.0",
                 },
                 {
@@ -6732,6 +6766,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "M",
                     "version": "1.0",
                 },
             ],
@@ -6879,6 +6914,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "DISPOSITION EVENT",
                     "version": "1.0",
                 },
                 {
@@ -6887,6 +6923,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "PROTOCOL MILESTONE",
                     "version": "1.0",
                 },
                 {
@@ -6895,6 +6932,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 3,
                     "display_text": None,
+                    "submission_value": "OTHER EVENT",
                     "version": "1.0",
                 },
             ],
@@ -6949,6 +6987,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "FIRST DATE ON TRIAL PRODUCT",
                     "version": "1.0",
                 },
                 {
@@ -6957,6 +6996,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "LAST DATE ON TRIAL PRODUCT",
                     "version": "1.0",
                 },
                 {
@@ -6965,6 +7005,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 3,
                     "display_text": None,
+                    "submission_value": "TREATMENT DISCONTINUATION",
                     "version": "1.0",
                 },
                 {
@@ -6973,6 +7014,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 4,
                     "display_text": None,
+                    "submission_value": "TREATMENT UNBLINDED",
                     "version": "1.0",
                 },
                 {
@@ -6981,6 +7023,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 5,
                     "display_text": None,
+                    "submission_value": "INFORMED CONSENT OBTAINED",
                     "version": "1.0",
                 },
                 {
@@ -6989,6 +7032,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 6,
                     "display_text": None,
+                    "submission_value": "ELIGIBILITY CRITERIA MET",
                     "version": "1.0",
                 },
                 {
@@ -6997,6 +7041,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 7,
                     "display_text": None,
+                    "submission_value": "RANDOMIZED",
                     "version": "1.0",
                 },
                 {
@@ -7005,6 +7050,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 8,
                     "display_text": None,
+                    "submission_value": "FUTURE RESEARCH BIOSAMPLE CONSENT OBTAINED",
                     "version": "1.0",
                 },
                 {
@@ -7013,6 +7059,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 9,
                     "display_text": None,
+                    "submission_value": "FUTURE RESEARCH BIOSAMPLE CONSENT WITHDRAWN",
                     "version": "1.0",
                 },
             ],
@@ -7107,6 +7154,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "<IMP 1>",
                     "version": "1.0",
                 },
                 {
@@ -7115,6 +7163,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "<IMP 2>",
                     "version": "1.0",
                 },
                 {
@@ -7123,6 +7172,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 3,
                     "display_text": None,
+                    "submission_value": "<IMP 3>",
                     "version": "1.0",
                 },
             ],
@@ -7177,6 +7227,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "ADMINISTRATION OF TRIAL PRODUCT",
                     "version": "1.0",
                 }
             ],
@@ -7231,6 +7282,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "SCHEDULED",
                     "version": "1.0",
                 },
                 {
@@ -7239,6 +7291,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "PERFORMED",
                     "version": "1.0",
                 },
             ],
@@ -7293,6 +7346,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "Y",
                     "version": "1.0",
                 }
             ],
@@ -7347,6 +7401,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "Y",
                     "version": "1.0",
                 },
                 {
@@ -7355,6 +7410,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "N",
                     "version": "1.0",
                 },
             ],
@@ -7649,6 +7705,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "TABLET",
                     "version": "1.0",
                 },
                 {
@@ -7657,6 +7714,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "INJECTION",
                     "version": "1.0",
                 },
             ],
@@ -7791,6 +7849,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "UPPER ARM",
                     "version": "1.0",
                 },
                 {
@@ -7799,6 +7858,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "THIGH",
                     "version": "1.0",
                 },
                 {
@@ -7807,6 +7867,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 3,
                     "display_text": None,
+                    "submission_value": "ABDOMINAL SKIN",
                     "version": "1.0",
                 },
             ],
@@ -7861,6 +7922,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "RIGHT",
                     "version": "1.0",
                 },
                 {
@@ -7869,6 +7931,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "LEFT",
                     "version": "1.0",
                 },
             ],
@@ -8043,6 +8106,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "Y",
                     "version": "1.0",
                 },
                 {
@@ -8051,6 +8115,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "N",
                     "version": "1.0",
                 },
             ],
@@ -8105,6 +8170,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "SUBCUTANEOUS",
                     "version": "1.0",
                 },
                 {
@@ -8113,6 +8179,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "ORAL",
                     "version": "1.0",
                 },
             ],
@@ -8327,6 +8394,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "PRE-PROPHYLAXIS REGIMEN",
                     "version": "1.0",
                 },
                 {
@@ -8335,6 +8403,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "SCHEDULED PREVENTIVE TREATMENT",
                     "version": "1.0",
                 },
                 {
@@ -8343,6 +8412,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 3,
                     "display_text": None,
+                    "submission_value": "PHYSICAL ACTIVITY",
                     "version": "1.0",
                 },
                 {
@@ -8351,6 +8421,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 4,
                     "display_text": None,
+                    "submission_value": "OTHER PREVENTIVE TREATMENT",
                     "version": "1.0",
                 },
                 {
@@ -8359,6 +8430,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 5,
                     "display_text": None,
+                    "submission_value": "TREATMENT OF BLEED",
                     "version": "1.0",
                 },
                 {
@@ -8367,6 +8439,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 6,
                     "display_text": None,
+                    "submission_value": "SURGERY",
                     "version": "1.0",
                 },
             ],
@@ -8607,6 +8680,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "VITAL SIGNS",
                     "version": "1.0",
                 },
                 {
@@ -8615,6 +8689,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "BODY MEASUREMENT",
                     "version": "1.0",
                 },
             ],
@@ -8669,6 +8744,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "VITAL SIGNS",
                     "version": "1.0",
                 },
                 {
@@ -8677,6 +8753,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "BODY MEASUREMENT",
                     "version": "1.0",
                 },
             ],
@@ -8864,6 +8941,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 1,
                     "display_text": None,
+                    "submission_value": "Y",
                     "version": "1.0",
                 },
                 {
@@ -8872,6 +8950,7 @@ clinspark_output = {
                     "mandatory": True,
                     "order": 2,
                     "display_text": None,
+                    "submission_value": "N",
                     "version": "1.0",
                 },
             ],

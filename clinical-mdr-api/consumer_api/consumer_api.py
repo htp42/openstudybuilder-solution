@@ -5,11 +5,19 @@ from typing import Any
 
 from opencensus.trace.print_exporter import PrintExporter
 
+from common.config import settings
+from common.database import configure_database
 from common.logger import default_logging_config, log_exception
 from common.telemetry.request_metrics import patch_neomodel_database
 from common.telemetry.tracing_middleware import TracingMiddleware
 
 default_logging_config()
+
+configure_database(
+    settings.neo4j_dsn,
+    max_connection_lifetime=settings.neo4j_connection_lifetime,
+    liveness_check_timeout=settings.neo4j_liveness_check_timeout,
+)
 
 # pylint: disable=wrong-import-position,wrong-import-order,ungrouped-imports
 import logging
@@ -23,7 +31,6 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
-from neomodel import config as neomodel_config
 from opencensus.ext.azure.trace_exporter import AzureExporter
 from opencensus.trace.samplers import AlwaysOnSampler
 from pydantic import ValidationError
@@ -31,7 +38,6 @@ from starlette_context.middleware import RawContextMiddleware
 
 from common.auth.dependencies import security
 from common.auth.discovery import reconfigure_with_openid_discovery
-from common.config import settings
 from common.exceptions import MDRApiBaseException
 from common.models.error import ErrorResponse
 from common.telemetry.traceback_middleware import ExceptionTracebackMiddleware
@@ -42,12 +48,6 @@ from consumer_api.v1.main import router as v1_router
 # from consumer_api.v2.main import router as v2_router
 
 log = logging.getLogger(__name__)
-
-# Configure Neo4J connection on startup
-neo4j_dsn = os.getenv("NEO4J_DSN")
-if neo4j_dsn:
-    neomodel_config.DATABASE_URL = neo4j_dsn
-    log.info("Neo4j DSN set to: %s", neo4j_dsn.split("@")[-1])
 
 
 # Middlewares - please don't use app.add_middleware() as that inserts them to the beginning of the list

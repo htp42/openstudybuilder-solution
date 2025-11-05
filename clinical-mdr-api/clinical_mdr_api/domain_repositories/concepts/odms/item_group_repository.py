@@ -3,6 +3,9 @@ from typing import Any
 from clinical_mdr_api.domain_repositories.concepts.odms.odm_generic_repository import (
     OdmGenericRepository,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
     CTTermRoot,
 )
@@ -31,6 +34,7 @@ from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryVO,
 )
 from clinical_mdr_api.models.concepts.odms.odm_item_group import OdmItemGroup
+from common.config import settings
 from common.utils import convert_to_datetime
 
 
@@ -47,6 +51,12 @@ class ItemGroupRepository(OdmGenericRepository[OdmItemGroupAR]):
         value: VersionValue,
         **_kwargs,
     ) -> OdmItemGroupAR:
+        sdtm_domains = []
+        if sdtm_domain_contexts := root.has_sdtm_domain.all():
+            for sdtm_domain in sdtm_domain_contexts:
+                if selected_term := sdtm_domain.has_selected_term.get_or_none():
+                    sdtm_domains.append(selected_term)
+
         return OdmItemGroupAR.from_repository_values(
             uid=root.uid,
             concept_vo=OdmItemGroupVO.from_repository_values(
@@ -62,9 +72,7 @@ class ItemGroupRepository(OdmGenericRepository[OdmItemGroupAR]):
                     description.uid for description in root.has_description.all()
                 ],
                 alias_uids=[alias.uid for alias in root.has_alias.all()],
-                sdtm_domain_uids=[
-                    sdtm_domain.uid for sdtm_domain in root.has_sdtm_domain.all()
-                ],
+                sdtm_domain_uids=[sdtm_domain.uid for sdtm_domain in sdtm_domains],
                 activity_subgroup_uids=[
                     activity_subgroup.uid
                     for activity_subgroup in root.has_activity_subgroup.all()
@@ -155,10 +163,12 @@ concept_value.comment AS comment,
 [(concept_value)<-[:{only_specific_status}]-(:OdmItemGroupRoot)-[:HAS_ALIAS]->(ar:OdmAliasRoot)-[:LATEST]->(av:OdmAliasValue) |
 {{uid: ar.uid, name: av.name, context: av.context}}] AS aliases,
 
-[(concept_value)<-[:{only_specific_status}]-(:OdmItemGroupRoot)-[:HAS_SDTM_DOMAIN]->(tr:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTTermAttributesRoot)-[:LATEST]->(tav:CTTermAttributesValue) |
-{{uid: tr.uid, code_submission_value: tav.code_submission_value, preferred_term: tav.preferred_term}}] AS sdtm_domains,
+[(concept_value)<-[:{only_specific_status}]-(:OdmItemGroupRoot)-[:HAS_SDTM_DOMAIN]->(:CTTermContext)-[:HAS_SELECTED_TERM]->
+  (tr:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTTermAttributesRoot)-[:LATEST]->(tav:CTTermAttributesValue) |
+{{uid: tr.uid, submission_value: tav.submission_value, preferred_term: tav.preferred_term}}] AS sdtm_domains,
 
-[(concept_value)<-[:{only_specific_status}]-(:OdmItemGroupRoot)-[:HAS_ACTIVITY_SUB_GROUP]->(agr:ActivitySubGroupRoot)-[:LATEST]->(agv:ActivitySubGroupValue) |
+[(concept_value)<-[:{only_specific_status}]-(:OdmItemGroupRoot)-[:HAS_ACTIVITY_SUB_GROUP]->
+  (agr:ActivitySubGroupRoot)-[:LATEST]->(agv:ActivitySubGroupValue) |
 {{uid: agr.uid, name: agv.name}}] AS activity_subgroups,
 
 [(concept_value)<-[:{only_specific_status}]-(:OdmItemGroupRoot)-[iref:ITEM_REF]->(ir:OdmItemRoot)-[:LATEST]->(iv:OdmItemValue) |
@@ -203,10 +213,16 @@ apoc.coll.toSet([vendor_element_attribute in vendor_element_attributes | vendor_
                 alias = OdmAliasRoot.nodes.get_or_none(uid=alias_uid)
                 root.has_alias.connect(alias)
 
-        if ar.concept_vo.sdtm_domain_uids is not None:
-            for sdtm_domain_uid in ar.concept_vo.sdtm_domain_uids:
-                sdtm_domain = CTTermRoot.nodes.get_or_none(uid=sdtm_domain_uid)
-                root.has_sdtm_domain.connect(sdtm_domain)
+        for sdtm_domain_uid in ar.concept_vo.sdtm_domain_uids:
+            sdtm_domain_node = CTTermRoot.nodes.get(uid=sdtm_domain_uid)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    sdtm_domain_node,
+                    codelist_submission_value=settings.stdm_domain_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            root.has_sdtm_domain.connect(selected_term_node)
 
         return new_value
 
@@ -235,7 +251,9 @@ apoc.coll.toSet([vendor_element_attribute in vendor_element_attributes | vendor_
         }
         alias_uids = {alias.uid for alias in root.has_alias.all()}
         sdtm_domain_uids = {
-            sdtm_domain.uid for sdtm_domain in root.has_sdtm_domain.all()
+            sdtm_domain.uid
+            for sdtm_domain_context in root.has_sdtm_domain.all()
+            if (sdtm_domain := sdtm_domain_context.has_selected_term.get_or_none())
         }
 
         are_rels_changed = (

@@ -1,5 +1,6 @@
 import datetime
 
+from clinical_mdr_api.domain_repositories.models._utils import ListDistinct
 from clinical_mdr_api.domain_repositories.models.study import StudyRoot, StudyValue
 from clinical_mdr_api.domain_repositories.models.study_audit_trail import Create, Edit
 from clinical_mdr_api.domain_repositories.models.study_selections import (
@@ -34,12 +35,14 @@ class StudyDesignClassRepository:
             }
 
         nodes = (
-            StudyDesignClassNeomodel.nodes.fetch_relations(
-                "has_after__audit_trail",
+            ListDistinct(
+                StudyDesignClassNeomodel.nodes.fetch_relations(
+                    "has_after__audit_trail",
+                )
+                .filter(**filters)
+                .resolve_subgraph()
             )
-            .filter(**filters)
-            .resolve_subgraph()
-        )
+        ).distinct()
         exceptions.BusinessLogicException.raise_if(
             len(nodes) > 1,
             msg=f"Found more than one StudyDesignClass node for Study with UID '{study_uid}'.",

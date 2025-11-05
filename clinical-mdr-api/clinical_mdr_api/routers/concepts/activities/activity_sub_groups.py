@@ -391,7 +391,6 @@ If no version is provided, the latest version of the activity subgroup is used.
     response_model=CustomPage[SimpleActivity],
     responses={
         404: _generic_descriptions.ERROR_404,
-        422: _generic_descriptions.ERROR_422,
     },
 )
 @decorators.allow_exports(

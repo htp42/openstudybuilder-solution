@@ -16,6 +16,11 @@ export default {
       { params }
     )
   },
+  getAllList(deleted = false) {
+    return repository.get(
+      `${resource}/list?minimal_response=false&deleted=${deleted}`
+    )
+  },
   projects_all() {
     const params = {
       page_size: 0,
@@ -511,14 +516,14 @@ export default {
     if (!params.filters) {
       params.filters = {
         'criteria_type.sponsor_preferred_name_sentence_case': {
-          v: [criteriaType.name.sponsor_preferred_name_sentence_case],
+          v: [criteriaType.sponsor_preferred_name_sentence_case],
         },
       }
     } else {
       JSON.parse(params.filters)[
         'criteria_type.sponsor_preferred_name_sentence_case'
       ] = {
-        v: [criteriaType.name.sponsor_preferred_name_sentence_case],
+        v: [criteriaType.sponsor_preferred_name_sentence_case],
       }
     }
     return repository.get(`studies/${studyUid}/study-criteria`, { params })

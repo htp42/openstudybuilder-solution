@@ -149,8 +149,7 @@
                 :label="$t('CRFItemGroups.domain')"
                 data-cy="item-group-domain"
                 :items="domains"
-                :item-title="getDomainDisplay"
-                item-value="term_uid"
+                :item-props="sdtmDataDomainProps"
                 density="compact"
                 clearable
                 multiple
@@ -279,27 +278,21 @@
         <div class="mb-5">
           {{ $t('CRFItemGroups.select') }}
         </div>
-        <v-select
+        <NNTable
+          ref="aliasTable"
+          key="aliasTable"
           v-model="form.alias_uids"
+          :headers="aliasesHeaders"
           :items="aliases"
-          multiple
-          :label="$t('CRFItemGroups.aliases')"
-          density="compact"
-          clearable
-          :item-title="getAliasDisplay"
-          item-value="uid"
-          :error-messages="errors"
+          hide-default-switches
+          hide-export-button
+          show-select
+          table-height="400px"
+          :items-length="aliasesTotal"
           :readonly="readOnly"
-        >
-          <template #selection="{ item, index }">
-            <div v-if="index === 0" data-cy="item-group-selected-alias">
-              <span>{{ item.title }}</span>
-            </div>
-            <span v-if="index === 1" class="grey--text text-caption">
-              (+{{ form.alias_uids.length - 1 }})
-            </span>
-          </template>
-        </v-select>
+          column-data-resource="concepts/odms/aliases"
+          @filter="getAliases"
+        />
       </v-form>
     </template>
     <template #[`step.description`]="{ step }">
@@ -355,8 +348,11 @@ import parameters from '@/constants/parameters'
 import CrfExtensionsManagementTable from '@/components/library/crfs/CrfExtensionsManagementTable.vue'
 import ConfirmDialog from '@/components/tools/ConfirmDialog.vue'
 import crfTypes from '@/constants/crfTypes'
+import NNTable from '@/components/tools/NNTable.vue'
+import filteringParameters from '@/utils/filteringParameters'
 import { useAppStore } from '@/stores/app'
 import { computed } from 'vue'
+import regex from '@/utils/regex'
 
 export default {
   components: {
@@ -367,6 +363,7 @@ export default {
     CrfActivitiesModelsLinkForm,
     CrfExtensionsManagementTable,
     ConfirmDialog,
+    NNTable,
   },
   inject: ['eventBusEmit', 'formRules'],
   props: {
@@ -385,6 +382,7 @@ export default {
 
     return {
       userData: computed(() => appStore.userData),
+      clearEmptyHtml: regex.clearEmptyHtml,
     }
   },
   data() {
@@ -409,9 +407,14 @@ export default {
       },
       desc: [],
       aliases: [],
+      aliasesTotal: 0,
       alias: {},
       steps: [],
       selectedExtensions: [],
+      aliasesHeaders: [
+        { title: this.$t('CRFItemGroups.context'), key: 'context' },
+        { title: this.$t('_global.name'), key: 'name' },
+      ],
       createSteps: [
         { name: 'form', title: this.$t('CRFItemGroups.group_details') },
         {
@@ -535,16 +538,11 @@ export default {
     },
   },
   mounted() {
-    terms.getAttributesByCodelist('originType').then((resp) => {
+    terms.getTermsByCodelist('originType').then((resp) => {
       this.origins = resp.data.items
     })
-    terms.getAttributesByCodelist('sdtmDomainAbbreviation').then((resp) => {
-      this.domains = resp.data.items.sort(function (a, b) {
-        return a.nci_preferred_name.localeCompare(b.nci_preferred_name)
-      })
-    })
-    crfs.getAllAliases({ page_size: 0 }).then((resp) => {
-      this.aliases = resp.data.items
+    terms.getTermsByCodelist('sdtmDomainAbbreviation').then((resp) => {
+      this.domains = resp.data.items
     })
     if (this.isEdit()) {
       this.steps = this.readOnly ? this.createSteps : this.editSteps
@@ -558,6 +556,12 @@ export default {
     }
   },
   methods: {
+    sdtmDataDomainProps(item) {
+      return {
+        title: `${item.sponsor_preferred_name} (${item.submission_value})`,
+        value: item.term_uid,
+      }
+    },
     getGroup() {
       crfs.getItemGroup(this.selectedGroup.uid).then((resp) => {
         this.initForm(resp.data)
@@ -649,16 +653,13 @@ export default {
     setDesc(desc) {
       this.desc = desc
     },
-    getDomainDisplay(item) {
-      return `${item.nci_preferred_name} (${item.code_submission_value})`
-    },
     getFirstDomainDisplay() {
       if (
         this.domains.find((el) => el.term_uid === this.form.sdtm_domain_uids[0])
       ) {
         return this.domains.find(
           (el) => el.term_uid === this.form.sdtm_domain_uids[0]
-        ).nci_preferred_name
+        ).sponsor_preferred_name
       }
     },
     getObserver(step) {
@@ -726,9 +727,6 @@ export default {
       let elements = []
       let attributes = []
       let eleAttributes = []
-      this.selectedExtensions = this.selectedExtensions.filter((ex) => {
-        return ex.library_name
-      })
       this.selectedExtensions.forEach((ex) => {
         if (ex.type) {
           attributes.push(ex)
@@ -746,16 +744,37 @@ export default {
       }
       await crfs.setExtensions('item-groups', uid, data)
     },
+    getAliases(filters, options, filtersUpdated) {
+      const params = filteringParameters.prepareParameters(
+        options,
+        filters,
+        filtersUpdated
+      )
+      crfs.getAllAliases(params).then((resp) => {
+        this.aliases = resp.data.items.map(
+          (alias) =>
+            (alias = {
+              uid: alias.uid,
+              name: alias.name,
+              context: alias.context,
+              version: alias.version,
+            })
+        )
+        this.aliasesTotal = resp.data.total
+      })
+    },
     async createAlias() {
       this.alias.library_name = libraries.LIBRARY_SPONSOR
       await crfs.createAlias(this.alias).then((resp) => {
-        this.form.alias_uids.push(resp.data.uid)
-        crfs.getAllAliases({ page_size: 0 }).then((resp) => {
-          this.aliases = resp.data.items
-          this.alias = {}
-          this.eventBusEmit('notification', {
-            msg: this.$t('CRFItemGroups.alias_created'),
-          })
+        this.form.alias_uids.push({
+          uid: resp.data.uid,
+          name: resp.data.name,
+          context: resp.data.context,
+          version: resp.data.version,
+        })
+        this.$refs.aliasTable.filterTable()
+        this.eventBusEmit('notification', {
+          msg: this.$t('CRFForms.alias_created'),
         })
       })
     },
@@ -775,6 +794,15 @@ export default {
       if (!this.engDescription.name) {
         this.engDescription.name = this.form.name
       }
+      this.engDescription.description = this.clearEmptyHtml(
+        this.engDescription.description
+      )
+      this.engDescription.instruction = this.clearEmptyHtml(
+        this.engDescription.instruction
+      )
+      this.engDescription.sponsor_instruction = this.clearEmptyHtml(
+        this.engDescription.sponsor_instruction
+      )
       this.engDescription.change_description = this.$t(
         'CRFItemGroups.description_change_description'
       )
@@ -784,7 +812,7 @@ export default {
     async initForm(item) {
       this.form = item
       this.form.alias_uids = item.aliases
-      this.form.sdtm_domain_uids = item.sdtm_domains.map((el) => el.uid)
+      this.form.sdtm_domain_uids = item.sdtm_domains.map((el) => el.term_uid)
       this.form.change_description = this.$t('_global.draft_change')
       if (item.descriptions.find((el) => el.language === parameters.ENG)) {
         this.engDescription = item.descriptions.find(
@@ -795,14 +823,15 @@ export default {
         (el) => el.language !== parameters.ENG
       )
       item.vendor_attributes.forEach((attr) => (attr.type = 'attr'))
+      item.vendor_elements.forEach((element) => {
+        element.vendor_attributes = item.vendor_element_attributes.filter(
+          (attribute) => attribute.vendor_element_uid === element.uid
+        )
+      })
       this.selectedExtensions = [
         ...item.vendor_attributes,
-        ...item.vendor_element_attributes,
         ...item.vendor_elements,
       ]
-    },
-    getAliasDisplay(item) {
-      return `${item.context} - ${item.name}`
     },
     isEdit() {
       if (this.selectedGroup) {

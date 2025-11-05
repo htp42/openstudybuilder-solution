@@ -3,9 +3,6 @@ from typing import Any
 from clinical_mdr_api.domain_repositories.concepts.odms.odm_generic_repository import (
     OdmGenericRepository,
 )
-from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
-    CTTermRoot,
-)
 from clinical_mdr_api.domain_repositories.models.generic import (
     Library,
     VersionRelationship,
@@ -47,7 +44,6 @@ class FormRepository(OdmGenericRepository[OdmFormAR]):
         value: VersionValue,
         **_kwargs,
     ) -> OdmFormAR:
-        scope = root.has_scope.get_or_none()
         return OdmFormAR.from_repository_values(
             uid=root.uid,
             concept_vo=OdmFormVO.from_repository_values(
@@ -55,7 +51,6 @@ class FormRepository(OdmGenericRepository[OdmFormAR]):
                 name=value.name,
                 sdtm_version=value.sdtm_version,
                 repeating=value.repeating,
-                scope_uid=scope.uid if scope else None,
                 description_uids=[
                     description.uid for description in root.has_description.all()
                 ],
@@ -98,7 +93,6 @@ class FormRepository(OdmGenericRepository[OdmFormAR]):
                 name=input_dict["name"],
                 sdtm_version=input_dict.get("sdtm_version"),
                 repeating=input_dict.get("repeating"),
-                scope_uid=input_dict.get("scope_uid"),
                 description_uids=input_dict["description_uids"],
                 alias_uids=input_dict["alias_uids"],
                 activity_group_uids=input_dict["activity_group_uids"],
@@ -138,9 +132,6 @@ concept_value.oid AS oid,
 toString(concept_value.repeating) AS repeating,
 concept_value.sdtm_version AS sdtm_version,
 
-head([(concept_value)<-[:{only_specific_status}]-(:OdmFormRoot)-[:HAS_SCOPE]->(tr:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTTermAttributesRoot)-[:LATEST]->(tav:CTTermAttributesValue) |
-tr.uid]) AS scope_uid,
-
 [(concept_value)<-[:{only_specific_status}]-(:OdmFormRoot)-[:HAS_DESCRIPTION]->(dr:OdmDescriptionRoot)-[:LATEST]->(dv:OdmDescriptionValue) |
 {{uid: dr.uid, name: dv.name, language: dv.language, description: dv.description, instruction: dv.instruction}}] AS descriptions,
 
@@ -175,13 +166,8 @@ apoc.coll.toSet([vendor_element_attribute in vendor_element_attributes | vendor_
     def _get_or_create_value(self, root: VersionRoot, ar: OdmFormAR) -> VersionValue:
         new_value = super()._get_or_create_value(root, ar)
 
-        root.has_scope.disconnect_all()
         root.has_description.disconnect_all()
         root.has_alias.disconnect_all()
-
-        if ar.concept_vo.scope_uid is not None:
-            scope = CTTermRoot.nodes.get_or_none(uid=ar.concept_vo.scope_uid)
-            root.has_scope.connect(scope)
 
         if ar.concept_vo.description_uids is not None:
             for description_uid in ar.concept_vo.description_uids:
@@ -211,15 +197,13 @@ apoc.coll.toSet([vendor_element_attribute in vendor_element_attributes | vendor_
 
         root = OdmFormRoot.nodes.get_or_none(uid=ar.uid)
 
-        scope_uid = scope.uid if (scope := root.has_scope.get_or_none()) else None
         description_uids = {
             description.uid for description in root.has_description.all()
         }
         alias_uids = {alias.uid for alias in root.has_alias.all()}
 
         are_rels_changed = (
-            ar.concept_vo.scope_uid != scope_uid
-            or set(ar.concept_vo.description_uids) != description_uids
+            set(ar.concept_vo.description_uids) != description_uids
             or set(ar.concept_vo.alias_uids) != alias_uids
         )
 

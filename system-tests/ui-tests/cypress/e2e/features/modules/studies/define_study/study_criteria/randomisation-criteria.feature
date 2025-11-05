@@ -5,12 +5,14 @@ Feature: Studies - Define Study - Study Criteria - Randomisation Criteria
         Given The user is logged in   
         And A test study is selected
 
-    Scenario: [Navigaion] User must be able to navigate to the Randomisation Criteria page
+    @smoke_test
+    Scenario: [Navigation] User must be able to navigate to the Randomisation Criteria page
         Given The '/studies' page is opened
         When The 'Study Criteria' submenu is clicked in the 'Define Study' section
         And The 'Randomisation Criteria' tab is selected
         Then The current URL is '/selection_criteria/Randomisation%20Criteria'
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the page table with correct columns
         Given The test study '/selection_criteria/Randomisation%20Criteria' page is opened
         Then A table is visible with following headers
@@ -38,7 +40,8 @@ Feature: Studies - Define Study - Study Criteria - Randomisation Criteria
         Given The test study '/selection_criteria/Randomisation%20Criteria' page is opened
         When The 'randomisation' criteria is copied from existing template
         Then The 'randomisation' criteria created from existing template is visible within the table with correct data
-
+    
+    @smoke_test
     Scenario: [Create][From scratch] User must be able to create the Randomisation Criteria from scratch
         Given The test study '/selection_criteria/Randomisation%20Criteria' page is opened
         When The 'randomisation' criteria is created from scratch

@@ -7,11 +7,13 @@ Feature: Studies - Define Study - Study Title
         Given The user is logged in   
         And A test study is selected
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to the Study Title page
         Given The '/studies' page is opened
         When The 'Study Title' submenu is clicked in the 'Define Study' section
         Then The current URL is '/study_title'
 
+    @smoke_test
     Scenario: [Create][Postive case] User must be able to add a new Study Title
         Given The test study '/study_title' page is opened
         And A test study is selected

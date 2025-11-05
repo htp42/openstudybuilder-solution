@@ -282,6 +282,21 @@ class ApiBinding:
             self.metrics.icrement(path + "--Patch-ERROR")
         return None
 
+    def delete_to_api(self, path: str):
+        url = path_join(self.api_base_url, path)
+        response = requests.delete(url, headers=self.api_headers)
+        if response.ok:
+            self.metrics.icrement(path + "--Delete")
+            self.log.info("Delete %s %s", path, "success")
+            return response.text
+
+        self.log.warning("Delete %s %s", path, "error")
+
+        self.log.warning(response.text)
+        self.metrics.icrement(path + "--Patch-ERROR")
+
+        return None
+
     def approve_item(self, uid: str, url: str):
         full_url = path_join(self.api_base_url, url, uid, "approvals")
         response = requests.post(full_url, headers=self.api_headers)
@@ -933,3 +948,46 @@ class ApiBinding:
             return response
         elif approve:
             self.log.error("No uid returned, unable to approve the new version")
+
+    def get_codelist_uid(self, codelist_submval):
+        filters = json.dumps(
+            {"submission_value": {"v": [codelist_submval], "op": "eq"}}
+        )
+        result = self.get_all_from_api(
+            "/ct/codelists/attributes", params={"filters": filters}
+        )
+        if result is not None and len(result) > 0:
+            uid = result[0]["codelist_uid"]
+            self.log.info(f"Found codelist uid for {codelist_submval}: {uid}")
+            return uid
+
+    def find_sponsor_term_by_name_and_definition(self, name, definition):
+        filters = json.dumps(
+            {
+                "name.sponsor_preferred_name": {"v": [name], "op": "eq"},
+                "attributes.definition": {"v": [definition], "op": "eq"},
+            }
+        )
+        result = self.get_all_from_api(
+            "/ct/terms", params={"filters": filters, "library": "Sponsor"}
+        )
+        if result is not None and len(result) > 0:
+            return result[0]
+
+    def find_term_by_submission_value(self, codelist_uid, submission_value):
+        filters = json.dumps(
+            {"submission_value": {"v": [submission_value], "op": "eq"}}
+        )
+        result = self.get_all_from_api(
+            f"/ct/codelists/{codelist_uid}/terms", params={"filters": filters}
+        )
+        if result is not None and len(result) > 0:
+            return result[0]
+
+    def find_term_by_concept_id(self, concept_id: str):
+        filters = json.dumps({"concept_id": {"v": [concept_id], "op": "eq"}})
+        result = self.get_all_from_api(
+            "/ct/terms/attributes", params={"filters": filters, "library": "CDISC"}
+        )
+        if result is not None and len(result) > 0:
+            return result[0]

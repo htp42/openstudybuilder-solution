@@ -1,10 +1,12 @@
 import logging
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Any, Iterable, Mapping, Sequence, TypeVar
 
 from docx.enum.style import WD_STYLE_TYPE
 from neomodel import db
+from opencensus.common.runtime_context import RuntimeContext
 from openpyxl.workbook import Workbook
 
 from clinical_mdr_api.domain_repositories.study_selections.study_soa_repository import (
@@ -625,10 +627,6 @@ class StudyFlowchartService:
             TableWithFootnotes: SoA flowchart table with footnotes.
         """
 
-        soa_preferences = self._get_soa_preferences(
-            study_uid, study_value_version=study_value_version
-        )
-
         if not time_unit:
             time_unit = self.get_preferred_time_unit(
                 study_uid, study_value_version=study_value_version
@@ -638,21 +636,56 @@ class StudyFlowchartService:
             study_uid, study_value_version=study_value_version, time_unit=time_unit
         )
 
-        selection_activities = self._get_study_selection_activities_sorted(
-            study_uid=study_uid,
-            study_value_version=study_value_version,
-            layout=layout,
-        )
+        # Fetch database objects in parallel
+        with ThreadPoolExecutor() as executor:
+            soa_preferences_future = executor.submit(
+                RuntimeContext.with_current_context(self._get_soa_preferences),
+                study_uid,
+                study_value_version=study_value_version,
+            )
 
-        activity_schedules: list[StudyActivitySchedule] = (
-            self._get_study_activity_schedules(
+            selection_activities_future = executor.submit(
+                RuntimeContext.with_current_context(
+                    self._get_study_selection_activities_sorted
+                ),
+                study_uid=study_uid,
+                study_value_version=study_value_version,
+                layout=layout,
+            )
+
+            activity_schedules_future = executor.submit(
+                RuntimeContext.with_current_context(self._get_study_activity_schedules),
                 study_uid,
                 study_value_version=study_value_version,
                 operational=(layout == SoALayout.OPERATIONAL),
             )
+
+            visits_future = executor.submit(
+                RuntimeContext.with_current_context(
+                    self._get_study_visits_dict_filtered
+                ),
+                study_uid,
+                study_value_version,
+            )
+
+            if layout != SoALayout.OPERATIONAL:
+                footnotes_future = executor.submit(
+                    RuntimeContext.with_current_context(self._get_study_footnotes),
+                    study_uid,
+                    study_value_version=study_value_version,
+                )
+
+        soa_preferences: StudySoaPreferences = soa_preferences_future.result()
+
+        selection_activities: list[
+            StudySelectionActivity | StudySelectionActivityInstance
+        ] = selection_activities_future.result()
+
+        activity_schedules: list[StudyActivitySchedule] = (
+            activity_schedules_future.result()
         )
 
-        visits = self._get_study_visits_dict_filtered(study_uid, study_value_version)
+        visits: dict[str, StudyVisit] = visits_future.result()
 
         # group visits in nested dict: study_epoch_uid -> [ consecutive_visit_group |  visit_uid ] -> [Visits]
         grouped_visits = self._group_visits(
@@ -680,9 +713,7 @@ class StudyFlowchartService:
         )
 
         if layout != SoALayout.OPERATIONAL:
-            footnotes: list[StudySoAFootnote] = self._get_study_footnotes(
-                study_uid, study_value_version=study_value_version
-            )
+            footnotes: list[StudySoAFootnote] = footnotes_future.result()
             self.add_footnotes(table, footnotes)
 
         return table
@@ -2132,14 +2163,14 @@ class StudyFlowchartService:
                         order: study_activity_group.order
                     }]) as study_activity_group,
             head([(study_activity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)
-                -[:HAS_FLOWCHART_GROUP]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(term_name_value:CTTermNameValue) 
+                -[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(term_name_value:CTTermNameValue) 
                 | {
                     term_name_value:term_name_value,
                     order: study_soa_group.order
                     }]) as study_soa_group,
-            head([(study_epoch)-[:HAS_EPOCH]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]-
+            head([(study_epoch)-[:HAS_EPOCH]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]-
                 (epoch_term:CTTermNameValue) | epoch_term.name]) as epoch_name,
-            head([(study_visit)-[:HAS_VISIT_TYPE]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]-
+            head([(study_visit)-[:HAS_VISIT_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]-
                 (visity_type_term:CTTermNameValue) | 
                 {
                     is_soa_milestone:study_visit.is_soa_milestone,
@@ -2224,12 +2255,12 @@ class StudyFlowchartService:
                         order: study_activity_group.order
                     }]) as study_activity_group,
             head([(study_activity)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(study_soa_group:StudySoAGroup)
-                -[:HAS_FLOWCHART_GROUP]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(term_name_value:CTTermNameValue) 
+                -[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]->(term_name_value:CTTermNameValue) 
                 | {
                     term_name_value:term_name_value,
                     order: study_soa_group.order
                     }]) as study_soa_group,
-                head([(study_epoch)-[:HAS_EPOCH]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]-
+                head([(study_epoch)-[:HAS_EPOCH]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST]-
                     (epoch_term:CTTermNameValue) | epoch_term.name]) as epoch_name
             ORDER BY study_soa_group.order, study_activity_group.order, study_activity_subgroup.order, study_activity.order, study_visit.visit_number
             RETURN DISTINCT
@@ -2290,33 +2321,9 @@ class StudyFlowchartService:
         return cell_references, footnote_references
 
     @trace_calls
-    @ensure_transaction(db)
-    def load_soa_snapshot(
-        self,
-        study_uid: str,
-        study_value_version: str | None = None,
-        layout: SoALayout = SoALayout.PROTOCOL,
-        time_unit: str | None = None,
-    ) -> TableWithFootnotes:
-        """Loads SoA snapshot from db, and reconstructs SoA table and footnotes"""
-
-        self._study_service.check_if_study_uid_and_version_exists(
-            study_uid, study_value_version=study_value_version
-        )
-
-        soa_cell_references, soa_footnote_references = self.repository.load(
-            study_uid=study_uid, study_value_version=study_value_version, layout=layout
-        )
-
-        NotFoundException.raise_if_not(
-            soa_cell_references,
-            msg=f"No SoA snapshot found for Study with uid '{study_uid}' and version '{study_value_version}'",
-        )
-
-        soa_preferences = self._get_soa_preferences(
-            study_uid, study_value_version=study_value_version
-        )
-
+    def _fetch_soa_snapshot_data(
+        self, study_uid, study_value_version, layout, time_unit
+    ):
         if not time_unit:
             time_unit = self.get_preferred_time_unit(
                 study_uid, study_value_version=study_value_version
@@ -2326,38 +2333,133 @@ class StudyFlowchartService:
             study_uid, study_value_version=study_value_version, time_unit=time_unit
         )
 
-        study_visits_by_uid: Mapping[str, StudyVisit] = self._map_by_uid(
-            self._get_study_visits(
-                study_uid=study_uid, study_value_version=study_value_version
+        # Fetch database objects in parallel
+        with ThreadPoolExecutor() as executor:
+            soa_preferences_future = executor.submit(
+                RuntimeContext.with_current_context(self._get_soa_preferences),
+                study_uid,
+                study_value_version=study_value_version,
             )
+
+            soa_snapshot_future = executor.submit(
+                RuntimeContext.with_current_context(self.repository.load),
+                study_uid=study_uid,
+                study_value_version=study_value_version,
+                layout=layout,
+            )
+
+            study_visits_future = executor.submit(
+                RuntimeContext.with_current_context(self._get_study_visits),
+                study_uid=study_uid,
+                study_value_version=study_value_version,
+            )
+
+            study_soa_groups_future = executor.submit(
+                RuntimeContext.with_current_context(self._get_study_soa_groups),
+                study_uid=study_uid,
+                study_value_version=study_value_version,
+            )
+
+            study_activity_groups_future = executor.submit(
+                RuntimeContext.with_current_context(self._get_study_activity_groups),
+                study_uid=study_uid,
+                study_value_version=study_value_version,
+            )
+
+            study_activity_subgroups_future = executor.submit(
+                RuntimeContext.with_current_context(self._get_study_activity_subgroups),
+                study_uid=study_uid,
+                study_value_version=study_value_version,
+            )
+
+            study_activities_future = executor.submit(
+                RuntimeContext.with_current_context(self.fetch_study_activities),
+                study_uid=study_uid,
+                study_value_version=study_value_version,
+            )
+
+            study_footnotes_future = executor.submit(
+                RuntimeContext.with_current_context(self._get_study_footnotes),
+                study_uid,
+                study_value_version=study_value_version,
+            )
+
+        soa_preferences: StudySoaPreferences = soa_preferences_future.result()
+
+        soa_cell_references, soa_footnote_references = soa_snapshot_future.result()
+
+        NotFoundException.raise_if_not(
+            soa_cell_references,
+            msg=f"No SoA snapshot found for Study with uid '{study_uid}' and version '{study_value_version}'",
         )
+
+        study_visits_by_uid: Mapping[str, StudyVisit] = self._map_by_uid(
+            study_visits_future.result()
+        )
+
         study_epochs_by_uid: Mapping[str, StudyEpochTiny] = self._map_by_uid(
             StudyEpochTiny.from_study_visit(study_visit)
             for study_visit in study_visits_by_uid.values()
         )
+
         study_soa_groups_by_uid = self._map_by_uid(
-            self._get_study_soa_groups(
-                study_uid=study_uid, study_value_version=study_value_version
-            ),
+            study_soa_groups_future.result(),
             "study_soa_group_uid",
         )
+
         study_activity_groups_by_uid = self._map_by_uid(
-            self._get_study_activity_groups(
-                study_uid=study_uid, study_value_version=study_value_version
-            ),
+            study_activity_groups_future.result(),
             "study_activity_group_uid",
         )
+
         study_activity_subgroups_by_uid = self._map_by_uid(
-            self._get_study_activity_subgroups(
-                study_uid=study_uid, study_value_version=study_value_version
-            ),
+            study_activity_subgroups_future.result(),
             "study_activity_subgroup_uid",
         )
+
         study_activities_by_uid = self._map_by_uid(
-            self.fetch_study_activities(
-                study_uid=study_uid, study_value_version=study_value_version
-            ),
+            study_activities_future.result(),
             "study_activity_uid",
+        )
+
+        return (
+            soa_cell_references,
+            soa_footnote_references,
+            soa_preferences,
+            study_activities_by_uid,
+            study_activity_groups_by_uid,
+            study_activity_subgroups_by_uid,
+            study_epochs_by_uid,
+            study_footnotes_future,
+            study_soa_groups_by_uid,
+            study_visits_by_uid,
+            time_unit,
+        )
+
+    @trace_calls
+    def load_soa_snapshot(
+        self,
+        study_uid: str,
+        study_value_version: str | None = None,
+        layout: SoALayout = SoALayout.PROTOCOL,
+        time_unit: str | None = None,
+    ) -> TableWithFootnotes:
+        """Loads SoA snapshot from db, and reconstructs SoA table and footnotes"""
+
+        (
+            soa_cell_references,
+            soa_footnote_references,
+            soa_preferences,
+            study_activities_by_uid,
+            study_activity_groups_by_uid,
+            study_activity_subgroups_by_uid,
+            study_epochs_by_uid,
+            study_footnotes_future,
+            study_soa_groups_by_uid,
+            study_visits_by_uid,
+            time_unit,
+        ) = self._fetch_soa_snapshot_data(
+            study_uid, study_value_version, layout, time_unit
         )
 
         epoch_references: dict[int, SoACellReference] = {}
@@ -2577,9 +2679,7 @@ class StudyFlowchartService:
         table.rows = header_rows + table.rows
 
         study_soa_footnotes_by_uid: dict[str, StudySoAFootnote] = self._map_by_uid(
-            self._get_study_footnotes(
-                study_uid, study_value_version=study_value_version
-            )
+            study_footnotes_future.result()
         )
 
         table.footnotes = {

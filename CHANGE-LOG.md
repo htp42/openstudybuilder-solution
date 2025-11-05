@@ -1,5 +1,101 @@
 # OpenStudyBuilder (OSB) Commits changelog
 
+## V 2.0
+
+New Features and Enhancements
+============
+
+### Fixes and Enhancements
+
+- Study List page performance was improved including data loading, filtering and searching. 
+2 new columns were added for Study List table: 
+  - Latest released version
+  - Latest locked version
+
+### New Feature
+
+- A new model for Controlled Terminology (CT) has been implemented. The new model is compatible with the CDISC rules for Code Lists and Terms, this avoids many limitations and work around which otherwise have been needed.
+The change is transparent for users only using the Studies module - i.e., they will not notice any impact of this change.
+For Library users a Terms page has been added under Code Lists that makes it easier to search and explore Terms. The interface for adding terms to Code Lists has been improved and the overview pages for Terms and Code Lists have been extended with more information and functionality.   
+
+### End-to-End Automated test enhancements
+ 
+- Various code improvements to ensure easier maintenance and overall tests stability.
+- Library > Code Lists > CT Catalogues: Extended tests scope.
+- Library > Code Lists > Sponsor: Extended tests scope.
+- Library > Code Lists > Terms: Extended tests scope.
+
+Solved Bugs
+============
+
+### Studies
+
+ **-> Study List -> Deleted Studies** 
+
+- Deleted studies appear in the Select study list, but cannot be selected
+
+
+## V 0.21
+
+New Features and Enhancements
+============
+
+### Fixes and Enhancements
+
+- Introduced the Lab Spec Report (neodash report) that can replace/support the current Excel-based specification.
+- Vendor extension is updated in order to improve the management of them for each eCRF elements. The Alias management is also improved by replacing the drop-down menu by a searchable table.
+- All StudyBuilder references replaced with OpenStudyBuilder.
+- Minor improvements to neodash reports for study metadata comparison, data exchange data models, and syntax template dashboards.
+
+### New Feature
+
+- A new menu item has been added to Library->Admin Definitions: Data Suppliers. Functionality for listing, creating, updating, retiring, reactivating and viewing the history of Data Suppliers is available in this new page.
+
+### Performance Improvement
+
+- Faster loading of 'Study Activity Instances' table.
+- Faster loading of filters on 'Library Activities' and 'Library Activity Instances' pages.
+
+### End-to-End Automated test enhancements
+ 
+- Various code improvements to ensure easier maintenance and overall tests stability.
+- Library > Admin Definitions > Data Suppliers: Added Gherkin specifications and partial tests implementation.
+- Library > Concepts > CRFs: Adjustments connected to the split into CRF Viewer and CRF Builder.
+- Library > Concepts > CRFs > CRF Builder: Added Veeva EDC data tests implementation.
+- Library > Concepts > CRFs > CRF Viewer: Added Falcon download Gherkin specifications.
+
+Solved Bugs
+============
+
+### Library
+
+ **Concepts -> Activities -> Activities Groups** 
+
+- StudyActivity should select subgroup and group based on its current version in scope of selected activity
+
+ **Concepts -> Activities -> Activity Instances** 
+
+- Wizard stepper gets stuck when adding a new instance
+
+### Studies
+
+ **Define Study -> Study Activities** 
+
+- Audit trail endpoint fails for a study
+
+ **Define Study -> Study Activities -> Study Activities** 
+
+- When creating StudyActivity from Library and searching for some value in the table, the /activities/headers endpoint fails
+
+ **Define Study -> Study Structure -> Study Visits** 
+
+- Export of study visits: study_id is empty
+
+ **Define Study -> Study Title** 
+
+- User with Read-only permissions - edit button not greyed out
+
+
 ## V 0.20
 
 New Features and Enhancements

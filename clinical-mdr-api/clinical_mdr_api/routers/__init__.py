@@ -114,6 +114,9 @@ from clinical_mdr_api.routers.controlled_terminologies.ct_terms import (
     router as ct_terms_router,
 )
 from clinical_mdr_api.routers.ctr_xml.ctr_xml import router as ctr_xml_router
+from clinical_mdr_api.routers.data_suppliers.data_suppliers import (
+    router as data_suppliers_router,
+)
 from clinical_mdr_api.routers.ddf.study_definitions import router as ddf_router
 from clinical_mdr_api.routers.dictionaries.dictionary_codelists import (
     router as dictionary_codelists_router,
@@ -291,6 +294,7 @@ __all__ = [
     "activity_instances_router",
     "activity_instance_classes_router",
     "activity_item_classes_router",
+    "data_suppliers_router",
     "odm_metadata_router",
     "compounds_router",
     "compound_aliases_router",

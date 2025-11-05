@@ -19,6 +19,7 @@ from fastapi.testclient import TestClient
 
 from clinical_mdr_api.main import app
 from clinical_mdr_api.models.concepts.concept import TextValue
+from clinical_mdr_api.models.controlled_terminologies.ct_codelist import CTCodelist
 from clinical_mdr_api.models.controlled_terminologies.ct_term import CTTerm
 from clinical_mdr_api.models.dictionaries.dictionary_codelist import DictionaryCodelist
 from clinical_mdr_api.models.dictionaries.dictionary_term import DictionaryTerm
@@ -48,8 +49,8 @@ log = logging.getLogger(__name__)
 # Global variables shared between fixtures and tests
 objectives: list[Objective]
 objective_template: ObjectiveTemplate
-ct_term_inclusion: CTTerm
 dictionary_term_indication: DictionaryTerm
+category_codelist: CTCodelist
 ct_term_category: CTTerm
 indications_codelist: DictionaryCodelist
 indications_library_name: str
@@ -74,8 +75,8 @@ def test_data():
 
     global objectives
     global objective_template
-    global ct_term_inclusion
     global dictionary_term_indication
+    global category_codelist
     global ct_term_category
     global indications_codelist
     global indications_library_name
@@ -88,10 +89,14 @@ def test_data():
     text_value_1 = TestUtils.create_text_value()
     text_value_2 = TestUtils.create_text_value()
 
-    # Create Dictionary/CT Terms
-    ct_term_inclusion = TestUtils.create_ct_term(
-        sponsor_preferred_name="INCLUSION OBJECTIVE"
+    category_codelist = TestUtils.create_ct_codelist(
+        name="Objective Category",
+        submission_value="OBJTCAT",
+        extensible=True,
+        approve=True,
     )
+
+    # Create Dictionary/CT Terms
     indications_library_name = "SNOMED"
     indications_codelist = TestUtils.create_dictionary_codelist(
         name="DiseaseDisorder", library_name=indications_library_name
@@ -100,7 +105,9 @@ def test_data():
         codelist_uid=indications_codelist.codelist_uid,
         library_name=indications_library_name,
     )
-    ct_term_category = TestUtils.create_ct_term()
+    ct_term_category = TestUtils.create_ct_term(
+        codelist_uid=category_codelist.codelist_uid
+    )
 
     def generate_parameter_terms():
         text_value = TestUtils.create_text_value()

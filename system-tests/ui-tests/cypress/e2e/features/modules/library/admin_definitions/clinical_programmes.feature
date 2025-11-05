@@ -5,7 +5,8 @@ Feature: Library - Admin Definitions - Clinical Programmes
     Background: User is logged in
         Given The user is logged in
 
-    Scenario: [Create] User must be able to create a new clinical programme
+    @smoke_test
+    Scenario: [Create][Positive case] User must be able to create a new clinical programme
         Given The '/library/clinical_programmes' page is opened
         When Click on the + button to create a new clinical programme
         When Input a clinical programme name

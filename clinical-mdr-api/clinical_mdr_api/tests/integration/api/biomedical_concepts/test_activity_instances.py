@@ -4,6 +4,7 @@ Tests for /concepts/activities/activity-instances endpoints
 
 import json
 import logging
+import uuid
 from functools import reduce
 from operator import itemgetter
 from typing import Any
@@ -31,6 +32,7 @@ from clinical_mdr_api.models.concepts.activities.activity_sub_group import (
 from clinical_mdr_api.models.concepts.odms.odm_form import OdmForm
 from clinical_mdr_api.models.concepts.odms.odm_item import OdmItem
 from clinical_mdr_api.models.concepts.odms.odm_item_group import OdmItemGroup
+from clinical_mdr_api.models.controlled_terminologies.ct_codelist import CTCodelist
 from clinical_mdr_api.models.controlled_terminologies.ct_term import CTTerm
 from clinical_mdr_api.tests.integration.utils.api import (
     inject_and_clear_db,
@@ -58,12 +60,14 @@ activities: list[Activity]
 activity_instance_classes: list[ActivityInstanceClass]
 activity_items: list[ActivityItem]
 activity_item_classes: list[ActivityItemClass]
+codelist: CTCodelist
 ct_terms: list[CTTerm]
 odm_forms: list[OdmForm]
 odm_item_groups: list[OdmItemGroup]
 odm_items: list[OdmItem]
 role_term: CTTerm
 data_type_term: CTTerm
+base_test_data: dict[str, Any]
 
 
 def _get_version_from_list(versions, version):
@@ -85,7 +89,8 @@ def test_data():
     """Initialize test data"""
     db_name = "activityinstances.api"
     inject_and_clear_db(db_name)
-    inject_base_data()
+    global base_test_data
+    _study, base_test_data = inject_base_data(inject_unit_dimension=True)
 
     global activity_group
     activity_group = TestUtils.create_activity_group(name="activity_group")
@@ -135,8 +140,19 @@ def test_data():
     global activity_item_classes
     global data_type_term
     global role_term
-    data_type_term = TestUtils.create_ct_term(sponsor_preferred_name="Data type")
-    role_term = TestUtils.create_ct_term(sponsor_preferred_name="Role")
+
+    data_type_codelist = TestUtils.create_ct_codelist(
+        name="DATATYPE", submission_value="DATATYPE", extensible=True, approve=True
+    )
+    data_type_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Data type", codelist_uid=data_type_codelist.codelist_uid
+    )
+    role_codelist = TestUtils.create_ct_codelist(
+        name="ROLE", submission_value="ROLE", extensible=True, approve=True
+    )
+    role_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Role", codelist_uid=role_codelist.codelist_uid
+    )
     activity_item_classes = [
         TestUtils.create_activity_item_class(
             name="Activity Item Class name1",
@@ -182,6 +198,7 @@ def test_data():
     global odm_forms
     global odm_item_groups
     global odm_items
+    global codelist
 
     codelist = TestUtils.create_ct_codelist(extensible=True, approve=True)
     ct_terms = [
@@ -213,15 +230,9 @@ def test_data():
     activity_items = [
         {
             "activity_item_class_uid": activity_item_classes[0].uid,
-            "ct_term_uids": [ct_terms[0].term_uid],
+            "ct_terms": [],
             "unit_definition_uids": [
-                TestUtils.create_unit_definition(
-                    name="test unit",
-                    unit_dimension=TestUtils.create_ct_term(
-                        codelist_uid=codelist.codelist_uid,
-                        sponsor_preferred_name="Unit Dimension term",
-                    ).term_uid,
-                ).uid
+                base_test_data["day_unit"].uid,
             ],
             "is_adam_param_specific": True,
             "odm_form_uids": [odm_forms[0].uid],
@@ -230,7 +241,12 @@ def test_data():
         },
         {
             "activity_item_class_uid": activity_item_classes[1].uid,
-            "ct_term_uids": [ct_terms[1].term_uid],
+            "ct_terms": [
+                {
+                    "term_uid": ct_terms[1].term_uid,
+                    "codelist_uid": codelist.codelist_uid,
+                }
+            ],
             "unit_definition_uids": [],
             "is_adam_param_specific": False,
             "odm_form_uids": [odm_forms[1].uid],
@@ -239,7 +255,16 @@ def test_data():
         },
         {
             "activity_item_class_uid": activity_item_classes[2].uid,
-            "ct_term_uids": [ct_terms[0].term_uid, ct_terms[1].term_uid],
+            "ct_terms": [
+                {
+                    "term_uid": ct_terms[0].term_uid,
+                    "codelist_uid": codelist.codelist_uid,
+                },
+                {
+                    "term_uid": ct_terms[1].term_uid,
+                    "codelist_uid": codelist.codelist_uid,
+                },
+            ],
             "unit_definition_uids": [],
             "is_adam_param_specific": False,
             "odm_form_uids": [odm_forms[0].uid, odm_forms[2].uid],
@@ -253,12 +278,14 @@ def test_data():
         TestUtils.create_activity_instance(
             name="name A",
             activity_instance_class_uid=activity_instance_classes[0].uid,
+            definition="def A",
+            abbreviation="abbr A",
             nci_concept_id="NCIID",
             nci_concept_name="NCINAME",
             name_sentence_case="name A",
             topic_code="topic code A",
             is_research_lab=True,
-            molecular_weight=None,
+            adam_param_code="adam_code_a",
             is_required_for_activity=True,
             activities=[activities[0].uid],
             activity_subgroups=[activity_subgroup.uid],
@@ -434,6 +461,8 @@ def test_get_activity_instance(api_client):
 
     assert res["uid"] == activity_instances_all[0].uid
     assert res["name"] == "name A"
+    assert res["definition"] == "def A"
+    assert res["abbreviation"] == "abbr A"
     assert res["nci_concept_id"] == "NCIID"
     assert res["nci_concept_name"] == "NCINAME"
     assert res["activity_name"] == activities[0].name
@@ -463,8 +492,13 @@ def test_get_activity_instance(api_client):
         == activity_item_classes[0].uid
     )
 
-    expected_term_uids = set(term_uid for term_uid in activity_items[0]["ct_term_uids"])
-    actual_term_uids = set(term["uid"] for term in res["activity_items"][0]["ct_terms"])
+    expected_term_uids = set(
+        (term["uid"], term["codelist_uid"]) for term in activity_items[0]["ct_terms"]
+    )
+    actual_term_uids = set(
+        (term["uid"], term["codelist_uid"])
+        for term in res["activity_items"][0]["ct_terms"]
+    )
     assert expected_term_uids == actual_term_uids
     expected_unit_uids = set(
         unit_uid for unit_uid in activity_items[0]["unit_definition_uids"]
@@ -475,7 +509,7 @@ def test_get_activity_instance(api_client):
     assert expected_unit_uids == actual_unit_uids
     assert (
         res["activity_items"][0]["unit_definitions"][0]["dimension_name"]
-        == "Unit Dimension term"
+        == base_test_data["unit_dimension_terms"][0].sponsor_preferred_name
     )
     expected_odm_form_uids = set(
         odm_form_uid for odm_form_uid in activity_items[0]["odm_form_uids"]
@@ -502,7 +536,6 @@ def test_get_activity_instance(api_client):
     assert expected_odm_item_uids == actual_odm_item_uids
 
     assert res["library_name"] == "Sponsor"
-    assert res["definition"] is None
     assert res["version"] == "1.0"
     assert res["status"] == "Final"
     assert res["possible_actions"] == ["inactivate", "new_version"]
@@ -1009,8 +1042,12 @@ def test_edit_activity_instance(api_client):
     items = sorted(items, key=lambda x: x["activity_item_class"]["uid"])
 
     assert items[0]["activity_item_class"]["uid"] == activity_item_classes[0].uid
-    expected_term_uids = set(term_uid for term_uid in activity_items[0]["ct_term_uids"])
-    actual_term_uids = set(term["uid"] for term in items[0]["ct_terms"])
+    expected_term_uids = set(
+        (term["uid"], term["codelist_uid"]) for term in activity_items[0]["ct_terms"]
+    )
+    actual_term_uids = set(
+        (term["uid"], term["codelist_uid"]) for term in items[0]["ct_terms"]
+    )
     assert expected_term_uids == actual_term_uids
     expected_unit_uids = set(
         unit_uid for unit_uid in activity_items[0]["unit_definition_uids"]
@@ -1037,8 +1074,13 @@ def test_edit_activity_instance(api_client):
     assert expected_odm_item_uids == actual_odm_item_uids
 
     assert items[1]["activity_item_class"]["uid"] == activity_item_classes[1].uid
-    expected_term_uids = set(term_uid for term_uid in activity_items[1]["ct_term_uids"])
-    actual_term_uids = set(term["uid"] for term in items[1]["ct_terms"])
+    expected_term_uids = set(
+        (term["term_uid"], term["codelist_uid"])
+        for term in activity_items[1]["ct_terms"]
+    )
+    actual_term_uids = set(
+        (term["uid"], term["codelist_uid"]) for term in items[1]["ct_terms"]
+    )
     assert expected_term_uids == actual_term_uids
     expected_unit_uids = set(
         unit_uid for unit_uid in activity_items[1]["unit_definition_uids"]
@@ -1194,8 +1236,13 @@ def test_post_activity_instance(api_client):
         == activity_item_classes[1].uid
     )
 
-    expected_term_uids = set(term_uid for term_uid in item_to_post["ct_term_uids"])
-    actual_term_uids = set(term["uid"] for term in res["activity_items"][0]["ct_terms"])
+    expected_term_uids = set(
+        (term["term_uid"], term["codelist_uid"]) for term in item_to_post["ct_terms"]
+    )
+    actual_term_uids = set(
+        (term["uid"], term["codelist_uid"])
+        for term in res["activity_items"][0]["ct_terms"]
+    )
     assert expected_term_uids == actual_term_uids
     expected_unit_uids = set(
         unit_uid for unit_uid in item_to_post["unit_definition_uids"]
@@ -1374,10 +1421,10 @@ def verify_instance_overview_content(res: dict[Any, Any]):
 
     items = sorted(items, key=lambda item: item["activity_item_class"]["name"])
 
-    assert len(items[0]["ct_terms"]) == 1
-    assert items[0]["ct_terms"][0]["uid"] == ct_terms[0].term_uid
-    assert items[0]["ct_terms"][0]["name"] == ct_terms[0].sponsor_preferred_name
+    assert len(items[0]["ct_terms"]) == 0
     assert len(items[0]["unit_definitions"]) == 1
+    assert items[0]["unit_definitions"][0]["uid"] == base_test_data["day_unit"].uid
+    assert items[0]["unit_definitions"][0]["name"] == base_test_data["day_unit"].name
     assert len(items[0]["odm_forms"]) == 1
     assert items[0]["odm_forms"][0]["uid"] == odm_forms[0].uid
     assert items[0]["odm_forms"][0]["oid"] == odm_forms[0].oid
@@ -1395,7 +1442,7 @@ def verify_instance_overview_content(res: dict[Any, Any]):
     assert items[0]["activity_item_class"]["data_type_name"] == "Data type"
     assert items[0]["activity_item_class"]["order"] == 1
 
-    assert len(items[0]["ct_terms"]) == 1
+    assert len(items[1]["ct_terms"]) == 1
     assert items[1]["ct_terms"][0]["uid"] == ct_terms[1].term_uid
     assert items[1]["ct_terms"][0]["name"] == ct_terms[1].sponsor_preferred_name
     assert len(items[1]["unit_definitions"]) == 0
@@ -1423,6 +1470,7 @@ def verify_instance_overview_content(res: dict[Any, Any]):
     assert terms[0]["name"] == ct_terms[0].sponsor_preferred_name
     assert terms[1]["uid"] == ct_terms[1].term_uid
     assert terms[1]["name"] == ct_terms[1].sponsor_preferred_name
+    assert len(items[2]["unit_definitions"]) == 0
     assert len(items[0]["unit_definitions"]) == 1
     assert len(items[0]["odm_forms"]) == 1
     assert items[2]["odm_forms"][0]["uid"] == odm_forms[0].uid
@@ -2295,42 +2343,8 @@ def test_instance_to_activity_without_data_collection(api_client):
 def test_create_activity_instance_with_molecular_weight(
     api_client,
 ):
-    response = api_client.post(
-        "/concepts/activities/activity-instances",
-        json={
-            "name": "activity instance name with molecular weight",
-            "name_sentence_case": "activity instance name with molecular weight",
-            "molecular_weight": 123.45,
-            "activity_groupings": [
-                {
-                    "activity_uid": activities[0].uid,
-                    "activity_subgroup_uid": activity_subgroup.uid,
-                    "activity_group_uid": activity_group.uid,
-                }
-            ],
-            "activity_instance_class_uid": activity_instance_classes[3].uid,
-            "activity_items": [
-                {
-                    "activity_item_class_uid": activity_item_classes[0].uid,
-                    "ct_term_uids": [ct_terms[0].term_uid],
-                    "unit_definition_uids": [
-                        TestUtils.create_unit_definition(
-                            name="new test unit",
-                            unit_dimension=TestUtils.create_ct_term(
-                                sponsor_preferred_name="Unit Dimension concentration term",
-                            ).term_uid,
-                        ).uid
-                    ],
-                    "odm_form_uids": [],
-                    "odm_item_group_uids": [],
-                    "odm_item_uids": [],
-                    "is_adam_param_specific": False,
-                }
-            ],
-            "is_required_for_activity": True,
-            "is_derived": True,
-            "library_name": "Sponsor",
-        },
+    response = create_activity_instance_with_molecular_weight(
+        api_client, "activity instance name with molecular weight", 123.45
     )
     assert_response_status_code(response, 201)
     res = response.json()
@@ -2386,7 +2400,12 @@ def test_cannot_provide_is_adam_param_specific_if_is_adam_param_specific_enabled
             "activity_items": [
                 {
                     "activity_item_class_uid": activity_item_classes[2].uid,
-                    "ct_term_uids": [ct_terms[1].term_uid],
+                    "ct_terms": [
+                        {
+                            "term_uid": ct_terms[1].term_uid,
+                            "codelist_uid": codelist.codelist_uid,
+                        }
+                    ],
                     "unit_definition_uids": [],
                     "is_adam_param_specific": True,
                     "odm_form_uids": [],
@@ -2406,4 +2425,168 @@ def test_cannot_provide_is_adam_param_specific_if_is_adam_param_specific_enabled
     assert (
         res["message"]
         == "Activity Item's 'is_adam_param_specific' cannot be 'True' when the Activity Item Class' 'is_adam_param_specific_enabled' is 'False'."
+    )
+
+
+@pytest.mark.parametrize(
+    "field_name, search_string",
+    [
+        ("name", "name A"),
+        ("name_sentence_case", "name A"),
+        ("library_name", "Sponsor"),
+        ("definition", "def"),
+        ("abbreviation", "abbr A"),
+        ("nci_concept_id", "NCIID"),
+        ("nci_concept_name", "NCINAME"),
+        ("start_date", "20"),
+        ("version", "1.0"),
+        ("status", "Final"),
+        ("author_username", "unknown-user"),
+        ("activity_name", "ac"),
+        ("activity_instance_class.name", "class 1"),
+        ("is_research_lab", "tr"),
+        ("topic_code", "code A"),
+        ("molecular_weight", 34.567),
+        ("adam_param_code", "adam_code_a"),
+        ("is_required_for_activity", "tr"),
+        ("is_default_selected_for_activity", "f"),
+        ("is_data_sharing", "f"),
+        ("is_legacy_usage", "f"),
+    ],
+)
+def test_get_activity_instances_headers(api_client, field_name, search_string):
+    if field_name == "molecular_weight":
+        create_activity_instance_with_molecular_weight(
+            api_client, f"activity instance {uuid.uuid4()}", search_string
+        )
+
+    for lite in [True, False]:
+        query_params = {
+            "field_name": field_name,
+            "search_string": search_string,
+            "lite": lite,
+        }
+
+        response = api_client.get(
+            "/concepts/activities/activity-instances/headers", params=query_params
+        )
+        assert_response_status_code(response, 200)
+        assert len(response.json()) >= 1
+        for res in response.json():
+            assert str(search_string).lower() in str(res).lower()
+
+
+def create_activity_instance_with_molecular_weight(
+    api_client, name: str, molecular_weight: float
+) -> Any:
+    suffix = str(uuid.uuid4())
+    response = api_client.post(
+        "/concepts/activities/activity-instances",
+        json={
+            "name": name,
+            "name_sentence_case": name,
+            "molecular_weight": molecular_weight,
+            "activity_groupings": [
+                {
+                    "activity_uid": activities[0].uid,
+                    "activity_subgroup_uid": activity_subgroup.uid,
+                    "activity_group_uid": activity_group.uid,
+                }
+            ],
+            "activity_instance_class_uid": activity_instance_classes[
+                3
+            ].uid,  # NumericFinding
+            "activity_items": [
+                {
+                    "activity_item_class_uid": activity_item_classes[0].uid,
+                    "ct_terms": [
+                        {
+                            "term_uid": ct_terms[0].term_uid,
+                            "codelist_uid": codelist.codelist_uid,
+                        }
+                    ],
+                    "unit_definition_uids": [
+                        TestUtils.create_unit_definition(
+                            name=f"new test unit {suffix}",
+                            unit_dimension=TestUtils.create_ct_term(
+                                codelist_uid=base_test_data[
+                                    "unit_dimension_codelist"
+                                ].codelist_uid,
+                                sponsor_preferred_name=f"Unit Dimension concentration term {suffix}",
+                            ).term_uid,
+                        ).uid
+                    ],
+                    "odm_form_uids": [],
+                    "odm_item_group_uids": [],
+                    "odm_item_uids": [],
+                    "is_adam_param_specific": False,
+                }
+            ],
+            "is_required_for_activity": True,
+            "is_derived": True,
+            "library_name": "Sponsor",
+        },
+    )
+    assert_response_status_code(response, 201)
+    return response
+
+
+def test_create_activity_instance_with_non_final_subgroup_fails(api_client, test_data):
+    """Test that creating an activity instance fails when using a retired subgroup"""
+    from neomodel import db
+
+    # Create a subgroup that will be retired
+    retired_subgroup = TestUtils.create_activity_subgroup(
+        name="Subgroup to Retire",
+        activity_groups=[activity_group.uid],
+        library_name=LIBRARY_NAME,
+    )
+
+    # Create another activity that uses the soon-to-be-retired subgroup
+    activity_with_retired = TestUtils.create_activity(
+        name="Activity with Retired Subgroup",
+        activity_groups=[activity_group.uid],
+        activity_subgroups=[retired_subgroup.uid],
+        library_name=LIBRARY_NAME,
+    )
+
+    # Directly update the subgroup to be retired by updating HAS_VERSION status
+    # This simulates a subgroup that was once Final but is now Retired
+    query = """
+        MATCH (sg:ActivitySubGroupRoot {uid: $uid})-[hv:HAS_VERSION]->(sgv:ActivitySubGroupValue)
+        WHERE hv.end_date IS NULL
+        SET hv.status = 'Retired'
+        MERGE (sg)-[:LATEST_RETIRED]->(sgv)
+        RETURN sgv
+    """
+    db.cypher_query(query, {"uid": retired_subgroup.uid})
+
+    # Try to create an activity instance with the activity that has the retired subgroup
+    response = api_client.post(
+        "/concepts/activities/activity-instances",
+        json={
+            "name": "Instance with Retired Subgroup",
+            "name_sentence_case": "instance with retired subgroup",
+            "activity_groupings": [
+                {
+                    "activity_uid": activity_with_retired.uid,
+                    "activity_group_uid": activity_group.uid,
+                    "activity_subgroup_uid": retired_subgroup.uid,  # Using the retired subgroup
+                }
+            ],
+            "activity_instance_class_uid": activity_instance_classes[0].uid,
+            "library_name": LIBRARY_NAME,
+        },
+    )
+
+    # The request should fail with 400 status because we're trying to use a retired subgroup
+    assert_response_status_code(response, 400)
+    res = response.json()
+
+    # Verify the error is about the subgroup not being in Final status
+    assert res["type"] == "BusinessLogicException"
+    assert (
+        "not in Final status" in res["message"]
+        or "currently not in Final status" in res["message"]
+        or "non-final" in res["message"].lower()
     )

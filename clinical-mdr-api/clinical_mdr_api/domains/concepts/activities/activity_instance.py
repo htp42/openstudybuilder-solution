@@ -132,6 +132,10 @@ class ActivityInstanceVO(ConceptVO):
         previous_topic_code: str | None = None,
         library_name: str | None = None,
         preview: bool = False,
+        activity_subgroup_latest_is_final: Callable[[str], bool] = lambda x: True,
+        activity_group_latest_is_final: Callable[[str], bool] = lambda x: True,
+        get_activity_subgroup_name: Callable[[str], str | None] = lambda x: None,
+        get_activity_group_name: Callable[[str], str | None] = lambda x: None,
     ) -> None:
         if not preview:
             self.validate_name_sentence_case()
@@ -173,14 +177,48 @@ class ActivityInstanceVO(ConceptVO):
                 msg=f"{type(self).__name__} tried to connect to Activity without data collection",
             )
 
+            # Check that the selected subgroup and group exist
             BusinessLogicException.raise_if_not(
                 activity_subgroup_exists(activity_grouping.activity_subgroup_uid),
-                msg=f"{type(self).__name__} tried to connect to non-existent or non-final Activity Sub Group with UID '{activity_grouping.activity_subgroup_uid}'.",
+                msg=f"{type(self).__name__} tried to connect to non-existent Activity Sub Group with UID '{activity_grouping.activity_subgroup_uid}'.",
             )
             BusinessLogicException.raise_if_not(
                 activity_group_exists(activity_grouping.activity_group_uid),
-                msg=f"{type(self).__name__} tried to connect to non-existent or non-final Activity Group with UID '{activity_grouping.activity_group_uid}'.",
+                msg=f"{type(self).__name__} tried to connect to non-existent Activity Group with UID '{activity_grouping.activity_group_uid}'.",
             )
+
+            # Check that the LATEST version of the selected subgroup and group are Final (only during creation)
+            if previous_name is None:  # This is a creation, not an edit
+                if not activity_subgroup_latest_is_final(
+                    activity_grouping.activity_subgroup_uid
+                ):
+                    # Get the subgroup name for a better error message
+                    name = get_activity_subgroup_name(
+                        activity_grouping.activity_subgroup_uid
+                    )
+                    if name:
+                        subgroup_str = (
+                            f"'{name}' ({activity_grouping.activity_subgroup_uid})"
+                        )
+                    else:
+                        subgroup_str = f"'{activity_grouping.activity_subgroup_uid}'"
+
+                    raise BusinessLogicException(
+                        msg=f"Cannot create activity instance: Activity Sub Group {subgroup_str} is currently not in Final status."
+                    )
+                if not activity_group_latest_is_final(
+                    activity_grouping.activity_group_uid
+                ):
+                    # Get the group name for a better error message
+                    name = get_activity_group_name(activity_grouping.activity_group_uid)
+                    if name:
+                        group_str = f"'{name}' ({activity_grouping.activity_group_uid})"
+                    else:
+                        group_str = f"'{activity_grouping.activity_group_uid}'"
+
+                    raise BusinessLogicException(
+                        msg=f"Cannot create activity instance: Activity Group {group_str} is currently not in Final status."
+                    )
         for activity_item in self.activity_items:
             activity_item_class = find_activity_item_class_by_uid_callback(
                 activity_item.activity_item_class_uid
@@ -344,6 +382,10 @@ class ActivityInstanceAR(ConceptARBase):
         get_dimension_names_by_unit_definition_uids: Callable[
             [list[str]], list[str]
         ] = lambda _: [],
+        activity_subgroup_latest_is_final: Callable[[str], bool] = lambda x: True,
+        activity_group_latest_is_final: Callable[[str], bool] = lambda x: True,
+        get_activity_subgroup_name: Callable[[str], str | None] = lambda x: None,
+        get_activity_group_name: Callable[[str], str | None] = lambda x: None,
         generate_uid_callback: Callable[[], str | None] = lambda: None,
         preview: bool = False,
     ) -> Self:
@@ -357,7 +399,6 @@ class ActivityInstanceAR(ConceptARBase):
         )
 
         concept_vo.validate(
-            activity_instance_exists_by_property_value=concept_exists_by_library_and_property_value_callback,
             get_final_activity_value_by_uid_callback=get_final_activity_value_by_uid_callback,
             activity_subgroup_exists=activity_subgroup_exists,
             activity_group_exists=activity_group_exists,
@@ -365,12 +406,17 @@ class ActivityInstanceAR(ConceptARBase):
             unit_definition_exists_by_uid_callback=unit_definition_exists_by_uid_callback,
             find_activity_item_class_by_uid_callback=find_activity_item_class_by_uid_callback,
             find_activity_instance_class_by_uid_callback=find_activity_instance_class_by_uid_callback,
-            preview=preview,
             odm_form_exists_by_uid_callback=odm_form_exists_by_uid_callback,
             odm_item_group_exists_by_uid_callback=odm_item_group_exists_by_uid_callback,
             odm_item_exists_by_uid_callback=odm_item_exists_by_uid_callback,
             get_dimension_names_by_unit_definition_uids=get_dimension_names_by_unit_definition_uids,
             library_name=library.name,
+            preview=preview,
+            activity_subgroup_latest_is_final=activity_subgroup_latest_is_final,
+            activity_group_latest_is_final=activity_group_latest_is_final,
+            get_activity_subgroup_name=get_activity_subgroup_name,
+            get_activity_group_name=get_activity_group_name,
+            activity_instance_exists_by_property_value=concept_exists_by_library_and_property_value_callback,
         )
 
         activity_ar = cls(
@@ -416,7 +462,6 @@ class ActivityInstanceAR(ConceptARBase):
         Creates a new draft version for the object.
         """
         concept_vo.validate(
-            activity_instance_exists_by_property_value=concept_exists_by_library_and_property_value_callback,
             get_final_activity_value_by_uid_callback=get_final_activity_value_by_uid_callback,
             activity_subgroup_exists=activity_subgroup_exists,
             activity_group_exists=activity_group_exists,
@@ -428,6 +473,7 @@ class ActivityInstanceAR(ConceptARBase):
             odm_item_group_exists_by_uid_callback=odm_item_group_exists_by_uid_callback,
             odm_item_exists_by_uid_callback=odm_item_exists_by_uid_callback,
             get_dimension_names_by_unit_definition_uids=get_dimension_names_by_unit_definition_uids,
+            activity_instance_exists_by_property_value=concept_exists_by_library_and_property_value_callback,
             previous_name=self.name,
             previous_topic_code=self._concept_vo.topic_code,
             library_name=self.library.name,

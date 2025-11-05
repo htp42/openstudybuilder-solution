@@ -5,11 +5,13 @@ Feature: Library - Syntax Templates - Endpoints - Parent
     Background: User must be logged in
         Given The user is logged in
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to the Endpoint template under the Syntax template Library
         Given The '/library' page is opened
         When The 'Endpoints' submenu is clicked in the 'Syntax Templates' section
         Then The current URL is '/library/endpoint_templates'
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the table with correct columns
         Given The '/library/endpoint_templates' page is opened
         And A table is visible with following headers
@@ -42,6 +44,7 @@ Feature: Library - Syntax Templates - Endpoints - Parent
         Then all related endpoint template instantiations must be cascade updated to new version and approved
         And the displayed pop-up snack must include information on number of updated endpoint template instantiations
 
+    @smoke_test
     Scenario: [Create][Positive case] User must be able to create Endpoint template
         Given The 'library/endpoint_templates' page is opened
         And The Add template button is clicked
@@ -342,6 +345,7 @@ Feature: Library - Syntax Templates - Endpoints - Parent
         And The item actions button is clicked
         Then Only actions that should be avaiable for the Retired item are displayed
 
+    @smoke_test
     Scenario: [Table][Search][Postive case] User must be able to search created Endpoint template
         Given The 'library/endpoint_templates' page is opened
         When [API] Search Test - Create first endpoint template

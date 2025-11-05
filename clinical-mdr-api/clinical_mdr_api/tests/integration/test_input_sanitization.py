@@ -8,6 +8,7 @@ import pytest
 from clinical_mdr_api.tests.integration.utils.api import inject_and_clear_db
 from clinical_mdr_api.tests.integration.utils.utils import TestUtils
 from clinical_mdr_api.tests.unit.models.test_utils import TEXT_INPUTS
+from common.config import settings
 from consumer_api.tests.utils import assert_response_status_code
 
 USER_DEFINED_LIBRARY = "User Defined"
@@ -25,18 +26,31 @@ def test_data(temporary_database) -> dict[str, str]:
     TestUtils.create_library(name=SPONSOR_LIBRARY, is_editable=True)
 
     catalogue_name = TestUtils.create_ct_catalogue()
-    default_codelist = TestUtils.create_ct_codelist(
-        catalogue_name=catalogue_name, extensible=True, approve=True
-    )
-    term_soa = TestUtils.create_ct_term(
+
+    criteria_type_codelist = TestUtils.create_ct_codelist(
         catalogue_name=catalogue_name,
-        sponsor_preferred_name="Schedule of Activities",
-        codelist_uid=default_codelist.codelist_uid,
+        name="Criteria type",
+        extensible=True,
+        approve=True,
+        submission_value=settings.syntax_criteria_type_cl_submval,
     )
     term_inclusion = TestUtils.create_ct_term(
         catalogue_name=catalogue_name,
         sponsor_preferred_name="INCLUSION CRITERIA",
-        codelist_uid=default_codelist.codelist_uid,
+        codelist_uid=criteria_type_codelist.codelist_uid,
+    )
+
+    footnote_type_codelist = TestUtils.create_ct_codelist(
+        catalogue_name=catalogue_name,
+        name="Footnote type",
+        extensible=True,
+        approve=True,
+        submission_value=settings.syntax_footnote_type_cl_submval,
+    )
+    term_footnote_type = TestUtils.create_ct_term(
+        catalogue_name=catalogue_name,
+        sponsor_preferred_name="TEST FOOTNOTE TYPE",
+        codelist_uid=footnote_type_codelist.codelist_uid,
     )
     TestUtils.create_template_parameter("TextValue")
 
@@ -49,7 +63,7 @@ def test_data(temporary_database) -> dict[str, str]:
     uids["objective_template_uid"] = TestUtils.create_objective_template().uid
     uids["endpoint_template_uid"] = TestUtils.create_endpoint_template().uid
     uids["footnote_template_uid"] = TestUtils.create_footnote_template(
-        type_uid=term_soa.term_uid
+        type_uid=term_footnote_type.term_uid
     ).uid
     uids["activity_instruction_template_uid"] = (
         TestUtils.create_activity_instruction_template(

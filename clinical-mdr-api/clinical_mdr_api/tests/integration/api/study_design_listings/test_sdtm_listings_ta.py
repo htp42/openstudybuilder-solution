@@ -63,28 +63,43 @@ def test_data():
     study_uid = study.uid
     # Create an epoch
     create_study_epoch_codelists_ret_cat_and_lib()
-    catalogue_name, library_name = get_catalogue_name_library_name()
+    _catalogue_name, library_name = get_catalogue_name_library_name()
+    catalogue_name = "SDTM CT"
     study_epoch = create_study_epoch("EpochSubType_0001")
     study_epoch2 = create_study_epoch("EpochSubType_0001")
     # Create a study element
     element_type_codelist = create_codelist(
-        "Element Type", "CTCodelist_ElementType", catalogue_name, library_name
+        "Element Sub Type",
+        "CTCodelist_ElementType",
+        catalogue_name,
+        library_name,
+        submission_value="ELEMSTP",
     )
     element_type_term = create_ct_term(
-        element_type_codelist.codelist_uid,
         "Element Type",
         "ElementType_0001",
-        1,
         catalogue_name,
         library_name,
+        codelists=[
+            {
+                "uid": element_type_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Element Type",
+            },
+        ],
     )
     element_type_term_2 = create_ct_term(
-        element_type_codelist.codelist_uid,
-        "Element Type",
+        "Element Type 2",
         "ElementType_0002",
-        2,
         catalogue_name,
         library_name,
+        codelists=[
+            {
+                "uid": element_type_codelist.codelist_uid,
+                "order": 2,
+                "submission_value": "Element Type2",
+            },
+        ],
     )
     study_elements = [
         create_study_element(element_type_term.uid, study_uid),
@@ -96,14 +111,20 @@ def test_data():
         uid="CTCodelist_00004",
         catalogue=catalogue_name,
         library=library_name,
+        submission_value="ARMTTP",
     )
     arm_type = create_ct_term(
-        codelist=codelist.codelist_uid,
         name="Arm Type",
         uid="ArmType_0001",
-        order=1,
         catalogue_name=catalogue_name,
         library_name=library_name,
+        codelists=[
+            {
+                "uid": codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Arm Type",
+            },
+        ],
     )
 
     create_study_arm(
@@ -264,4 +285,8 @@ def test_ta_listing(api_client):
             TATRANS="Transition_Rule_1",
         ).model_dump(),
     ]
+    print("==================")
+    print(res)
+    print("-------------------")
+    print(expected_output)
     assert res == expected_output

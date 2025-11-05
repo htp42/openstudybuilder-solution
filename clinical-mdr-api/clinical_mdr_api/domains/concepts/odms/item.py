@@ -363,6 +363,7 @@ class OdmItemTermVO:
     order: int
     display_text: str
     version: str
+    submission_value: str
 
     @classmethod
     def from_repository_values(
@@ -373,6 +374,7 @@ class OdmItemTermVO:
         order: int,
         display_text: str,
         version: str,
+        submission_value: str,
     ) -> Self:
         return cls(
             uid=uid,
@@ -381,6 +383,7 @@ class OdmItemTermVO:
             order=order,
             display_text=display_text,
             version=version,
+            submission_value=submission_value,
         )
 
 

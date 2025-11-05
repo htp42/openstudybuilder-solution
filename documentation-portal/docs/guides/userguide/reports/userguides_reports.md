@@ -1,12 +1,12 @@
 # Reports and Dashboards
 
-Beside the table listing and download option generally available in the StudyBuilder application the system also supports NeoDash reports and dashboards.
+Beside the table listing and download option generally available in the OpenStudyBuilder application the system also supports NeoDash reports and dashboards.
 
 ## Open NeoDash
 
 To open NeoDash reports:
 
-1. Click on the Reports button placed on the main StudyBuilder page <br>
+1. Click on the Reports button placed on the main OpenStudyBuilder page <br>
 ![Reports button](~@source/images/user_guides/neodash_button.png) <br>
 2. The NeoDash login page should be displayed <br>
 ![Study Builder](~@source/images/user_guides/neodash_sso_screen.png) <br>
@@ -30,9 +30,9 @@ In the following sections the current neodash reports are briefly described, and
 
 ## Activity Library Dashboard
 
-In addition to the Application, a Neo4j Dashboard is available to browse and understand biomedical concepts which are the activities in the StudyBuilder.
+In addition to the Application, a Neo4j Dashboard is available to browse and understand biomedical concepts which are the activities in the OpenStudyBuilder.
 
-Within the StudyBuilder application, you can define and see the activities in the "Library" -> "Concepts" -> "Activities" part.
+Within the OpenStudyBuilder application, you can define and see the activities in the "Library" -> "Concepts" -> "Activities" part.
 
 [![StudyBuilder view of activities](~@source/images/user_guides/guide_bc_dash_06.png)](../../../images/user_guides/guide_bc_dash_06.png)
 
@@ -40,7 +40,7 @@ The activities are managed in groups and subgroups. Whereas the "Activity" can b
 
 ### Activity Dashboard
 
-The activity dashboard is an option to view the activities from a different perspective. Especially when working with biomedical concepts from the StudyBuilder and others like the CDISC CoSMOS, it might be valuable to have a database closer access as the dashboard provides. When you have access to the StudyBuilder environment, see guide on how to open NeoDash in previous section.
+The activity dashboard is an option to view the activities from a different perspective. Especially when working with biomedical concepts from the OpenStudyBuilder and others like the CDISC CoSMOS, it might be valuable to have a database closer access as the dashboard provides. When you have access to the OpenStudyBuilder environment, see guide on how to open NeoDash in previous section.
 
 The dashboard is organized in different tabs supporting different purposes.
 
@@ -56,7 +56,7 @@ These two tabs are designed to navigate the "Activity Lib" either via a top-down
 Then there is the option to view how Activities relate to SDTM using a specific implementation guide.
 
 * **Activity in COSMOS format**
-As the CDISC collaboration with the CoSMOS initiative is very important, there is also a mapping of activities in the StudyBuilder to the CDISC CoSMOS format.
+As the CDISC collaboration with the CoSMOS initiative is very important, there is also a mapping of activities in the OpenStudyBuilder to the CDISC CoSMOS format.
 <br>
 * <b>Activities used in studies</b>
 An overview of the activity usage in studies. It shows which activities are being used in a study by visit. This view is preliminary and will be expanded with more study details.
@@ -129,7 +129,7 @@ The dashboard has a 1000 row limitation to display, so to limit the number of ac
 
 In an effort to standardize and streamline the representation of Biomedical Concepts, CDISC initiated the Conceptual and Operational Standards Metadata Services (COSMoS) project in 2022. More details about this project can be found on their <a href="https://www.cdisc.org/cdisc-biomedical-concepts" target="_blank">homepage</a>. As part of this initiative, CDISC has adopted the YAML format for displaying biomedical concepts.
 
-Our dashboard has been designed to align with this standard. It can map the activities defined in StudyBuilder into a valid COSMoS format, ensuring compatibility and interoperability with other systems that adhere to the same standard.
+Our dashboard has been designed to align with this standard. It can map the activities defined in OpenStudyBuilder into a valid COSMoS format, ensuring compatibility and interoperability with other systems that adhere to the same standard.
 
 The following section presents an example of how the activity instance "TEMPERATURE" is represented in the COSMoS format.
 
@@ -193,7 +193,7 @@ This view provides a quick way to display details of one or more activity instan
 
 ## Audit Trail Report
 
-The Audit Trail Report can be used to browse the audit trail information from the database. The StudyBuilder system is based on a linked graph database, and the audit trail system is an integrated part of how the versioning is supported, see more in [Versioning and Audit Trail](../userguides_introduction.html#versioning-and-audit-trail)
+The Audit Trail Report can be used to browse the audit trail information from the database. The OpenStudyBuilder system is based on a linked graph database, and the audit trail system is an integrated part of how the versioning is supported, see more in [Versioning and Audit Trail](../userguides_introduction.html#versioning-and-audit-trail)
 
 The report has beside the ReadMe tab two main sections:
 
@@ -212,7 +212,7 @@ The audit trail report lists:
 * why a change was made (reason for change in a GCP compliant manner for library elements).
   * Note, for study definitions reason for change is captured for a complete locked study and can be browsed under [study versioning](../studies/manage_studies.html#maintain-study-status-and-versioning).
 
->NOTE: The audit trail report is not a good tool for viewing changes to a specific component in the database. Here the History pages within the StudyBuilder pages will provide a better overview.
+>NOTE: The audit trail report is not a good tool for viewing changes to a specific component in the database. Here the History pages within the OpenStudyBuilder pages will provide a better overview.
 
 ## Data Exchange Data Models
 

@@ -77,7 +77,7 @@ class ClinicalMdrNodeWithUID(ClinicalMdrNode):
         """
         object_name = cls.__name__.removesuffix("Root")
 
-        return str(
+        digits = str(
             db.cypher_query(
                 """
         MERGE (m:Counter{{counterId:'{LABEL}Counter'}})
@@ -91,6 +91,7 @@ class ClinicalMdrNodeWithUID(ClinicalMdrNode):
                 )
             )[0][0][0]
         )
+        return digits
 
     @classmethod
     def generate_node_uids_if_not_present(cls) -> None:

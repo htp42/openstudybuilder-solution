@@ -29,6 +29,7 @@ class CompactFootnote(BaseModel):
     name: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = None
     version: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = None
     library_name: Annotated[str | None, Field()] = None
+    status: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = None
     template_uid: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = (
         None
     )
@@ -46,6 +47,7 @@ class CompactFootnote(BaseModel):
             name_plain=study_soa_footnote_vo.footnote_name_plain,
             version=study_soa_footnote_vo.footnote_version,
             library_name=study_soa_footnote_vo.footnote_library_name,
+            status=study_soa_footnote_vo.footnote_status,
             template_uid=study_soa_footnote_vo.footnote_template_uid,
             template_name=study_soa_footnote_vo.footnote_template_name,
         )
@@ -69,6 +71,7 @@ class CompactFootnote(BaseModel):
             uid=study_soa_footnote_vo.footnote_uid or "",
             name_plain=study_soa_footnote_vo.latest_footnote_name_plain,
             name=None,
+            status=None,
             version=study_soa_footnote_vo.latest_footnote_version,
             library_name=study_soa_footnote_vo.footnote_library_name,
             template_uid=study_soa_footnote_vo.footnote_template_uid,
@@ -173,7 +176,9 @@ class StudySoAFootnote(BaseModel):
             json_schema_extra={"nullable": True},
         ),
     ] = None
-    author_username: Annotated[str | None, Field(nullable=True)] = None
+    author_username: Annotated[
+        str | None, Field(json_schema_extra={"nullable": True})
+    ] = None
 
     @classmethod
     def from_study_soa_footnote_vo(

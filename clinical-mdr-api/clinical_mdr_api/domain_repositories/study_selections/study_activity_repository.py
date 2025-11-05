@@ -33,12 +33,12 @@ class SelectionHistory:
     """Class for selection history items"""
 
     study_selection_uid: str
-    study_activity_subgroup_uid: str
+    study_activity_subgroup_uid: str | None
     study_activity_subgroup_order: int | None
-    activity_subgroup_uid: str
-    study_activity_group_uid: str
+    activity_subgroup_uid: str | None
+    study_activity_group_uid: str | None
     study_activity_group_order: int | None
-    activity_group_uid: str
+    activity_group_uid: str | None
     activity_uid: str
     soa_group_term_uid: str
     study_soa_group_uid: str
@@ -116,7 +116,7 @@ class StudySelectionActivityRepository(
                 OPTIONAL MATCH (sv)-[:HAS_STUDY_STANDARD_VERSION]->(study_standard_version:StudyStandardVersion)<-[:AFTER]-(:StudyAction)<-[:AUDIT_TRAIL]-(sr)
                 OPTIONAL MATCH (study_standard_version)-[:HAS_CT_PACKAGE]->(ct_package:CTPackage)
                 WHERE ct_package.uid CONTAINS "SDTM CT"
-                RETURN datetime(ct_package.effective_date + 'T23:59:59.999999000Z') AS terms_at_specific_datetime
+                RETURN datetime(toString(date(ct_package.effective_date)) + 'T23:59:59.999999000Z') AS terms_at_specific_datetime
             }
             
             MATCH (sv)-[:HAS_STUDY_ACTIVITY]->(sa:StudyActivity)-[:HAS_SELECTED_ACTIVITY]->(av:ActivityValue)<-[ver:HAS_VERSION]-(ar:ActivityRoot)<-[:CONTAINS_CONCEPT]-(lib:Library)
@@ -125,7 +125,7 @@ class StudySelectionActivityRepository(
             
             CALL {
                 WITH sa, terms_at_specific_datetime
-                MATCH (sa)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->(soa_group_term_root:CTTermRoot)
+                MATCH (sa)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(soa_group_term_root:CTTermRoot)
                 MATCH (soa_group)<-[:AFTER]-(after_action:StudyAction)
                 WITH *
                 ORDER BY after_action.date DESC
@@ -255,12 +255,12 @@ class StudySelectionActivityRepository(
         study_soa_group = selection.get("study_soa_group") or {}
         return SelectionHistory(
             study_selection_uid=selection["study_selection_uid"],
-            study_activity_subgroup_uid=study_activity_subgroup["selection_uid"],
+            study_activity_subgroup_uid=study_activity_subgroup.get("selection_uid"),
             study_activity_subgroup_order=study_activity_subgroup.get("order"),
-            activity_subgroup_uid=study_activity_subgroup["activity_subgroup_uid"],
-            study_activity_group_uid=study_activity_group["selection_uid"],
+            activity_subgroup_uid=study_activity_subgroup.get("activity_subgroup_uid"),
+            study_activity_group_uid=study_activity_group.get("selection_uid"),
             study_activity_group_order=study_activity_group.get("order"),
-            activity_group_uid=study_activity_group["activity_group_uid"],
+            activity_group_uid=study_activity_group.get("activity_group_uid"),
             activity_uid=selection["activity_uid"],
             order=selection["order"],
             activity_version=selection["activity_version"],
@@ -319,7 +319,7 @@ class StudySelectionActivityRepository(
                         all_sa.order AS order,
                         all_sa.uid AS study_selection_uid,
                         all_sa.show_activity_in_protocol_flowchart AS show_activity_in_protocol_flowchart,
-                        head(apoc.coll.sortMulti([(all_sa)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->(soa_group_term_root:CTTermRoot) | 
+                        head(apoc.coll.sortMulti([(all_sa)-[:STUDY_ACTIVITY_HAS_STUDY_SOA_GROUP]->(soa_group:StudySoAGroup)-[:HAS_FLOWCHART_GROUP]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(soa_group_term_root:CTTermRoot) | 
                         {
                             selection_uid: soa_group.uid, 
                             soa_group_term_uid: soa_group_term_root.uid,

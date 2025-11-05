@@ -47,8 +47,8 @@
                 :label="$t('CRFItems.data_type') + '*'"
                 data-cy="item-data-type"
                 :items="dataTypes"
-                item-title="code_submission_value"
-                item-value="code_submission_value"
+                item-title="submission_value"
+                item-value="submission_value"
                 :rules="[formRules.required]"
                 density="compact"
                 clearable
@@ -280,27 +280,21 @@
         <div class="mb-5">
           {{ $t('CRFItemGroups.select') }}
         </div>
-        <v-select
+        <NNTable
+          ref="aliasTable"
+          key="aliasTable"
           v-model="form.alias_uids"
+          :headers="aliasesHeaders"
           :items="aliases"
-          multiple
-          :label="$t('CRFItemGroups.aliases')"
-          data-cy="item-aliases"
-          density="compact"
-          clearable
-          :item-title="getAliasDisplay"
-          item-value="uid"
+          hide-default-switches
+          hide-export-button
+          show-select
+          table-height="400px"
+          :items-length="aliasesTotal"
           :readonly="readOnly"
-        >
-          <template #selection="{ item, index }">
-            <div v-if="index === 0">
-              <span>{{ item.title }}</span>
-            </div>
-            <span v-if="index === 1" class="grey--text text-caption">
-              (+{{ form.alias_uids.length - 1 }})
-            </span>
-          </template>
-        </v-select>
+          column-data-resource="concepts/odms/aliases"
+          @filter="getAliases"
+        />
       </v-form>
     </template>
     <template #[`step.description`]="{ step }">
@@ -315,16 +309,20 @@
     <template #[`step.codelist`]="{ step }">
       <v-form :ref="`observer_${step}`">
         <v-data-table
+          height="135px"
           :headers="selectedCodelistHeaders"
           :items="selectedCodelists"
         >
           <template #[`item.allowsMultiChoice`]>
-            <v-checkbox v-model="form.allows_multi_choice" />
+            <v-checkbox v-model="form.allows_multi_choice" class="mb-n4" />
           </template>
           <template #[`item.delete`]="{ item }">
             <v-btn
               icon="mdi-delete-outline"
               class="mt-1"
+              size="small"
+              variant="outlined"
+              color="nnBaseBlue"
               :disabled="readOnly"
               @click="removeCodelist(item)"
             />
@@ -345,45 +343,13 @@
           column-data-resource="ct/codelists"
           @filter="fetchCodelists"
         >
-          <template #afterFilter="">
-            <v-autocomplete
-              v-model="selectedFilteringTerms"
-              v-model:search-input="search"
-              :label="$t('CodelistTable.search_with_terms')"
-              :items="filteringTerms"
-              item-title="name.sponsor_preferred_name"
-              item-value="term_uid"
-              density="compact"
-              class="mt-5 max-width-300"
-              clearable
-              return-object
-              multiple
-            >
-              <template #selection="{ index }">
-                <div v-if="index === 0">
-                  <span class="items-font-size">{{
-                    selectedFilteringTerms[0].name.sponsor_preferred_name.substring(
-                      0,
-                      12
-                    )
-                  }}</span>
-                </div>
-                <span v-if="index === 1" class="grey--text text-caption mr-1">
-                  (+{{ selectedFilteringTerms.length - 1 }})
-                </span>
-              </template>
-            </v-autocomplete>
-            <v-select
-              v-model="termsFilterOperator"
-              :items="operators"
-              :label="$t('_global.operator')"
-              class="mt-5 max-width-100"
-            />
-          </template>
-          <template #[`item.add`]="{ item }">
+          <template #[`item.actions`]="{ item }">
             <v-btn
               icon="mdi-plus"
               class="mt-1"
+              size="small"
+              variant="outlined"
+              color="nnBaseBlue"
               :disabled="readOnly"
               @click="addCodelist(item)"
             />
@@ -545,6 +511,7 @@ import { useAppStore } from '@/stores/app'
 import { computed } from 'vue'
 import { useUnitsStore } from '@/stores/units'
 import filteringParameters from '@/utils/filteringParameters'
+import regex from '@/utils/regex'
 
 export default {
   components: {
@@ -577,6 +544,7 @@ export default {
       fetchUnits: unitsStore.fetchUnits,
       userData: computed(() => appStore.userData),
       units: computed(() => unitsStore.units),
+      clearEmptyHtml: regex.clearEmptyHtml,
     }
   },
   data() {
@@ -630,7 +598,7 @@ export default {
           title: this.$t('CtCatalogueTable.nci_pref_name'),
           key: 'attributes.nci_preferred_name',
         },
-        { title: '', key: 'add' },
+        { title: '', key: 'actions' },
       ],
       unitHeaders: [
         { title: this.$t('CRFItemGroups.name'), key: 'name', width: '25%' },
@@ -665,8 +633,13 @@ export default {
         { title: '', key: 'delete', width: '1%' },
       ],
       aliases: [],
+      aliasesTotal: 0,
       alias: {},
       steps: [],
+      aliasesHeaders: [
+        { title: this.$t('CRFItems.context'), key: 'context' },
+        { title: this.$t('_global.name'), key: 'name' },
+      ],
       createSteps: [
         { name: 'form', title: this.$t('CRFItems.item_details') },
         {
@@ -850,14 +823,11 @@ export default {
   },
   mounted() {
     this.fetchCodelists()
-    terms.getAttributesByCodelist('originType').then((resp) => {
+    terms.getTermsByCodelist('originType').then((resp) => {
       this.origins = resp.data.items
     })
-    terms.getAttributesByCodelist('dataType').then((resp) => {
+    terms.getTermsByCodelist('dataType').then((resp) => {
       this.dataTypes = resp.data.items
-    })
-    crfs.getAllAliases({ page_size: 0 }).then((resp) => {
-      this.aliases = resp.data.items
     })
     this.fetchUnits({ page_size: 0 })
     if (this.isEdit()) {
@@ -1007,6 +977,7 @@ export default {
             name: 'unit',
             title: this.$t('CRFItems.unit_details'),
           })
+          this.choosenUnits = [{ name: '', mandatory: true }]
           this.steps = this.steps.filter(function (obj) {
             return obj.name !== 'codelist' && obj.name !== 'terms'
           })
@@ -1174,9 +1145,6 @@ export default {
       let elements = []
       let attributes = []
       let eleAttributes = []
-      this.selectedExtensions = this.selectedExtensions.filter((ex) => {
-        return ex.library_name
-      })
       this.selectedExtensions.forEach((ex) => {
         if (ex.type) {
           attributes.push(ex)
@@ -1210,16 +1178,37 @@ export default {
         : ''
       this.choosenUnits[index].uid = this.choosenUnits[index].name.uid
     },
+    getAliases(filters, options, filtersUpdated) {
+      const params = filteringParameters.prepareParameters(
+        options,
+        filters,
+        filtersUpdated
+      )
+      crfs.getAllAliases(params).then((resp) => {
+        this.aliases = resp.data.items.map(
+          (alias) =>
+            (alias = {
+              uid: alias.uid,
+              name: alias.name,
+              context: alias.context,
+              version: alias.version,
+            })
+        )
+        this.aliasesTotal = resp.data.total
+      })
+    },
     async createAlias() {
       this.alias.library_name = constants.LIBRARY_SPONSOR
       await crfs.createAlias(this.alias).then((resp) => {
-        this.form.alias_uids.push(resp.data.uid)
-        crfs.getAllAliases({ page_size: 0 }).then((resp) => {
-          this.aliases = resp.data.items
-          this.alias = {}
-          this.eventBusEmit('notification', {
-            msg: this.$t('CRFItemGroups.alias_created'),
-          })
+        this.form.alias_uids.push({
+          uid: resp.data.uid,
+          name: resp.data.name,
+          context: resp.data.context,
+          version: resp.data.version,
+        })
+        this.$refs.aliasTable.filterTable()
+        this.eventBusEmit('notification', {
+          msg: this.$t('CRFForms.alias_created'),
         })
       })
     },
@@ -1239,6 +1228,15 @@ export default {
       if (!this.engDescription.name) {
         this.engDescription.name = this.form.name
       }
+      this.engDescription.description = this.clearEmptyHtml(
+        this.engDescription.description
+      )
+      this.engDescription.instruction = this.clearEmptyHtml(
+        this.engDescription.instruction
+      )
+      this.engDescription.sponsor_instruction = this.clearEmptyHtml(
+        this.engDescription.sponsor_instruction
+      )
       this.engDescription.change_description = this.$t(
         'CRFItems.description_change_description'
       )
@@ -1282,17 +1280,21 @@ export default {
           },
         })
       }
+      if (item.terms) {
+        this.selectedTerms = item.terms
+      }
       this.form.change_description = this.$t('_global.draft_change')
       this.checkIfNumeric()
       item.vendor_attributes.forEach((attr) => (attr.type = 'attr'))
+      item.vendor_elements.forEach((element) => {
+        element.vendor_attributes = item.vendor_element_attributes.filter(
+          (attribute) => attribute.vendor_element_uid === element.uid
+        )
+      })
       this.selectedExtensions = [
         ...item.vendor_attributes,
-        ...item.vendor_element_attributes,
         ...item.vendor_elements,
       ]
-    },
-    getAliasDisplay(item) {
-      return `${item.context} - ${item.name}`
     },
     isEdit() {
       if (this.selectedItem) {

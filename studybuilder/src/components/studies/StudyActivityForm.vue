@@ -207,7 +207,7 @@
               v-model="unifiedGroup"
               :label="$t('StudyActivityForm.flowchart_group_title')"
               :items="flowchartGroups"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               style="min-width: 250px"
               class="mt-6 ml-2"
               rounded="lg"
@@ -225,7 +225,7 @@
               :label="$t('StudyActivityForm.flowchart_group_title')"
               data-cy="flowchart-group"
               :items="flowchartGroups"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               style="min-width: 250px"
               class="mt-2 mb-n4"
               rounded="lg"
@@ -357,7 +357,7 @@
                 data-cy="flowchart-group"
                 :items="flowchartGroups"
                 :rules="[formRules.required]"
-                item-title="name.sponsor_preferred_name"
+                item-title="sponsor_preferred_name"
                 rounded="lg"
                 variant="outlined"
                 color="nnBaseBlue"
@@ -420,7 +420,7 @@
                   :label="$t('StudyActivityForm.flowchart_group_title')"
                   data-cy="flowchart-group"
                   :items="flowchartGroups"
-                  item-title="name.sponsor_preferred_name"
+                  item-title="sponsor_preferred_name"
                   style="min-width: 250px"
                   class="mt-2 mb-n4"
                   rounded="lg"
@@ -710,7 +710,7 @@ steps.value = selectFromLibrarySteps
 
 onMounted(() => {
   const filters = { 'name.status': { v: [statuses.FINAL] } }
-  terms.getByCodelist('flowchartGroups', null, filters).then((resp) => {
+  terms.getTermsByCodelist('flowchartGroups', null, filters).then((resp) => {
     flowchartGroups.value = resp.data.items
   })
   study.get({ has_study_activity: true, page_size: 0 }).then((resp) => {

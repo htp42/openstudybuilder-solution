@@ -14,7 +14,7 @@
             :export-data-url-params="exportDataUrlParams"
             item-value="item_key"
             :sub-tables="true"
-            :disable-filtering="false"
+            :disable-filtering="true"
             :hide-search-field="false"
             :modifiable-table="true"
             :no-padding="true"

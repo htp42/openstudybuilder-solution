@@ -20,10 +20,7 @@ from clinical_mdr_api.models.concepts.unit_definitions.unit_definition import (
     UnitDefinitionModel,
 )
 from clinical_mdr_api.models.controlled_terminologies.ct_codelist import CTCodelist
-from clinical_mdr_api.models.controlled_terminologies.ct_term import (
-    CTTerm,
-    CTTermNameAndAttributes,
-)
+from clinical_mdr_api.models.controlled_terminologies.ct_term import CTTerm
 from clinical_mdr_api.models.projects.project import Project
 from clinical_mdr_api.models.study_selections.study import Study, StudySoaPreferences
 from clinical_mdr_api.models.study_selections.study_epoch import StudyEpoch
@@ -37,7 +34,6 @@ from clinical_mdr_api.models.study_selections.study_soa_footnote import StudySoA
 from clinical_mdr_api.models.study_selections.study_visit import StudyVisit
 from clinical_mdr_api.models.syntax_instances.footnote import Footnote
 from clinical_mdr_api.models.syntax_templates.footnote_template import FootnoteTemplate
-from clinical_mdr_api.repositories._utils import FilterOperator
 from clinical_mdr_api.services.biomedical_concepts.activity_instance_class import (
     ActivityInstanceClassService,
 )
@@ -540,6 +536,27 @@ class SoATestData:
             approve=True,
         )
 
+        # self._arm_type_terms = self.create_codelist_with_terms(
+        #    name="Arm Type",
+        #    sponsor_preferred_name="Arm Type",
+        #    submission_value=config.STUDY_ARM_TYPE_CL_SUBMVAL,
+        #    extensible=True,
+        #    approve=True,
+        #    terms={"Investigational Arm"},
+        # )
+        #
+        # try:
+        #    self._unit_subset_terms = self.create_codelist_with_terms(
+        #        name="Unit Subset",
+        #        sponsor_preferred_name="Unit Subset",
+        #        submission_value=config.UNIT_SUBSET_CL_SUBMVAL,
+        #        extensible=True,
+        #        approve=True,
+        #        terms={"Weight"},
+        #    )
+        # except Exception as e:
+        #    log.error("Error creating Unit Subset codelist: %s", e)
+
         self._visit_contact_terms = self.create_codelist_with_terms(
             name=settings.study_visit_contact_mode_name,
             terms={"On Site Visit", "Phone Contact", "Virtual Visit"},
@@ -553,6 +570,7 @@ class SoATestData:
             name=settings.study_visit_timeref_name,
             terms={"BASELINE", "Global anchor visit", "BASELINE2"},
             sponsor_preferred_name=settings.study_visit_timeref_name,
+            submission_value=settings.time_ref_cl_submval,
             extensible=True,
             approve=True,
         )
@@ -626,13 +644,12 @@ class SoATestData:
     def create_codelist_with_terms(
         self, name: str, terms: Iterable[str], **kwargs
     ) -> dict[str, CTTerm]:
-        term_names: set[str] = set(terms)
         ct_codelist_service = CTCodelistService()
         ct_term_service = CTTermService()
 
         # fetch or create codelist
         if codelists := ct_codelist_service.get_all_codelists(
-            filter_by={"codelist_name_value.name": {"v": [name]}}
+            filter_by={"name.name": {"v": [name]}}
         ).items:
             # codelist exists
             self._codelists[name] = codelist = codelists[0]
@@ -644,113 +661,20 @@ class SoATestData:
             )
             log.info("created codelist: %s [%s]", codelist.name, codelist.codelist_uid)
 
-        found_terms: list[CTTermNameAndAttributes]
-        found_names: set[str]
-        if term_names:
-            # find terms in the codelist
-            found_terms = ct_term_service.get_all_terms(
-                codelist_name=None,
-                codelist_uid=codelist.codelist_uid,
-                library=None,
-                package=None,
-                filter_by={
-                    "name.sponsor_preferred_name": {"v": list(term_names)},
-                    "attributes.code_submission_value": {
-                        "v": [t.upper() for t in term_names]
-                    },
-                },
-                filter_operator=FilterOperator.OR,
-            ).items
+        codelist_terms: list[CTTerm] = []
+        for term_name in terms:
+            submission_value = term_name.upper()
 
-            # skip terms already in the codelist
-            found_names = {
-                n
-                for item in found_terms
-                for n in (
-                    item.name.sponsor_preferred_name,
-                    item.attributes.code_submission_value,
-                )
-            }
-            term_names -= found_names
-
-        if term_names:
-            # find terms in any codelist
-            found_terms = ct_term_service.get_all_terms(
-                codelist_name=None,
-                codelist_uid=None,
-                library=None,
-                package=None,
-                filter_by={
-                    "name.sponsor_preferred_name": {"v": list(term_names)},
-                    "attributes.code_submission_value": {
-                        "v": [t.upper() for t in term_names]
-                    },
-                },
-                filter_operator=FilterOperator.OR,
-            ).items
-
-            # skip creation of already existing terms
-            found_names = {
-                n
-                for item in found_terms
-                for n in (
-                    item.name.sponsor_preferred_name,
-                    item.attributes.code_submission_value,
-                )
-            }
-            term_names -= found_names
-
-            # unique list of existing terms by term_uid, because duplicate items returned for each codelist it belongs to
-            found_terms = {item.term_uid: item for item in found_terms}.values()
-
-            # add existing terms to this codelist
-            terms_added: list[CTTermNameAndAttributes] = []
-            for item in found_terms:
-                if item in terms_added:
-                    continue
-
-                ct_codelist_service.add_term(
-                    codelist_uid=codelist.codelist_uid,
-                    term_uid=item.term_uid,
-                    order=1,
-                )
-                terms_added.append(item)
-
-            if terms_added:
-                log.info(
-                    "added terms into codelist %s [%s]: %s",
-                    codelist.name,
-                    codelist.codelist_uid,
-                    {
-                        term.term_uid: term.name.sponsor_preferred_name
-                        for term in terms_added
-                    },
-                )
-
-        if term_names:
-            # create missing terms into this codelist
-            terms_created: list[CTTerm] = []
-
-            for term_name in term_names:
-                terms_created.append(
+            try:
+                codelist_terms.append(
                     TestUtils.create_ct_term(
                         codelist_uid=codelist.codelist_uid,
-                        code_submission_value=term_name.upper(),
+                        submission_value=submission_value,
                         sponsor_preferred_name=term_name,
-                        library_name=codelist.library_name,
                     )
                 )
-
-            if terms_created:
-                log.info(
-                    "created terms into codelist %s [%s]: %s",
-                    codelist.name,
-                    codelist.codelist_uid,
-                    {
-                        term.term_uid: term.sponsor_preferred_name
-                        for term in terms_created
-                    },
-                )
+            except exceptions.AlreadyExistsException:
+                pass
 
         return {
             item.name.sponsor_preferred_name: CTTerm.from_ct_term_name_and_attributes(
@@ -761,19 +685,13 @@ class SoATestData:
                 codelist_uid=codelist.codelist_uid,
                 library=None,
                 package=None,
-                filter_by={
-                    "name.sponsor_preferred_name": {"v": terms},
-                    "attributes.code_submission_value": {
-                        "v": [t.upper() for t in terms]
-                    },
-                },
-                filter_operator=FilterOperator.OR,
             ).items
         }
 
     def create_epoch_terms(self) -> dict[str, CTTerm]:
         term_names = {"Screening", "Follow-Up", "Observation", "Run-in", "Treatment"}
         ct_term_service = CTTermService()
+        ct_codelist_service = CTCodelistService()
 
         terms = self.create_codelist_with_terms(
             name=settings.study_epoch_epoch_name,
@@ -803,27 +721,79 @@ class SoATestData:
             except exceptions.AlreadyExistsException:
                 pass
 
-        self.create_codelist_with_terms(
-            name=settings.study_epoch_type_name,
-            terms=term_names,
-            sponsor_preferred_name=settings.study_epoch_type_name,
-            submission_value="EPOCHTP",
-            extensible=True,
-            library_name="Sponsor",
-            approve=True,
-        )
+        # Create codelist for study epoch type
+        try:
+            codelist = TestUtils.create_ct_codelist(
+                name=settings.study_epoch_type_name,
+                sponsor_preferred_name=settings.study_epoch_type_name,
+                submission_value="EPOCHTP",
+                extensible=True,
+                library_name="Sponsor",
+                approve=True,
+            )
+            self._codelists[settings.study_epoch_type_name] = codelist
+        except exceptions.AlreadyExistsException:
+            log.warning(
+                "Codelist %s already exists, skipping creation",
+                settings.study_epoch_type_name,
+            )
+            codelists = ct_codelist_service.get_all_codelists(
+                filter_by={"name.name": {"v": [settings.study_epoch_type_name]}}
+            ).items
+            self._codelists[settings.study_epoch_type_name] = codelist = codelists[0]
 
-        self.create_codelist_with_terms(
-            name=settings.study_epoch_subtype_name,
-            terms=term_names,
-            sponsor_preferred_name=settings.study_epoch_subtype_name,
-            submission_value="EPOCHSTP",
-            extensible=True,
-            library_name="Sponsor",
-            approve=True,
-        )
+        # add terms to the epoch type codelist
+        for term in terms.values():
+            try:
+                ct_codelist_service.add_term(
+                    codelist_uid=self._codelists[
+                        settings.study_epoch_type_name
+                    ].codelist_uid,
+                    term_uid=term.term_uid,
+                    order=1,
+                    submission_value=term.sponsor_preferred_name.upper(),
+                )
+            except exceptions.AlreadyExistsException:
+                pass
 
-        return terms
+        # Create codelist for study epoch subtype
+        try:
+            codelist = TestUtils.create_ct_codelist(
+                name=settings.study_epoch_subtype_name,
+                sponsor_preferred_name=settings.study_epoch_subtype_name,
+                submission_value="EPOCHSTP",
+                extensible=True,
+                library_name="Sponsor",
+                approve=True,
+            )
+            log.info(
+                "created codelist: %s [%s]",
+                codelist.name,
+                codelist.codelist_uid,
+            )
+            self._codelists[settings.study_epoch_subtype_name] = codelist
+        except exceptions.AlreadyExistsException:
+            log.warning(
+                "Codelist %s already exists, skipping creation",
+                settings.study_epoch_subtype_name,
+            )
+            codelists = ct_codelist_service.get_all_codelists(
+                filter_by={"name.name": {"v": [settings.study_epoch_subtype_name]}}
+            ).items
+            self._codelists[settings.study_epoch_subtype_name] = codelist = codelists[0]
+        # add terms to the epoch subtype codelist
+        for term in terms.values():
+            try:
+                ct_codelist_service.add_term(
+                    codelist_uid=codelist.codelist_uid,
+                    term_uid=term.term_uid,
+                    order=1,
+                    submission_value=term.sponsor_preferred_name.upper(),
+                )
+            except exceptions.AlreadyExistsException:
+                pass
+
+        return {term.sponsor_preferred_name: term for term in terms.values()}
 
     def create_study_epochs(self, epoch_dict) -> dict[str, StudyEpoch]:
         log.debug("creating StudyEpochs")
@@ -912,6 +882,7 @@ class SoATestData:
                     VisitGroupFormat.LIST if "," in key else VisitGroupFormat.RANGE
                 ),
             )
+            log.info("Grouped visits!")
 
         return created_visits
 
@@ -1149,6 +1120,26 @@ class SoATestData:
             extensible=True,
             approve=True,
         )
+
+        # log.info(
+        #    "created codelist: %s [%s]",
+        #    codelist.name,
+        #    codelist.codelist_uid,
+        # )
+        try:
+            term = TestUtils.create_ct_term(
+                codelist_uid=self._codelists["Footnote Type"].codelist_uid,
+                sponsor_preferred_name="SoA Footnote 2",
+                submission_value="SOAFOOTNOTE2",
+            )
+            terms[term.sponsor_preferred_name] = term
+        except exceptions.AlreadyExistsException:
+            pass
+
+        # log.info(
+        #    "visit footnote-type terms: %s",
+        #    {term.term_uid: term.sponsor_preferred_name for term in terms},
+        # )
 
         return terms
 

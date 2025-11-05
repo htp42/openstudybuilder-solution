@@ -3,6 +3,9 @@ from typing import Annotated, Callable, Self, overload
 from pydantic import Field, field_validator
 
 from clinical_mdr_api.descriptions.general import CHANGES_FIELD_DESC
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_name_repository import (
+    CTCodelistNameRepository,
+)
 from clinical_mdr_api.domains.concepts.activities.activity_sub_group import (
     ActivitySubGroupAR,
 )
@@ -22,9 +25,6 @@ from clinical_mdr_api.domains.concepts.odms.vendor_element import (
     OdmVendorElementRelationVO,
 )
 from clinical_mdr_api.domains.concepts.utils import RelationType
-from clinical_mdr_api.domains.controlled_terminologies.ct_term_attributes import (
-    CTTermAttributesAR,
-)
 from clinical_mdr_api.models.concepts.activities.activity import (
     ActivityHierarchySimpleModel,
 )
@@ -53,7 +53,7 @@ from clinical_mdr_api.models.concepts.odms.odm_vendor_element import (
     OdmVendorElementRelationModel,
 )
 from clinical_mdr_api.models.controlled_terminologies.ct_term import (
-    SimpleCTTermAttributes,
+    SimpleCodelistTermModel,
 )
 from clinical_mdr_api.models.utils import BaseModel, PostInputModel
 from clinical_mdr_api.models.validators import validate_string_represents_boolean
@@ -75,7 +75,7 @@ class OdmItemGroup(ConceptModel):
     comment: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = None
     descriptions: Annotated[list[OdmDescriptionSimpleModel], Field()]
     aliases: Annotated[list[OdmAliasSimpleModel], Field()]
-    sdtm_domains: Annotated[list[SimpleCTTermAttributes], Field()]
+    sdtm_domains: Annotated[list[SimpleCodelistTermModel], Field()]
     activity_subgroups: Annotated[list[ActivityHierarchySimpleModel], Field()]
     items: Annotated[list[OdmItemRefModel], Field()]
     vendor_elements: Annotated[list[OdmVendorElementRelationModel], Field()]
@@ -95,7 +95,6 @@ class OdmItemGroup(ConceptModel):
         odm_item_group_ar: OdmItemGroupAR,
         find_odm_description_by_uid: Callable[[str], OdmDescriptionAR | None],
         find_odm_alias_by_uid: Callable[[str], OdmAliasAR | None],
-        find_term_by_uid: Callable[[str], CTTermAttributesAR | None],
         find_activity_subgroup_by_uid: Callable[[str], ActivitySubGroupAR | None],
         find_odm_vendor_attribute_by_uid: Callable[[str], OdmVendorAttributeAR | None],
         find_odm_item_by_uid_with_item_group_relation: Callable[
@@ -109,6 +108,17 @@ class OdmItemGroup(ConceptModel):
             OdmVendorAttributeRelationVO | OdmVendorElementAttributeRelationVO | None,
         ],
     ) -> Self:
+        codelist_repo = CTCodelistNameRepository()
+        domain_terms = []
+        for sdtm_domain_uid in odm_item_group_ar.concept_vo.sdtm_domain_uids:
+            term = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=sdtm_domain_uid,
+                codelist_submission_value=settings.stdm_domain_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=codelist_repo.get_codelist_term_by_uid_and_submval,
+            )
+            if term is not None:
+                domain_terms.append(term)
+
         return cls(
             uid=odm_item_group_ar._uid,
             oid=odm_item_group_ar.concept_vo.oid,
@@ -147,14 +157,8 @@ class OdmItemGroup(ConceptModel):
                 key=lambda item: item.name or "",
             ),
             sdtm_domains=sorted(
-                [
-                    SimpleCTTermAttributes.from_term_uid(
-                        uid=sdtm_domain_uid,
-                        find_term_by_uid=find_term_by_uid,
-                    )
-                    for sdtm_domain_uid in odm_item_group_ar.concept_vo.sdtm_domain_uids
-                ],
-                key=lambda item: item.code_submission_value or "",
+                domain_terms,
+                key=lambda item: item.submission_value or "",
             ),
             activity_subgroups=sorted(
                 [

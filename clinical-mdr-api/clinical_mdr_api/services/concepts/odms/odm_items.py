@@ -3,6 +3,14 @@ from neomodel import db
 from clinical_mdr_api.domain_repositories.concepts.odms.item_repository import (
     ItemRepository,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+    CTCodelistGenericRepository,
+)
+from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
+    CTTermRoot,
+)
+from clinical_mdr_api.domain_repositories.models.odm import OdmItemRoot
 from clinical_mdr_api.domains.concepts.odms.item import OdmItemAR, OdmItemVO
 from clinical_mdr_api.domains.concepts.utils import (
     RelationType,
@@ -185,7 +193,7 @@ class OdmItemService(OdmGenericService[OdmItemAR]):
             ),
         )
 
-        self._manage_terms(item.uid, concept_input.terms)
+        self._manage_terms(item.uid, concept_input)
         self._manage_unit_definitions(item.uid, concept_input.unit_definitions)
 
         return self._transform_aggregate_root_to_pydantic_model(
@@ -237,7 +245,7 @@ class OdmItemService(OdmGenericService[OdmItemAR]):
             ),
         )
 
-        self._manage_terms(uid, concept_edit_input.terms, True)
+        self._manage_terms(uid, concept_edit_input, True)
         self._manage_unit_definitions(uid, concept_edit_input.unit_definitions, True)
 
         return self._transform_aggregate_root_to_pydantic_model(
@@ -247,45 +255,53 @@ class OdmItemService(OdmGenericService[OdmItemAR]):
     def _manage_terms(
         self,
         item_uid: str,
-        input_terms: list[OdmItemTermRelationshipInput],
+        odm_item_input: OdmItemPostInput | OdmItemPatchInput,
         for_update: bool = False,
     ):
         if for_update:
-            self._repos.odm_item_repository.remove_relation(
-                uid=item_uid,
-                relation_uid=None,
-                relationship_type=RelationType.TERM,
-                disconnect_all=True,
+            self._repos.odm_item_repository.remove_all_codelist_terms_from_item(
+                item_uid
             )
 
         (
             items,
             prop_names,
         ) = self._repos.ct_term_attributes_repository.get_term_attributes_by_term_uids(
-            [term.uid for term in input_terms]
+            [term.uid for term in odm_item_input.terms]
         )
 
         terms = [dict(zip(prop_names, item)) for item in items]
 
-        for input_term in input_terms:
-            self._repos.odm_item_repository.add_relation(
-                uid=item_uid,
-                relation_uid=input_term.uid,
-                relationship_type=RelationType.TERM,
-                parameters={
-                    "mandatory": input_term.mandatory,
-                    "order": input_term.order,
-                    "display_text": (
-                        input_term.display_text
-                        if not any(
-                            input_term.uid == term["term_uid"]
-                            and input_term.display_text == term["nci_preferred_name"]
-                            for term in terms
-                        )
-                        else None
-                    ),
-                },
+        if odm_item_input.terms and odm_item_input.codelist_uid:
+            submission_value = CTCodelistGenericRepository.get_codelist_submval_by_uid(
+                odm_item_input.codelist_uid
             )
+            root = OdmItemRoot.nodes.get(uid=item_uid)
+
+            for input_term in odm_item_input.terms:
+                ct_term = CTTermRoot.nodes.get(uid=input_term.uid)
+                selected_term_node = (
+                    CTCodelistAttributesRepository().get_or_create_selected_term(
+                        ct_term, codelist_submission_value=submission_value
+                    )
+                )
+                root.has_codelist_term.connect(
+                    selected_term_node,
+                    {
+                        "mandatory": input_term.mandatory,
+                        "order": input_term.order,
+                        "display_text": (
+                            input_term.display_text
+                            if not any(
+                                input_term.uid == term["term_uid"]
+                                and input_term.display_text
+                                == term["nci_preferred_name"]
+                                for term in terms
+                            )
+                            else None
+                        ),
+                    },
+                )
 
     def _manage_unit_definitions(
         self,
@@ -311,6 +327,42 @@ class OdmItemService(OdmGenericService[OdmItemAR]):
                     "order": unit_definition.order,
                 },
             )
+
+    def calculate_item_length_value(
+        self,
+        length: int | None,
+        codelist_uid: str | None,
+        input_terms: list[OdmItemTermRelationshipInput],
+    ):
+        if length:
+            return length
+
+        if not codelist_uid or not input_terms:
+            return None
+
+        (
+            items,
+            prop_names,
+        ) = self._repos.ct_term_attributes_repository.get_term_name_and_attributes_by_codelist_uids(
+            [codelist_uid]
+        )
+
+        terms = sorted(
+            [dict(zip(prop_names, item)) for item in items],
+            key=lambda elm: len(elm["submission_value"]),
+            reverse=True,
+        )
+
+        input_term_uids = [input_term.uid for input_term in input_terms]
+
+        return next(
+            (
+                len(term["submission_value"])
+                for term in terms
+                if term["term_uid"] in input_term_uids
+            ),
+            None,
+        )
 
     @db.transaction
     def add_activity(

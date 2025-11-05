@@ -49,7 +49,11 @@ from clinical_mdr_api.tests.integration.utils.data_library import (
     STARTUP_ACTIVITY_SUB_GROUPS,
     STARTUP_CT_CATALOGUE_CYPHER,
     STARTUP_STUDY_LIST_CYPHER,
-    get_codelist_with_term_cypher,
+)
+from clinical_mdr_api.tests.integration.utils.factory_controlled_terminology import (
+    create_codelist,
+    create_ct_term,
+    get_catalogue_name_library_name,
 )
 from clinical_mdr_api.tests.integration.utils.factory_visit import (
     generate_default_input_data_for_visit,
@@ -81,6 +85,7 @@ weight_activity_instance_class: ActivityInstanceClass
 body_mes_activity_instance: ActivityInstance
 clinical_programme: ClinicalProgramme
 project: Project
+term_efficacy_uid: str
 
 
 @pytest.fixture(scope="module")
@@ -97,21 +102,12 @@ def test_data():
     inject_and_clear_db(db_name)
 
     global study
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
 
     db.cypher_query(STARTUP_ACTIVITY_GROUPS)
     db.cypher_query(STARTUP_ACTIVITY_SUB_GROUPS)
     db.cypher_query(STARTUP_ACTIVITIES)
-    db.cypher_query(
-        get_codelist_with_term_cypher(
-            "EFFICACY", "Flowchart Group", term_uid="term_efficacy_uid"
-        )
-    )
-    db.cypher_query(
-        get_codelist_with_term_cypher(
-            "SAFETY", "Flowchart Group", term_uid="informed_consent_uid"
-        )
-    )
+
     db.cypher_query(STARTUP_STUDY_LIST_CYPHER)
     db.cypher_query(STARTUP_CT_CATALOGUE_CYPHER)
     create_library_data()
@@ -248,6 +244,30 @@ def test_data():
         activity_items=[],
     )
 
+    catalogue_name, library_name = get_catalogue_name_library_name(use_test_utils=True)
+    ct_term_codelist = create_codelist(
+        "Flowchart Group",
+        "CTCodelist_Name",
+        catalogue_name,
+        library_name,
+        submission_value="FLWCRTGRP",
+    )
+    global term_efficacy_uid
+    term_efficacy_uid = "term_efficacy_uid"
+    create_ct_term(
+        codelists=[
+            {
+                "uid": ct_term_codelist.codelist_uid,
+                "submission_value": "EFFICACY",
+                "order": 1,
+            },
+        ],
+        name="EFFICACY",
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        uid=term_efficacy_uid,
+    )
+
     global clinical_programme
     global project
     clinical_programme = TestUtils.create_clinical_programme(name="SoA CP")
@@ -284,7 +304,7 @@ def test_create_remove_study_activity_instance_when_study_activity_is_created_re
             "activity_uid": weight_activity.uid,
             "activity_subgroup_uid": body_measurements_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -339,7 +359,7 @@ def test_create_remove_study_activity_instance_when_study_activity_is_created_re
         == general_activity_group.name
     )
     assert res["study_soa_group"]["study_soa_group_uid"] is not None
-    assert res["study_soa_group"]["soa_group_term_uid"] == "term_efficacy_uid"
+    assert res["study_soa_group"]["soa_group_term_uid"] == term_efficacy_uid
     assert res["study_soa_group"]["soa_group_term_name"] is not None
 
     response = api_client.delete(
@@ -362,7 +382,7 @@ def test_delete_study_activity_instance(api_client):
             "activity_uid": randomized_activity.uid,
             "activity_subgroup_uid": randomisation_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -401,7 +421,7 @@ def test_create_study_activity_instance(api_client):
             "activity_uid": weight_activity.uid,
             "activity_subgroup_uid": body_measurements_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -524,7 +544,7 @@ def test_edit_study_activity_instance(api_client):
             "activity_uid": randomized_activity.uid,
             "activity_subgroup_uid": randomisation_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -587,7 +607,7 @@ def test_study_activity_instance_header_endpoint(api_client):
             "activity_uid": randomized_activity.uid,
             "activity_subgroup_uid": randomisation_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -597,7 +617,7 @@ def test_study_activity_instance_header_endpoint(api_client):
             "activity_uid": body_mes_activity.uid,
             "activity_subgroup_uid": randomisation_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -607,7 +627,7 @@ def test_study_activity_instance_header_endpoint(api_client):
             "activity_uid": weight_activity.uid,
             "activity_subgroup_uid": body_measurements_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -633,7 +653,7 @@ def test_study_activity_instance_audit_trails(api_client):
             "activity_uid": randomized_activity.uid,
             "activity_subgroup_uid": randomisation_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -648,7 +668,7 @@ def test_study_activity_instance_audit_trails(api_client):
             "activity_uid": body_mes_activity.uid,
             "activity_subgroup_uid": randomisation_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -706,7 +726,7 @@ def test_get_study_activity_instances_csv_xml_excel(api_client, export_format):
             "activity_uid": randomized_activity.uid,
             "activity_subgroup_uid": randomisation_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -806,7 +826,7 @@ def test_study_activity_instances_states(
             "activity_uid": new_test_activity.uid,
             "activity_subgroup_uid": body_measurements_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -819,9 +839,14 @@ def test_study_activity_instances_states(
     if is_data_collected and not retired_instance:
         assert len(res) == 1
         assert res[0]["activity_instance"]["uid"] == new_test_activity_instance.uid
+        assert res[0]["activity"]["uid"] == new_test_activity.uid
         assert (
-            new_test_activity.uid
-            in res[0]["activity_instance"]["activity_groupings"][0]["activity"]["uid"]
+            res[0]["study_activity_subgroup"]["activity_subgroup_uid"]
+            == body_measurements_activity_subgroup.uid
+        )
+        assert (
+            res[0]["study_activity_group"]["activity_group_uid"]
+            == general_activity_group.uid
         )
         assert res[0]["activity"]["uid"] == new_test_activity.uid
         assert res[0]["state"] == expected_state
@@ -861,7 +886,7 @@ def test_sync_to_latest_version_activity_instance(api_client):
             "activity_uid": new_test_activity.uid,
             "activity_subgroup_uid": body_measurements_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -981,7 +1006,7 @@ def test_activity_activity_instance_relationship(api_client):
     )
     study_activity = TestUtils.create_study_activity(
         study_uid=test_study.uid,
-        soa_group_term_uid="term_efficacy_uid",
+        soa_group_term_uid=term_efficacy_uid,
         activity_uid=new_test_activity.uid,
         activity_subgroup_uid=body_measurements_activity_subgroup.uid,
         activity_group_uid=general_activity_group.uid,
@@ -1091,7 +1116,7 @@ def test_study_activity_instances_batch_create(api_client):
             "activity_uid": new_test_activity.uid,
             "activity_subgroup_uid": body_measurements_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)
@@ -1190,7 +1215,7 @@ def test_study_activity_instances_return_proper_activity_instance_versionsing_da
             "activity_uid": new_test_activity.uid,
             "activity_subgroup_uid": body_measurements_activity_subgroup.uid,
             "activity_group_uid": general_activity_group.uid,
-            "soa_group_term_uid": "term_efficacy_uid",
+            "soa_group_term_uid": term_efficacy_uid,
         },
     )
     assert_response_status_code(response, 201)

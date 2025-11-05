@@ -2,6 +2,8 @@ const { Given, When, Then } = require("@badeball/cypress-cucumber-preprocessor")
 
 let formNameDefault, formOidDefault
 
+Then('CRF {string} page is loaded', (tabName) => cy.get('button.v-tab-item--selected').should('have.text', tabName))
+
 When('Created CRF form is found', () => cy.searchAndCheckPresence(formNameDefault, true))
 
 Then('The CRF Form is no longer available', () => cy.searchAndCheckPresence(formOidDefault, false))

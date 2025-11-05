@@ -39,7 +39,7 @@ Cypress.Commands.add('clickHeaderActionsButton', (headerName) => {
 
 Cypress.Commands.add('searchAndCheckPresence', (value, shouldBePresent) => {
     cy.waitForTable()
-    cy.searchFor(value, false)
+    cy.searchFor(value)
     shouldBePresent ? cy.tableContains(value) : cy.confirmNoResultsFound(value)
 })
 
@@ -47,13 +47,16 @@ Cypress.Commands.add('checkIfMoreThanOneResultFound', () => cy.get(tableRowLocat
 
 Cypress.Commands.add('confirmNoResultsFound', () => cy.get(tableRowLocator).should('have.text', 'No data available'))
 
-Cypress.Commands.add('searchFor', (value, delay = true) => {
-    delay ? cy.fillInput('search-field', value) : cy.fillInputWithoutDeplay('search-field', value)
+Cypress.Commands.add('searchFor', (value) => {
+    cy.get(`[data-cy="search-field"] input`).then(el => {
+        cy.wrap(el).invoke('val').then((text) => {if (text.length > 0) cy.wrap(el).clear()})
+        cy.wrap(el).type(value, { force: true, delay: 0 })
+    })
     cy.wait(1500)
 })
 
 Cypress.Commands.add('searchForInPopUp', (value) => {
-    cy.get('.v-overlay__content [data-cy="search-field"]').type(value)
+    cy.get('.v-overlay__content [data-cy="search-field"]').type(value, { delay: 0 })
     cy.wait(1500)
 })
 

@@ -5,6 +5,9 @@ from deepdiff import DeepDiff
 from clinical_mdr_api.domain_repositories.concepts.concept_generic_repository import (
     ConceptGenericRepository,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.active_substance import (
     ActiveSubstanceRoot,
 )
@@ -43,6 +46,7 @@ from clinical_mdr_api.domains.versioned_object_aggregate import (
 from clinical_mdr_api.models.concepts.pharmaceutical_product import (
     PharmaceuticalProduct,
 )
+from common.config import settings
 from common.utils import convert_to_datetime
 
 
@@ -56,12 +60,24 @@ class PharmaceuticalProductRepository(ConceptGenericRepository):
         value_node.save()
 
         for uid in ar.concept_vo.dosage_form_uids:
-            value_node.has_dosage_form.connect(CTTermRoot.nodes.get(uid=uid))
+            dosage_form_node = CTTermRoot.nodes.get(uid=uid)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    dosage_form_node,
+                    codelist_submission_value=settings.dosage_form_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            value_node.has_dosage_form.connect(selected_term_node)
 
         for uid in ar.concept_vo.route_of_administration_uids:
-            value_node.has_route_of_administration.connect(
-                CTTermRoot.nodes.get(uid=uid)
+            roa_node = CTTermRoot.nodes.get(uid=uid)
+            selected_term_node = CTCodelistAttributesRepository().get_or_create_selected_term(
+                roa_node,
+                codelist_submission_value=settings.route_of_administration_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
             )
+            value_node.has_route_of_administration.connect(selected_term_node)
 
         for formulation in ar.concept_vo.formulations:
             formulation_node = IngredientFormulation(
@@ -104,11 +120,17 @@ class PharmaceuticalProductRepository(ConceptGenericRepository):
         was_parent_data_modified = super()._has_data_changed(ar=ar, value=value)
 
         are_props_changed = False
-
+        dosage_form_nodes = [
+            node.has_selected_term.get() for node in value.has_dosage_form.all()
+        ]
+        roa_nodes = [
+            node.has_selected_term.get()
+            for node in value.has_route_of_administration.all()
+        ]
         are_rels_changed = sorted(ar.concept_vo.dosage_form_uids) != sorted(
-            [val.uid for val in value.has_dosage_form.all()]
+            [val.uid for val in dosage_form_nodes]
         ) or sorted(ar.concept_vo.route_of_administration_uids) != sorted(
-            [val.uid for val in value.has_route_of_administration.all()]
+            [val.uid for val in roa_nodes]
         )
 
         current_formulations = self._get_formulations_from_value_node(value=value)
@@ -269,15 +291,20 @@ class PharmaceuticalProductRepository(ConceptGenericRepository):
         **_kwargs,
     ) -> PharmaceuticalProductAR:
         formulation_nodes = value.has_formulation.all()
+        dosage_form_nodes = [
+            node.has_selected_term.get() for node in value.has_dosage_form.all()
+        ]
+        roa_nodes = [
+            node.has_selected_term.get()
+            for node in value.has_route_of_administration.all()
+        ]
 
         ar = PharmaceuticalProductAR.from_repository_values(
             uid=root.uid,
             concept_vo=PharmaceuticalProductVO.from_repository_values(
                 external_id=value.external_id,
-                dosage_form_uids=[x.uid for x in value.has_dosage_form.all()],
-                route_of_administration_uids=[
-                    x.uid for x in value.has_route_of_administration.all()
-                ],
+                dosage_form_uids=[x.uid for x in dosage_form_nodes],
+                route_of_administration_uids=[x.uid for x in roa_nodes],
                 formulations=[
                     FormulationVO.from_repository_values(
                         external_id=formulation_node.external_id,

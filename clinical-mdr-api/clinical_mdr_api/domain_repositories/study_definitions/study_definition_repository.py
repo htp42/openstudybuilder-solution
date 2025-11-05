@@ -153,12 +153,12 @@ WHERE sv.study_id_prefix IS NOT NULL AND sv.study_number IS NOT NULL
 CALL {
     WITH sv
     OPTIONAL MATCH (sv)-[:HAS_STUDY_ARM]->(arm:StudyArm)
-    OPTIONAL MATCH (sv)-[:HAS_STUDY_EPOCH]->(pre_treatment_epoch:StudyEpoch)-[:HAS_EPOCH_TYPE]->(:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]-(:CTTermAttributesRoot)-[:LATEST]-(:CTTermAttributesValue {code_submission_value: "PRE TREATMENT EPOCH TYPE"})
-    OPTIONAL MATCH (sv)-[:HAS_STUDY_EPOCH]->(treatment_epoch:StudyEpoch)-[:HAS_EPOCH_TYPE]->(:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]-(:CTTermAttributesRoot)-[:LATEST]-(:CTTermAttributesValue {code_submission_value: "TREATMENT"})
-    OPTIONAL MATCH (sv)-[:HAS_STUDY_EPOCH]->(no_treatment_epoch:StudyEpoch)-[:HAS_EPOCH_TYPE]->(:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]-(:CTTermAttributesRoot)-[:LATEST]-(:CTTermAttributesValue {code_submission_value: "NO TREATMENT EPOCH TYPE"})
-    OPTIONAL MATCH (sv)-[:HAS_STUDY_EPOCH]->(post_treatment_epoch:StudyEpoch)-[:HAS_EPOCH_TYPE]->(:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]-(:CTTermAttributesRoot)-[:LATEST]-(:CTTermAttributesValue {code_submission_value: "POST TREATMENT EPOCH TYPE"})
-    OPTIONAL MATCH (sv)-[:HAS_STUDY_ELEMENT]->(treatment_element:StudyElement)-[:HAS_ELEMENT_SUBTYPE]->(:CTTermRoot)-[:HAS_PARENT_TYPE]->(:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]-(:CTTermAttributesRoot)-[:LATEST]-(:CTTermAttributesValue {code_submission_value: "TREATMENT ELEMENT TYPE"})
-    OPTIONAL MATCH (sv)-[:HAS_STUDY_ELEMENT]->(no_treatment_element:StudyElement)-[:HAS_ELEMENT_SUBTYPE]->(:CTTermRoot)-[:HAS_PARENT_TYPE]->(:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]-(:CTTermAttributesRoot)-[:LATEST]-(:CTTermAttributesValue {code_submission_value: "NO TREATMENT ELEMENT TYPE"})
+    OPTIONAL MATCH (sv)-[:HAS_STUDY_EPOCH]->(pre_treatment_epoch:StudyEpoch)-[:HAS_EPOCH_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm {submission_value: "PRE TREATMENT EPOCH TYPE"})
+    OPTIONAL MATCH (sv)-[:HAS_STUDY_EPOCH]->(treatment_epoch:StudyEpoch)-[:HAS_EPOCH_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm {submission_value: "TREATMENT"})
+    OPTIONAL MATCH (sv)-[:HAS_STUDY_EPOCH]->(no_treatment_epoch:StudyEpoch)-[:HAS_EPOCH_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm {submission_value: "NO TREATMENT EPOCH TYPE"})
+    OPTIONAL MATCH (sv)-[:HAS_STUDY_EPOCH]->(post_treatment_epoch:StudyEpoch)-[:HAS_EPOCH_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm {submission_value: "POST TREATMENT EPOCH TYPE"})
+    OPTIONAL MATCH (sv)-[:HAS_STUDY_ELEMENT]->(treatment_element:StudyElement)-[:HAS_ELEMENT_SUBTYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_PARENT_TYPE]->(:CTTermRoot)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm {submission_value: "TREATMENT ELEMENT TYPE"})
+    OPTIONAL MATCH (sv)-[:HAS_STUDY_ELEMENT]->(no_treatment_element:StudyElement)-[:HAS_ELEMENT_SUBTYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-[:HAS_PARENT_TYPE]->(:CTTermRoot)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm {submission_value: "NO TREATMENT ELEMENT TYPE"})
     OPTIONAL MATCH (sv)-[:HAS_STUDY_COHORT]->(cohort:StudyCohort)
     WITH
         COUNT(DISTINCT arm) AS arm_count,
@@ -558,39 +558,54 @@ return *
             not_for_update=True, repository=self, additional_closure=None
         )
 
-    def get_studies_list(self) -> list[dict[str, Any]]:
+    def get_studies_list(self, deleted: bool = False) -> list[dict[str, Any]]:
         """
         Public method to retrieve a list of all studies in the repository.
         Returns a list of dictionaries.
         """
         self._check_not_closed()
-        query = """
+        query = f"""
             MATCH (sr:StudyRoot)-[:LATEST]->(sv:StudyValue)-[:HAS_PROJECT]-(:StudyProjectField)<-[:HAS_FIELD]-(p:Project)<-[:HOLDS_PROJECT]-(cp:ClinicalProgramme)
+            WHERE {'' if deleted else 'NOT'} EXISTS((sv)<-[:BEFORE]-(:Delete))
+
             WITH sr,sv,p,cp
-            OPTIONAL MATCH (sv)-[:HAS_TEXT_FIELD]->(stf:StudyTextField {field_name: 'study_title'})
-            WITH sr, sv, p, cp, stf, COLLECT {
-                    MATCH (sr)-[ver:HAS_VERSION|LATEST_DRAFT|LATEST_LOCKED|LATEST_RELEASED]->(sv)
-                    RETURN ver
-                    order by ver.start_date desc
-                    limit 1
-                } as versions
-            WITH sr, sv, p, cp, stf, head(versions) as current_version
-            OPTIONAL MATCH (author:User {user_id: current_version.author_id})
+            OPTIONAL MATCH (sv)-[:HAS_TEXT_FIELD]->(stf:StudyTextField {{field_name: 'study_title'}})
+            WITH sr, sv, p, cp, stf, COLLECT {{
+                MATCH (sr)-[ver:HAS_VERSION|LATEST_DRAFT|LATEST_LOCKED|LATEST_RELEASED]->(sv)
+                RETURN ver
+                order by ver.start_date desc
+                limit 1
+            }} as versions,
+            COLLECT {{
+                MATCH (sr)-[ver:LATEST_RELEASED]->(:StudyValue)
+                RETURN {{version_number: ver.version, change_description: ver.change_description}}
+            }} as latest_released,
+            COLLECT {{
+                MATCH (sr)-[ver:LATEST_LOCKED]->(:StudyValue)
+                RETURN {{version_number: ver.version, change_description: ver.change_description}}
+            }} as latest_locked
+            WITH sr, sv, p, cp, stf,
+                head(versions) as current_version,
+                head(latest_released) as latest_released_version,
+                head(latest_locked) as latest_locked_version
+            OPTIONAL MATCH (author:User {{user_id: current_version.author_id}})
             RETURN  sr.uid AS uid,
-                    sv.study_acronym,
-                    sv.study_id_prefix + '-' + sv.study_number + COALESCE(nullif('-' + sv.subpart_id, '-'), '') as id,
-                    sv.study_number,
-                    sv.subpart_id,
-                    sv.study_subpart_acronym,
-                    stf.value as study_title,
-                    cp.name as clinical_progamme,
-                    p.project_number as project_number,
-                    p.name as project_name,
-                    current_version.author_id as version_author_id,
-                    current_version.status as version_status,
-                    current_version.start_date as version_start_date,
-                    current_version.version as version_number,
-                    COALESCE(author.username, current_version.author_id) as author  
+                sv.study_acronym,
+                sv.study_id_prefix + '-' + sv.study_number + COALESCE(nullif('-' + sv.subpart_id, '-'), '') as id,
+                sv.study_number,
+                sv.subpart_id,
+                sv.study_subpart_acronym,
+                stf.value as study_title,
+                cp.name as clinical_progamme,
+                p.project_number as project_number,
+                p.name as project_name,
+                current_version.author_id as version_author_id,
+                current_version.status as version_status,
+                current_version.start_date as version_start_date,
+                current_version.version as version_number,
+                COALESCE(author.username, current_version.author_id) as author,
+                latest_locked_version,
+                latest_released_version
             ORDER BY uid
         """
         rs = db.cypher_query(query)
@@ -611,6 +626,8 @@ return *
                 "version_start_date": convert_to_datetime(row[12]),
                 "version_number": row[13],
                 "version_author": row[14],
+                "latest_locked_version": row[15],
+                "latest_released_version": row[16],
             }
             for row in rs[0]
         ]

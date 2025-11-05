@@ -1,4 +1,5 @@
 import csv
+import json
 
 from .functions.utils import load_env
 from .utils.importer import BaseImporter, open_file
@@ -239,14 +240,14 @@ def odm_itemgroup_to_item_relationship(uid, data):
 class Crfs(BaseImporter):
     logging_name = "crfs"
 
-    def __init__(self, api=None, metrics_inst=None, cache=None):
-        super().__init__(api=api, metrics_inst=metrics_inst, cache=cache)
+    def __init__(self, api=None, metrics_inst=None):
+        super().__init__(api=api, metrics_inst=metrics_inst)
 
     def _fetch_codelist_terms(self, codelists, codelist):
         if codelist not in codelists:
             new_codelist = {}
             terms = self.api.get_all_from_api(
-                f"/ct/terms/attributes?codelist_uid={codelist}"
+                f"/ct/codelists/{codelist}/terms"
             )
             for term in terms:
                 new_codelist[term["concept_id"]] = term["term_uid"]
@@ -312,14 +313,21 @@ class Crfs(BaseImporter):
     @open_file()
     def handle_odm_itemgroups(self, csvfile):
         csvdata = csv.DictReader(csvfile)
-        domain_list = self.api.get_all_from_api(
-            "/ct/terms?codelist_name=SDTM Domain Abbreviation"
+        params = {"filters": json.dumps({"name": {"v": ["SDTM Domain Abbreviation"], "op": "eq"}}), "page_number": 1, "page_size": 0}
+        domain_cl_uid = self.api.get_all_from_api("/ct/codelists/attributes", params=params)
+        if len(domain_cl_uid) == 0:
+            self.log.warning("Unable to find codelist for SDTM domain abbreviation")
+            return
+        cl_uid = domain_cl_uid[0]["codelist_uid"]
+        domain_terms = self.api.get_all_from_api(f"/ct/codelists/{cl_uid}/terms")
+
+        all_sdtm_domains = self.api.get_all_identifiers(
+            domain_terms,
+            identifier="submission_value",
+            value="term_uid",
         )
-        all_sdtm_domains = {}
-        for item in domain_list:
-            all_sdtm_domains[item["attributes"]["code_submission_value"]] = item[
-                "term_uid"
-            ]
+        print("-----------")
+        print(all_sdtm_domains)
 
         for row in csvdata:
             if len(row) == 0:
@@ -328,18 +336,14 @@ class Crfs(BaseImporter):
 
             # Look up sdtm domains
             domains = []
-            for raw_domain in row["domain"].split("|"):
-                if not raw_domain:
+            for domain in row["domain"].split("|"):
+                if not domain:
                     continue
-                if "_" in raw_domain:
-                    domain = raw_domain.split("_")[1]
-                else:
-                    domain = raw_domain
                 domain_uid = all_sdtm_domains.get(domain)
                 if domain_uid is not None:
                     domains.append(domain_uid)
                 else:
-                    self.log.warning(f"Unable to find domain '{raw_domain}'")
+                    self.log.warning(f"Unable to find domain '{domain}'")
 
             data = odm_itemgroup(row, [], domains)
 

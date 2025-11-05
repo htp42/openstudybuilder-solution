@@ -6,8 +6,8 @@ Feature: Studies - Define Study - Study Structure - Study Visits - Special Visit
     Background: User is logged in and study has been selected
         Given The user is logged in
         And The study with uid 'Study_000003' is selected
-        And [API] The epoch with type 'Pre Treatment' and subtype 'Screening' exists in selected study
-        And [API] Global Anchor visit within epoch 'Screening' exists
+        And [API] The epoch with type 'Pre Treatment' and subtype 'Run-in' exists in selected study
+        And [API] Global Anchor visit within epoch 'Run-in' exists
 
     Scenario: [Create][Special visit] User must be able to create special visit for given epoch
         Given The '/studies/Study_000003/study_structure/visits' page is opened
@@ -15,7 +15,7 @@ Feature: Studies - Define Study - Study Structure - Study Visits - Special Visit
         When Add visit button is clicked
         And Visit scheduling type is selected as 'SPECIAL_VISIT'
         And Form continue button is clicked
-        And Epoch 'Screening' is selected for the visit
+        And Epoch 'Run-in' is selected for the visit
         And Form continue button is clicked
         And Visit Type is selected as 'Treatment'
         And Contact mode is selected as 'On Site Visit'
@@ -27,7 +27,7 @@ Feature: Studies - Define Study - Study Structure - Study Visits - Special Visit
         When Add visit button is clicked
         And Visit scheduling type is selected as 'SPECIAL_VISIT'
         And Form continue button is clicked
-        And Epoch 'Screening' is selected for the visit
+        And Epoch 'Run-in' is selected for the visit
         And Form continue button is clicked
         And Visit Type is selected as 'Treatment'
         And Contact mode is selected as 'On Site Visit'
@@ -43,7 +43,7 @@ Feature: Studies - Define Study - Study Structure - Study Visits - Special Visit
         When Add visit button is clicked
         And Visit scheduling type is selected as 'SPECIAL_VISIT'
         And Form continue button is clicked
-        And Epoch 'Screening' is selected for the visit
+        And Epoch 'Run-in' is selected for the visit
         And Form continue button is clicked
         And Visit Type is selected as 'Early discontinuation'
         And Contact mode is selected as 'On Site Visit'

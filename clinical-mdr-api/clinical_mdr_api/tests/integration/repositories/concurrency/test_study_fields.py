@@ -19,7 +19,6 @@ from clinical_mdr_api.domains.controlled_terminologies.ct_term_attributes import
     CTTermAttributesVO,
 )
 from clinical_mdr_api.domains.controlled_terminologies.ct_term_name import (
-    CTTermCodelistVO,
     CTTermNameAR,
     CTTermNameVO,
 )
@@ -82,8 +81,6 @@ class StudyFieldsConcurrencyTest(unittest.TestCase):
         self.ct_term_attributes_repository = self._repos.ct_term_attributes_repository
         self.ct_term_names_repository = self._repos.ct_term_name_repository
 
-        codelist_uid = "editable_cr"
-
         with db.transaction:
             study_ar = StudyDefinitionAR.from_initial_values(
                 generate_uid_callback=lambda: "Study_000001",
@@ -136,17 +133,8 @@ class StudyFieldsConcurrencyTest(unittest.TestCase):
             )
 
             ct_term_attributes_vo = CTTermAttributesVO.from_repository_values(
-                codelists=[
-                    CTTermCodelistVO(
-                        codelist_uid=codelist_uid,
-                        order=1,
-                        library_name=self.library_name,
-                    )
-                ],
-                catalogue_name="SDTM CT",
+                catalogue_names=["SDTM CT"],
                 concept_id=None,
-                code_submission_value="code_submission_value",
-                name_submission_value="name_submission_value",
                 preferred_term="preferred_term",
                 definition="definition",
             )
@@ -170,14 +158,7 @@ class StudyFieldsConcurrencyTest(unittest.TestCase):
 
         with db.transaction:
             ct_term_name_vo = CTTermNameVO.from_repository_values(
-                codelists=[
-                    CTTermCodelistVO(
-                        codelist_uid=codelist_uid,
-                        order=1,
-                        library_name=self.library_name,
-                    )
-                ],
-                catalogue_name="SDTM CT",
+                catalogue_names=["SDTM CT"],
                 name="StudyTitle",
                 name_sentence_case="study_title",
             )

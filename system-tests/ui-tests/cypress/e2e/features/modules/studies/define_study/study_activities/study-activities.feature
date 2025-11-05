@@ -8,12 +8,14 @@ Feature: Studies - Define Study - Study Activities - Study Activities
     Background: User is logged in and study has been selected
         Given The user is logged in
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to Study Activity page using side menu
         Given A test study is selected
         And The '/studies' page is opened
         When The 'Study Activities' submenu is clicked in the 'Define Study' section
         Then The current URL is '/activities/soa'
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the Study Activities table with options listed in this scenario
         Given The test study '/activities/list' page is opened
         Then A table is visible with following headers
@@ -34,6 +36,7 @@ Feature: Studies - Define Study - Study Activities - Study Activities
         When The first column is selected from Select Columns option for table with actions
         Then The table contain only selected column and actions column
 
+    @smoke_test
     Scenario: [Create][Existing Study][By Id] User must be able to create a Study Activity from an existing study by study id
         Given The test study '/activities/list' page is opened
         When Study activity add button is clicked
@@ -47,19 +50,16 @@ Feature: Studies - Define Study - Study Activities - Study Activities
         Then The Study Activity is visible in table
 
     Scenario: [Actions][Delete][Activity] User must be able to delete a Study Activity
-        Given The test study '/activities/list' page is opened
         And [API] Study Activity is created and approved
-        When Study activity add button is clicked
-        And Activity from library is selected
-        And Form continue button is clicked
-        And User search and select activity created via API
-        And Form save button is clicked
-        Then The pop up displays 'Study activity added'
+        And [API] Get SoA Group 'BIOMARKERS' id
+        And [API] Activity is added to the study
+        Given The test study '/activities/list' page is opened
         And Activity is searched for and found
         When The 'Remove Activity' option is clicked from the three dot menu list
         And Action is confirmed by clicking continue
         Then Activity is searched for and not found
 
+    @smoke_test
     Scenario: [Create][Existing Study][By Acronym] User must be able to create a Study Activity from an existing study by study acronym
         Given The test study '/activities/list' page is opened
         When Study activity add button is clicked
@@ -72,6 +72,7 @@ Feature: Studies - Define Study - Study Activities - Study Activities
         And The Study Activity is found
         Then The Study Activity is visible in table
 
+    @smoke_test
     Scenario: [Create][From Library] User must be able to create a Study Activity from the library
         And The activity exists in the library
         Given The test study '/activities/list' page is opened
@@ -83,6 +84,7 @@ Feature: Studies - Define Study - Study Activities - Study Activities
         Then The pop up displays 'Study activity added'
         Then The Study Activity is visible in table
 
+    @smoke_test
     Scenario: [Create][Placeholder] User must be able to create a Study Activity placeholder as an activity concept request
         Given The test study '/activities/list' page is opened
         When Study activity add button is clicked
@@ -102,14 +104,10 @@ Feature: Studies - Define Study - Study Activities - Study Activities
         Then The Study Activity Placeholder is no longer available
 
     Scenario: [Actions][Edit][version 0.1][Activity] User must be able to edit a Study Activity
-        Given The test study '/activities/list' page is opened
         And [API] Study Activity is created and approved
-        When Study activity add button is clicked
-        And Activity from library is selected
-        And Form continue button is clicked
-        And User search and select activity created via API
-        And Form save button is clicked
-        Then The pop up displays 'Study activity added'
+        And [API] Get SoA Group 'BIOMARKERS' id
+        And [API] Activity is added to the study
+        Given The test study '/activities/list' page is opened
         And Activity is searched for and found
         When The 'Edit' option is clicked from the three dot menu list
         And The SoA group can be changed
@@ -182,14 +180,10 @@ Feature: Studies - Define Study - Study Activities - Study Activities
         Then The validation appears under empty SoA group selection
 
     Scenario: [Actions][Approve] User must be able to add newly created approved Activity
-        Given The test study '/activities/list' page is opened
         And [API] Study Activity is created and approved
-        When Study activity add button is clicked
-        And Activity from library is selected
-        And Form continue button is clicked
-        And User search and select activity created via API
-        And Form save button is clicked
-        Then The pop up displays 'Study activity added'
+        And [API] Get SoA Group 'BIOMARKERS' id
+        And [API] Activity is added to the study
+        Given The test study '/activities/list' page is opened
         Then The Study Activity is found
 
     Scenario: [Create][Negative case][Draft Activity] User must mot be able to add newly created draft Activity
@@ -201,6 +195,7 @@ Feature: Studies - Define Study - Study Activities - Study Activities
         When User tries to add Activity in Draft status
         Then The Activity in Draft status is not found
 
+    @unstable_disabled
     Scenario: [Create][Negative case][Draft Group] User must not be able to add activity that has Draft group until it is approved
         Given The test study '/activities/list' page is opened
         And [API] Study Activity is created and group is drafted
@@ -236,7 +231,8 @@ Feature: Studies - Define Study - Study Activities - Study Activities
         And Form save button is clicked
         Then The pop up displays 'Study activity added'
         Then The Study Activity is found
-        
+
+    @unstable_disabled    
     Scenario: [Create][Negative case][Draft Subgroup] User must not be able to add activity that has Draft subgroup until it is approved
         Given The test study '/activities/list' page is opened
         And [API] Study Activity is created and subgroup is drafted

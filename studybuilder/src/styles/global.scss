@@ -171,6 +171,16 @@ thead.v-data-table-header {
   background-color: transparent !important;
 }
 
+// Fix v-select background in data table footers
+.v-data-table-footer {
+  .v-select {
+    .v-field__field,
+    .v-field__overlay {
+      background-color: white !important;
+    }
+  }
+}
+
 .v-select-list {
   .v-list-item {
     &-active {
@@ -281,6 +291,7 @@ thead.v-data-table-header {
 }
 
 .filterAutocompleteLabel {
+  min-width: 200px !important;
   .v-label {
     font-size: 14px;
   }

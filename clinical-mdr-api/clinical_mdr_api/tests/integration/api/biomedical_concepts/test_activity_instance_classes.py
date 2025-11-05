@@ -69,6 +69,17 @@ def test_data():
         data_model_catalogue_name=data_model_catalogue,
     )
 
+    _data_domain_terms = [
+        TestUtils.create_ct_term(
+            codelist_uid="C66734",
+            sponsor_preferred_name="Data Domain Term1",
+        ),
+        TestUtils.create_ct_term(
+            codelist_uid="C66734",
+            sponsor_preferred_name="Data Domain Term2",
+        ),
+    ]
+
     # Create some activity instance classes
     activity_instance_classes_all = [
         TestUtils.create_activity_instance_class(name="name A"),
@@ -126,8 +137,19 @@ def test_data():
             parent_uid=activity_instance_classes_all[20].uid,
         )
     )
-    data_type_term = TestUtils.create_ct_term(sponsor_preferred_name="Data type")
-    role_term = TestUtils.create_ct_term(sponsor_preferred_name="Role")
+
+    data_type_codelist = TestUtils.create_ct_codelist(
+        name="DATATYPE", submission_value="DATATYPE", extensible=True, approve=True
+    )
+    data_type_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Data type", codelist_uid=data_type_codelist.codelist_uid
+    )
+    role_codelist = TestUtils.create_ct_codelist(
+        name="ROLE", submission_value="ROLE", extensible=True, approve=True
+    )
+    role_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Role", codelist_uid=role_codelist.codelist_uid
+    )
     TestUtils.create_activity_item_class(
         name="name A",
         definition="definition A",
@@ -200,6 +222,7 @@ def test_get_activity_instance_class(api_client):
     response = api_client.get(
         f"/activity-instance-classes/{activity_instance_classes_all[0].uid}"
     )
+    print(response.text)
     res = response.json()
 
     assert_response_status_code(response, 200)
@@ -228,6 +251,7 @@ def test_get_activity_instance_class_pagination(api_client):
     for page_number in range(1, 4):
         url = f"/activity-instance-classes?page_number={page_number}&page_size=10&sort_by={sort_by}"
         response = api_client.get(url)
+        assert_response_status_code(response, 200)
         res = response.json()
         res_names = [item["name"] for item in res["items"]]
         results_paginated[page_number] = res_names
@@ -240,9 +264,11 @@ def test_get_activity_instance_class_pagination(api_client):
     )
     log.info("All rows returned by pagination: %s", results_paginated_merged)
 
-    res_all = api_client.get(
+    response = api_client.get(
         f"/activity-instance-classes?page_number=1&page_size=100&sort_by={sort_by}"
-    ).json()
+    )
+    assert_response_status_code(response, 200)
+    res_all = response.json()
     results_all_in_one_page = list(map(lambda x: x["name"], res_all["items"]))
     log.info("All rows in one page: %s", results_all_in_one_page)
     assert len(results_all_in_one_page) == len(results_paginated_merged)
@@ -281,9 +307,8 @@ def test_get_activity_instance_classes(
     print(f"******** GET {url} \n\n")
     log.info("GET %s", url)
     response = api_client.get(url)
-    res = response.json()
-
     assert_response_status_code(response, 200)
+    res = response.json()
 
     # Check fields included in the response
     assert list(res.keys()) == ["items", "total", "page", "size"]

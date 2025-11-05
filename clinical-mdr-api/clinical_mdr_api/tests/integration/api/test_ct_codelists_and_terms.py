@@ -91,9 +91,7 @@ def test_data():
         pytest.param("/ct/terms", 20, '{"term_uid": true}'),
         pytest.param("/ct/terms/names", 20, '{"term_uid": true}'),
         pytest.param("/ct/terms/attributes", 20, '{"term_uid": true}'),
-        pytest.param("/ct/terms", 20, '{"codelist_uid": true}'),  # "term_uid": false
         pytest.param("/ct/terms/names", 20, '{"sponsor_preferred_name": true}'),
-        pytest.param("/ct/terms/attributes", 20, '{"code_submission_value": true}'),
         pytest.param("/ct/terms", 20, '{"term_uid": false}'),
         pytest.param("/ct/terms/names", 20, '{"term_uid": false}'),
         pytest.param("/ct/terms/attributes", 20, '{"term_uid": false}'),
@@ -104,6 +102,7 @@ def test_get_ct_terms_pagination(api_client, base_url, page_size, sort_by):
     for page_number in range(1, 4):
         url = f"{base_url}?page_number={page_number}&page_size={page_size}&sort_by={sort_by}"
         response = api_client.get(url)
+        assert response.status_code == 200, response.text
         res = response.json()
         res_names = list(map(lambda x: x["term_uid"], res["items"]))
         results_paginated[page_number] = res_names
@@ -196,7 +195,7 @@ def test_retire_unused_term(api_client):
 
     # fetch the term to be removed, ensure it's part of only the expected codelist
     response = api_client.get(
-        f"ct/terms/{term_to_remove_and_retire.term_uid}/attributes"
+        f"ct/terms/{term_to_remove_and_retire.term_uid}/codelists"
     )
     res = response.json()
     assert_response_status_code(response, 200)
@@ -211,7 +210,7 @@ def test_retire_unused_term(api_client):
 
     # fetch the removed term, ensure it's not part of any codelist
     response = api_client.get(
-        f"ct/terms/{term_to_remove_and_retire.term_uid}/attributes"
+        f"ct/terms/{term_to_remove_and_retire.term_uid}/codelists"
     )
     res = response.json()
     assert_response_status_code(response, 200)

@@ -3,9 +3,6 @@ from typing import Callable, Self
 
 from clinical_mdr_api.domains.concepts.concept_base import ConceptVO
 from clinical_mdr_api.domains.concepts.odms.odm_ar_base import OdmARBase
-from clinical_mdr_api.domains.controlled_terminologies.ct_term_attributes import (
-    CTTermAttributesAR,
-)
 from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryItemMetadataVO,
     LibraryVO,
@@ -19,7 +16,6 @@ class OdmFormVO(ConceptVO):
     oid: str | None
     repeating: str | int | None
     sdtm_version: str | None
-    scope_uid: str | None
     description_uids: list[str]
     alias_uids: list[str]
     activity_group_uids: list[str]
@@ -35,7 +31,6 @@ class OdmFormVO(ConceptVO):
         name: str,
         sdtm_version: str | None,
         repeating: str | int | None,
-        scope_uid: str | None,
         description_uids: list[str],
         alias_uids: list[str],
         activity_group_uids: list[str],
@@ -49,7 +44,6 @@ class OdmFormVO(ConceptVO):
             name=name,
             sdtm_version=sdtm_version,
             repeating=repeating,
-            scope_uid=scope_uid,
             description_uids=description_uids,
             alias_uids=alias_uids,
             activity_group_uids=activity_group_uids,
@@ -66,7 +60,6 @@ class OdmFormVO(ConceptVO):
     def validate(
         self,
         odm_object_exists_callback: Callable,
-        find_term_callback: Callable[[str], CTTermAttributesAR | None],
         odm_description_exists_by_callback: Callable[[str, str, bool], bool],
         get_odm_description_parent_uids_callback: Callable[[list[str]], dict],
         odm_alias_exists_by_callback: Callable[[str, str, bool], bool],
@@ -76,7 +69,6 @@ class OdmFormVO(ConceptVO):
         data = {
             "library_name": library_name,
             "alias_uids": self.alias_uids,
-            "scope_uid": self.scope_uid,
             "name": self.name,
             "oid": self.oid,
             "sdtm_version": self.sdtm_version,
@@ -102,11 +94,6 @@ class OdmFormVO(ConceptVO):
                 ),
             ],
             "ODM Form",
-        )
-
-        BusinessLogicException.raise_if(
-            self.scope_uid is not None and not find_term_callback(self.scope_uid),
-            msg=f"ODM Form tried to connect to non-existent Scope with UID '{self.scope_uid}'.",
         )
 
         if uids := get_odm_description_parent_uids_callback(self.description_uids):
@@ -155,7 +142,6 @@ class OdmFormAR(OdmARBase):
         library: LibraryVO,
         generate_uid_callback: Callable[[], str] = lambda: "",
         odm_object_exists_callback: Callable = lambda _: True,
-        find_term_callback: Callable[[str], CTTermAttributesAR | None] = lambda _: None,
         odm_description_exists_by_callback: Callable[
             [str, str, bool], bool
         ] = lambda x, y, z: True,
@@ -172,7 +158,6 @@ class OdmFormAR(OdmARBase):
 
         concept_vo.validate(
             odm_object_exists_callback=odm_object_exists_callback,
-            find_term_callback=find_term_callback,
             odm_description_exists_by_callback=odm_description_exists_by_callback,
             get_odm_description_parent_uids_callback=get_odm_description_parent_uids_callback,
             odm_alias_exists_by_callback=odm_alias_exists_by_callback,
@@ -195,7 +180,6 @@ class OdmFormAR(OdmARBase):
             [str, str, bool], bool
         ] = lambda x, y, z: True,
         odm_object_exists_callback: Callable = lambda _: True,
-        find_term_callback: Callable[[str], CTTermAttributesAR | None] = lambda _: None,
         odm_description_exists_by_callback: Callable[
             [str, str, bool], bool
         ] = lambda x, y, z: True,
@@ -211,7 +195,6 @@ class OdmFormAR(OdmARBase):
         """
         concept_vo.validate(
             odm_object_exists_callback=odm_object_exists_callback,
-            find_term_callback=find_term_callback,
             odm_description_exists_by_callback=odm_description_exists_by_callback,
             get_odm_description_parent_uids_callback=get_odm_description_parent_uids_callback,
             odm_alias_exists_by_callback=odm_alias_exists_by_callback,

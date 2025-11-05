@@ -6,9 +6,7 @@ import sys
 from pathlib import Path
 
 # Constants
-FALLBACK_LICENSE_DIR = (
-    Path(__file__).resolve().parent.parent.parent / "doc/sbom/licenses"
-)
+FALLBACK_LICENSE_DIR = Path(__file__).resolve().parent.parent.parent / "doc/sbom/licenses"
 
 
 # Utility functions
@@ -122,7 +120,7 @@ def generate_sbom(search_dirs, fallback_license_dir):
         package, version = line.strip().split("==")
         package_license_files = []
         for license_file in all_license_files:
-            if f"/{package.replace('-', '_')}-" in license_file:
+            if f"/{package.lower().replace('-', '_')}-" in license_file.lower():
                 package_license_files.append(license_file.strip())
                 # log(f"Found package {package} license file: {license_file.strip()}")
 

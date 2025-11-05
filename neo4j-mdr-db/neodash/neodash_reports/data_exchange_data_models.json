@@ -37,7 +37,7 @@
     "queryTimeLimit": 60,
     "theme": "light"
   },
-  "pages": [
+   "pages": [
     {
       "title": "ReadMe",
       "reports": [
@@ -959,8 +959,8 @@
         },
         {
           "title": "$neodash_model_uid Model Versions",
-          "query": "MATCH (n:DataModelRoot)-->(m:DataModelValue)\nWHERE n.uid=$neodash_model_uid\nRETURN DISTINCT \"Select\" AS select, m.name AS version ORDER BY version DESC",
-          "width": 6,
+          "query": "MATCH (n:DataModelRoot)-->(m:DataModelValue)<-[:IMPLEMENTS]-(ig:DataModelIGValue) WHERE n.uid=$neodash_model_uid RETURN DISTINCT 'Select' AS select, m.name AS version , collect(distinct ig.name) as `IG versions` ORDER BY version DESC",
+          "width": 7,
           "height": 5,
           "x": 6,
           "y": 0,
@@ -979,7 +979,7 @@
             ],
             "compact": true,
             "wrapContent": true,
-            "columnWidths": "[1,2]"
+            "columnWidths": "[1,1.5,2]"
           },
           "id": "77bb69b1-1d3b-416c-a365-bb440af9ba94"
         },
@@ -988,7 +988,7 @@
           "query": "MATCH (:DataModelValue {name: $neodash_model_version})\n-[rel:HAS_DATASET_CLASS]->(:DatasetClassInstance)<--(class:DatasetClass)\nWITH class.uid AS class, apoc.text.split(rel.ordinal, \"\\.\") AS split_ordinal ORDER BY toInteger(split_ordinal[0]), toInteger(coalesce(split_ordinal[1], 0))\nRETURN DISTINCT \"Select\" AS select, class",
           "width": 6,
           "height": 5,
-          "x": 12,
+          "x": 13,
           "y": 0,
           "type": "table",
           "selection": {},
@@ -1030,9 +1030,9 @@
         {
           "title": "$neodash_model_version Impl. by:",
           "query": "MATCH (:DataModelValue {name: $neodash_model_version})<-[:IMPLEMENTS]-(ig:DataModelIGValue)\nWITH collect(ig.name) AS names\nRETURN apoc.text.join(names, '\\n')\n",
-          "width": 6,
+          "width": 5,
           "height": 5,
-          "x": 18,
+          "x": 19,
           "y": 0,
           "type": "value",
           "selection": {},

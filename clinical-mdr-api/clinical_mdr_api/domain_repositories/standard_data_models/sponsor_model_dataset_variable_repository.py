@@ -6,6 +6,7 @@ from clinical_mdr_api.domain_repositories.library_item_repository import (
 )
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
     CTCodelistRoot,
+    CTTermContext,
     CTTermRoot,
 )
 from clinical_mdr_api.domain_repositories.models.generic import (
@@ -240,7 +241,15 @@ class SponsorModelDatasetVariableRepository(  # type: ignore[misc]
                 term_node,
                 msg=f"Could not find term with uid '{term_uid}'.",
             )
-            new_instance.references_term.connect(term_node)
+            for (
+                codelist_uid
+            ) in ar.sponsor_model_dataset_variable_vo.references_codelists:
+                codelist_node = CTCodelistRoot.nodes.get_or_none(uid=codelist_uid)
+                term_context = CTTermContext()
+                self._db_save_node(term_context)
+                term_context.has_selected_codelist.connect(codelist_node)
+                term_context.has_selected_term.connect(term_node)
+                new_instance.references_term.connect(term_context)
         return new_instance
 
     def _create_aggregate_root_instance_from_version_root_relationship_and_value(

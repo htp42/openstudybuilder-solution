@@ -1,4 +1,4 @@
-@REQ_ID:10742 @manual_test
+@REQ_ID:1074260 @manual_test
 Feature: Studies - Define Study - Study Activities - Schedule of Activities - Protocol
 
     As a system user,
@@ -11,6 +11,7 @@ Feature: Studies - Define Study - Study Activities - Schedule of Activities - Pr
         Given The user is logged in
         And A test study is selected
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to Protocol SoA page using side menu
         Given The '/studies' page is opened
         When The 'Study Activities' submenu is clicked in the 'Define Study' section
@@ -27,16 +28,19 @@ Feature: Studies - Define Study - Study Activities - Schedule of Activities - Pr
             | Show milestones |
         Then The Export option is visible
 
+    @smoke_test
     Scenario: [Navigation] User must be able to swich SoA Layout to Protocol SoA
         Given The test study '/activities/protocol' page is opened
         When The user switches the layout to 'Protocol SoA'
         Then The user is presented with 'Protocol SoA' layout
 
+    @smoke_test
     Scenario: [Navigation] User must be able to swich SoA Layout to Detailed SoA
         Given The test study '/activities/protocol' page is opened
         When The user switches the layout to 'Detailed SoA'
         Then The user is presented with 'Detailed SoA' layout
 
+    @smoke_test
     Scenario: [Navigation] User must be able to swich SoA Layout to Operational SoA
         Given The test study '/activities/protocol' page is opened
         When The user switches the layout to 'Operational SoA'

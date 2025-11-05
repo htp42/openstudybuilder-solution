@@ -90,7 +90,7 @@ def get_ct_catalogues_changes(
     """
 
     term_data_retrieval = f"""
-    MATCH (codelist_root:CTCodelistRoot)-[:HAS_TERM]->(term_root)-[:{relationship_type}]->
+    MATCH (codelist_root:CTCodelistRoot)-[:HAS_TERM]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->(term_root)-[:{relationship_type}]->
     (old_term_ver_root)-[old_versions]->(old_term_ver_value)
     WHERE old_versions.start_date < datetime($start_datetime)
     {term_filter_statements}
@@ -105,9 +105,9 @@ def get_ct_catalogues_changes(
          latest_date, 
          head([x IN old_versions_collection WHERE x.start_date = latest_date | x ]) AS latest_version
     WITH collect(apoc.map.fromValues([term_root.uid, {{value_node:old_term_ver_value, codelists:[
-        (term_root)<-[:HAS_TERM]-(codelist_root) | codelist_root.uid], change_date: latest_date}}])) AS old_items
+        (term_root)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm)<-[:HAS_TERM]-(codelist_root) | codelist_root.uid], change_date: latest_date}}])) AS old_items
 
-    MATCH (codelist_root:CTCodelistRoot)-[:HAS_TERM]->(term_root)-[:{relationship_type}]->
+    MATCH (codelist_root:CTCodelistRoot)-[:HAS_TERM]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->(term_root)-[:{relationship_type}]->
     (new_term_ver_root)-[new_versions]->(new_term_ver_value)
     WHERE new_versions.start_date < datetime($end_datetime)
     {term_filter_statements}
@@ -125,7 +125,7 @@ def get_ct_catalogues_changes(
          head([x IN new_versions_collection WHERE x.start_date = latest_date | x ]) AS latest_version
     WITH old_items, 
     collect(apoc.map.fromValues([term_root.uid, {{value_node:new_term_ver_value, codelists:[
-        (term_root)<-[:HAS_TERM]-(codelist_root) | codelist_root.uid], change_date: latest_date}}])) AS new_items
+        (term_root)<-[:HAS_TERM_ROOT]-(:CTCodelistTerm)<-[:HAS_TERM]-(codelist_root) | codelist_root.uid], change_date: latest_date}}])) AS new_items
     """
 
     term_return_clause = """

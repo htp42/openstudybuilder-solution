@@ -10,6 +10,7 @@ Feature: Library - Concepts - Activities - Activity Instances
         And The '/library/activities/activity-instances' page is opened
         When User sets status filter to 'all'
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to the Activities Instances page
         Given The '/library' page is opened
         When The 'Activities' submenu is clicked in the 'Concepts' section
@@ -27,6 +28,7 @@ Feature: Library - Concepts - Activities - Activity Instances
             | Add select boxes to table to allow selection of rows for export |
             | search-field                                                    |
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the columns list on the main page as below
         And A table is visible with following headers
             | headers                       |
@@ -53,6 +55,7 @@ Feature: Library - Concepts - Activities - Activity Instances
         When The first column is selected from Select Columns option for table with actions
         Then The table contain only selected column and actions column
 
+    @smoke_test
     Scenario: [Create][Positive case] User must be able to add a new Activity Instance
         When The Add Activity Instance button is clicked
         And All activity instance data is filled in
@@ -250,6 +253,7 @@ Feature: Library - Concepts - Activities - Activity Instances
         When The 'Edit' option is clicked from the three dot menu list 
         Then The edit form displays text 'Selected activity is in DRAFT state. Please move the activity to FINAL state before editing the Activity Instance.'
 
+    @smoke_test
     Scenario: [Table][Search][Postive case] User must be able to search created activity instance
         When [API] First activity instance for search test is created
         And [API] Second activity instance for search test is created

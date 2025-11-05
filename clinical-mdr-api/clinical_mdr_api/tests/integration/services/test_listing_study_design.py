@@ -57,10 +57,13 @@ class TestStudyListing(unittest.TestCase):
         inject_and_clear_db("StudyListingTest")
         TestUtils.create_library(name="UCUM", is_editable=True)
         global study
-        study = inject_base_data()
+        study, _ = inject_base_data()
         codelist = TestUtils.create_ct_codelist()
-        TestUtils.create_study_ct_data_map(codelist_uid=codelist.codelist_uid)
-        cls.study_uid = study.uid
+        TestUtils.create_study_ct_data_map(codelist_uid=None)
+        study_service = StudyService()
+        studies = study_service.get_all()
+        cls.study_uid = studies.items[0].uid
+
         cls.project_id = study.current_metadata.identification_metadata.project_number
         cls.study_number = study.current_metadata.identification_metadata.study_number
         # Inject study metadata
@@ -78,23 +81,37 @@ class TestStudyListing(unittest.TestCase):
         )
         # Create study elements
         element_type_codelist = create_codelist(
-            "Element Type", "CTCodelist_ElementType", catalogue_name, library_name
+            "Element Type",
+            "CTCodelist_ElementType",
+            catalogue_name,
+            library_name,
+            submission_value="ELEMSTP",
         )
         element_type_term = create_ct_term(
-            element_type_codelist.codelist_uid,
             "Element Type",
             "ElementType_0001",
-            1,
             catalogue_name,
             library_name,
+            codelists=[
+                {
+                    "uid": element_type_codelist.codelist_uid,
+                    "order": 1,
+                    "submission_value": "Element Type",
+                }
+            ],
         )
         element_type_term_2 = create_ct_term(
-            element_type_codelist.codelist_uid,
-            "Element Type",
+            "Element Type 2",
             "ElementType_0002",
-            2,
             catalogue_name,
             library_name,
+            codelists=[
+                {
+                    "uid": element_type_codelist.codelist_uid,
+                    "order": 2,
+                    "submission_value": "Element Type 2",
+                }
+            ],
         )
         study_elements = [
             create_study_element(element_type_term.uid, cls.study_uid),
@@ -107,14 +124,20 @@ class TestStudyListing(unittest.TestCase):
             uid="CTCodelist_00009",
             catalogue=catalogue_name,
             library=library_name,
+            submission_value="ARMTTP",
         )
         arm_type = create_ct_term(
-            codelist=codelist.codelist_uid,
             name="Arm Type",
             uid="ArmType_0001",
-            order=1,
             catalogue_name=catalogue_name,
             library_name=library_name,
+            codelists=[
+                {
+                    "uid": codelist.codelist_uid,
+                    "order": 1,
+                    "submission_value": "Arm Type",
+                }
+            ],
         )
 
         create_study_arm(
@@ -219,12 +242,23 @@ class TestStudyListing(unittest.TestCase):
             epoch2=study_epoch2,
         )
 
+        # Create criteria type codelist
+        crit_codelist = create_codelist(
+            name="Criteria Type",
+            uid="CTCodelist_00099",
+            catalogue=catalogue_name,
+            library=library_name,
+            submission_value="CRITRTP",
+        )
+
         # Create CT Terms
         ct_term_inclusion_criteria = TestUtils.create_ct_term(
-            sponsor_preferred_name="INCLUSION CRITERIA"
+            sponsor_preferred_name="INCLUSION CRITERIA",
+            codelist_uid=crit_codelist.codelist_uid,
         )
         ct_term_exclusion_criteria = TestUtils.create_ct_term(
-            sponsor_preferred_name="EXCLUSION CRITERIA"
+            sponsor_preferred_name="EXCLUSION CRITERIA",
+            codelist_uid=crit_codelist.codelist_uid,
         )
 
         # Create criteria templates

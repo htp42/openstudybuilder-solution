@@ -8,12 +8,10 @@ from starlette.requests import Request
 
 from clinical_mdr_api.models.biomedical_concepts.activity_item_class import (
     ActivityItemClass,
+    ActivityItemClassCodelist,
     ActivityItemClassCreateInput,
     ActivityItemClassEditInput,
     ActivityItemClassMappingInput,
-)
-from clinical_mdr_api.models.controlled_terminologies.ct_term import (
-    TermWithCodelistMetadata,
 )
 from clinical_mdr_api.models.utils import CustomPage
 from clinical_mdr_api.repositories._utils import FilterOperator
@@ -225,53 +223,30 @@ def get_versions(
 
 
 @router.get(
-    "/{activity_item_class_uid}/datasets/{dataset_uid}/terms",
+    "/{activity_item_class_uid}/datasets/{dataset_uid}/codelists",
     dependencies=[security, rbac.LIBRARY_READ],
-    summary="Returns all terms names and attributes.",
-    description=_generic_descriptions.DATA_EXPORTS_HEADER,
+    summary="Returns all related codelists.",
+    description="""
+State before:
+ - uids of actvity item class and dataset must exist.
+
+Business logic:
+ - List the codelists related to the given activity item class.
+
+State after:
+ - No change
+
+Possible errors:
+ - Invalid uids.
+    """,
     response_model_exclude_unset=True,
     status_code=200,
     responses={
         404: _generic_descriptions.ERROR_404,
     },
 )
-@decorators.allow_exports(
-    {
-        "defaults": [
-            "term_uid",
-            "catalogue_name",
-            "codelist_uid",
-            "library_name",
-            "name.sponsor_preferred_name",
-            "name.sponsor_preferred_name_sentence_case",
-            "name.order",
-            "name.start_date",
-            "name.end_date",
-            "name.status",
-            "name.version",
-            "name.change_description",
-            "name.author_username",
-            "attributes.code_submission_value",
-            "attributes.name_submission_value",
-            "attributes.nci_preferred_name",
-            "attributes.definition",
-            "attributes.start_date",
-            "attributes.end_date",
-            "attributes.status",
-            "attributes.version",
-            "attributes.change_description",
-            "attributes.author_username",
-        ],
-        "formats": [
-            "text/csv",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "text/xml",
-            "application/json",
-        ],
-    }
-)
 # pylint: disable=unused-argument
-def get_all_terms(
+def get_all_codelists(
     request: Request,  # request is actually required by the allow_exports decorator
     activity_item_class_uid: Annotated[str, ActivityItemClassUID],
     dataset_uid: Annotated[str, DatasetUID],
@@ -312,8 +287,8 @@ def get_all_terms(
     total_count: Annotated[
         bool, Query(description=_generic_descriptions.TOTAL_COUNT)
     ] = False,
-) -> CustomPage[TermWithCodelistMetadata]:
-    results = ActivityItemClassService().get_terms_of_activity_item_class(
+) -> CustomPage[ActivityItemClassCodelist]:
+    results = ActivityItemClassService().get_codelists_of_activity_item_class(
         activity_item_class_uid=activity_item_class_uid,
         dataset_uid=dataset_uid,
         use_sponsor_model=use_sponsor_model,

@@ -49,6 +49,9 @@ from clinical_mdr_api.domains.concepts.simple_concepts.numeric_value_with_unit i
 from clinical_mdr_api.domains.concepts.unit_definitions.unit_definition import (
     UnitDefinitionAR,
 )
+from clinical_mdr_api.domains.controlled_terminologies.ct_codelist_term import (
+    CTSimpleCodelistTermAR,
+)
 from clinical_mdr_api.domains.enums import StudyDesignClassEnum, StudySourceVariableEnum
 from clinical_mdr_api.domains.study_selections.study_activity_instruction import (
     StudyActivityInstructionVO,
@@ -108,18 +111,19 @@ from clinical_mdr_api.domains.study_selections.study_selection_objective import 
 from clinical_mdr_api.domains.study_selections.study_soa_group_selection import (
     StudySoAGroupVO,
 )
-from clinical_mdr_api.models.concepts.activities.activity import (
-    Activity,
-    ActivityForStudyActivity,
+from clinical_mdr_api.models.biomedical_concepts.activity_instance_class import (
+    CompactActivityInstanceClass,
 )
-from clinical_mdr_api.models.concepts.activities.activity_instance import (
-    ActivityInstance,
+from clinical_mdr_api.models.concepts.activities.activity import (
+    ActivityForStudyActivity,
 )
 from clinical_mdr_api.models.concepts.compound import Compound
 from clinical_mdr_api.models.concepts.compound_alias import CompoundAlias
 from clinical_mdr_api.models.concepts.concept import Concept, SimpleNumericValueWithUnit
 from clinical_mdr_api.models.concepts.medicinal_product import MedicinalProduct
-from clinical_mdr_api.models.controlled_terminologies.ct_term import SimpleTermModel
+from clinical_mdr_api.models.controlled_terminologies.ct_term import (
+    SimpleCodelistTermModel,
+)
 from clinical_mdr_api.models.controlled_terminologies.ct_term_name import CTTermName
 from clinical_mdr_api.models.error import BatchErrorResponse
 from clinical_mdr_api.models.study_selections.duration import DurationJsonModel
@@ -291,7 +295,7 @@ class StudySelectionObjectiveCore(StudySelection):
     ]
 
     objective_level: Annotated[
-        CTTermName | None,
+        SimpleCodelistTermModel | None,
         Field(description=OBJECTIVE_LEVEL_DESC, json_schema_extra={"nullable": True}),
     ] = None
 
@@ -334,15 +338,18 @@ class StudySelectionObjectiveCore(StudySelection):
         cls,
         study_selection_history: StudyObjectiveSelectionHistory,
         study_uid: str,
-        get_ct_term_objective_level: Callable[..., CTTermName],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         get_objective_by_uid_version_callback: Callable[[str, str | None], Objective],
         effective_date: datetime | None = None,
     ) -> Self:
         if study_selection_history.objective_level_uid:
-            objective_level = get_ct_term_objective_level(
-                study_selection_history.objective_level_uid,
-                codelist_name=settings.study_objective_level_name,
-                at_specific_date=effective_date,
+            objective_level = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.objective_level_uid,
+                codelist_submission_value=settings.study_objective_level_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=effective_date,
             )
         else:
             objective_level = None
@@ -457,7 +464,9 @@ class StudySelectionObjective(StudySelectionObjectiveCore):
         order: int,
         get_objective_by_uid_callback: Callable[[str], Objective],
         get_objective_by_uid_version_callback: Callable[[str, str | None], Objective],
-        get_ct_term_by_uid: Callable[..., CTTermName],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         get_study_endpoint_count_callback: Callable[[str, str, str | None], int],
         find_project_by_study_uid: Callable,
         terms_at_specific_datetime: datetime | None,
@@ -482,10 +491,11 @@ class StudySelectionObjective(StudySelectionObjectiveCore):
         )
 
         if single_study_selection.objective_level_uid:
-            objective_level = get_ct_term_by_uid(
-                single_study_selection.objective_level_uid,
-                codelist_name=settings.study_objective_level_name,
-                at_specific_date=terms_at_specific_datetime,
+            objective_level = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=single_study_selection.objective_level_uid,
+                codelist_submission_value=settings.study_objective_level_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             )
         else:
             objective_level = None
@@ -618,7 +628,7 @@ class StudySelectionEndpoint(StudySelection):
     ] = None
 
     endpoint_level: Annotated[
-        CTTermName | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="level defining the endpoint",
             json_schema_extra={"nullable": True},
@@ -626,7 +636,7 @@ class StudySelectionEndpoint(StudySelection):
     ] = None
 
     endpoint_sublevel: Annotated[
-        CTTermName | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="sub level defining the endpoint",
             json_schema_extra={"nullable": True},
@@ -776,7 +786,9 @@ class StudySelectionEndpoint(StudySelection):
         get_latest_endpoint_by_uid: Callable[[str], Endpoint],
         get_timeframe_by_uid_and_version: Callable[[str, str | None], Timeframe],
         get_latest_timeframe: Callable[[str], Timeframe],
-        get_ct_term_by_uid: Callable[..., CTTermName],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         get_study_objective_by_uid: Callable[..., StudySelectionObjective],
         find_project_by_study_uid: Callable,
         terms_at_specific_datetime: datetime | None,
@@ -834,18 +846,20 @@ class StudySelectionEndpoint(StudySelection):
                     object_to_clear=study_obj_model.objective
                 )
         if study_selection.endpoint_level_uid:
-            endpoint_level = get_ct_term_by_uid(
-                study_selection.endpoint_level_uid,
-                codelist_name=settings.study_endpoint_level_name,
-                at_specific_date=terms_at_specific_datetime,
+            endpoint_level = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection.endpoint_level_uid,
+                codelist_submission_value=settings.study_endpoint_level_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             )
         else:
             endpoint_level = None
         if study_selection.endpoint_sublevel_uid:
-            endpoint_sublevel = get_ct_term_by_uid(
-                study_selection.endpoint_sublevel_uid,
-                codelist_name="Endpoint Sub Level",
-                at_specific_date=terms_at_specific_datetime,
+            endpoint_sublevel = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection.endpoint_sublevel_uid,
+                codelist_submission_value=settings.study_endpoint_sublevel_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             )
         else:
             endpoint_sublevel = None
@@ -892,7 +906,9 @@ class StudySelectionEndpoint(StudySelection):
         study_uid: str,
         get_endpoint_by_uid: Callable[[str, str | None], Endpoint],
         get_timeframe_by_uid: Callable[[str, str | None], Timeframe],
-        get_ct_term_by_uid: Callable[..., CTTermName],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         get_study_objective_by_uid: Callable[..., StudySelectionObjective],
         effective_date: datetime | None = None,
     ) -> Self:
@@ -919,17 +935,20 @@ class StudySelectionEndpoint(StudySelection):
         else:
             study_objective = None
         if study_selection_history.endpoint_level:
-            endpoint_level = get_ct_term_by_uid(
-                study_selection_history.endpoint_level,
-                codelist_name=settings.study_endpoint_level_name,
-                at_specific_date=effective_date,
+            endpoint_level = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.endpoint_level,
+                codelist_submission_value=settings.study_endpoint_level_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=effective_date,
             )
         else:
             endpoint_level = None
         if study_selection_history.endpoint_sublevel:
-            endpoint_sublevel = get_ct_term_by_uid(
-                study_selection_history.endpoint_sublevel,
-                codelist_name="Endpoint Sub Level",
+            endpoint_sublevel = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.endpoint_sublevel,
+                codelist_submission_value=settings.study_endpoint_sublevel_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=effective_date,
             )
         else:
             endpoint_sublevel = None
@@ -1065,7 +1084,9 @@ class StudySelectionCompound(StudySelection):
         compound_model: Compound | None,
         compound_alias_model: CompoundAlias | None,
         medicinal_product_model: MedicinalProduct | None,
-        find_simple_term_model_name_by_term_uid: Callable,
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         find_project_by_study_uid: Callable,
         terms_at_specific_datetime: datetime | None,
         study_value_version: str | None = None,
@@ -1083,26 +1104,36 @@ class StudySelectionCompound(StudySelection):
             compound=compound_model,
             compound_alias=compound_alias_model,
             medicinal_product=medicinal_product_model,
-            type_of_treatment=find_simple_term_model_name_by_term_uid(
-                selection.type_of_treatment_uid,
-                at_specific_date=terms_at_specific_datetime,
+            type_of_treatment=SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=selection.type_of_treatment_uid,
+                codelist_submission_value=settings.type_of_treatment_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             ),
-            dose_frequency=find_simple_term_model_name_by_term_uid(
-                selection.dose_frequency_uid,
-                at_specific_date=terms_at_specific_datetime,
+            dose_frequency=SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=selection.dose_frequency_uid,
+                codelist_submission_value=settings.dose_frequency_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             ),
-            dispenser=find_simple_term_model_name_by_term_uid(
-                selection.dispenser_uid,
-                at_specific_date=terms_at_specific_datetime,
+            dispenser=SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=selection.dispenser_uid,
+                codelist_submission_value=settings.compound_dispensed_in_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             ),
-            delivery_device=find_simple_term_model_name_by_term_uid(
-                selection.delivery_device_uid,
-                at_specific_date=terms_at_specific_datetime,
+            delivery_device=SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=selection.delivery_device_uid,
+                codelist_submission_value=settings.delivery_device_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             ),
             other_info=selection.other_info,
-            reason_for_missing_null_value=find_simple_term_model_name_by_term_uid(
-                selection.reason_for_missing_value_uid,
-                at_specific_date=terms_at_specific_datetime,
+            reason_for_missing_null_value=SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=selection.reason_for_missing_value_uid,
+                codelist_submission_value=settings.null_flavor_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             ),
             start_date=selection.start_date,
             author_username=selection.author_username,
@@ -1137,7 +1168,7 @@ class StudySelectionCompound(StudySelection):
     ]
 
     type_of_treatment: Annotated[
-        SimpleTermModel | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="type of treatment uid defined for the selection",
             json_schema_extra={"nullable": True},
@@ -1145,7 +1176,7 @@ class StudySelectionCompound(StudySelection):
     ] = None
 
     dispenser: Annotated[
-        SimpleTermModel | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="route of administration defined for the study selection",
             json_schema_extra={"nullable": True},
@@ -1153,7 +1184,7 @@ class StudySelectionCompound(StudySelection):
     ] = None
 
     dose_frequency: Annotated[
-        SimpleTermModel | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="dose frequency defined for the study selection",
             json_schema_extra={"nullable": True},
@@ -1161,7 +1192,7 @@ class StudySelectionCompound(StudySelection):
     ] = None
 
     dispensed_in: Annotated[
-        SimpleTermModel | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="dispense method defined for the study selection",
             json_schema_extra={"nullable": True},
@@ -1169,7 +1200,7 @@ class StudySelectionCompound(StudySelection):
     ] = None
 
     delivery_device: Annotated[
-        SimpleTermModel | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="delivery device used for the compound in the study selection",
             json_schema_extra={"nullable": True},
@@ -1185,7 +1216,7 @@ class StudySelectionCompound(StudySelection):
     ] = None
 
     reason_for_missing_null_value: Annotated[
-        SimpleTermModel | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="Reason why no compound is used in the study selection, e.g. exploratory study",
             json_schema_extra={"nullable": True},
@@ -1227,7 +1258,9 @@ class StudySelectionCompound(StudySelection):
         get_compound_by_uid: Callable[[str], Compound],
         get_compound_alias_by_uid: Callable[[str], CompoundAlias],
         get_medicinal_product_by_uid: Callable[[str | None], MedicinalProduct | None],
-        find_simple_term_model_name_by_term_uid: Callable,
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
     ) -> Self:
         if study_selection_history.compound_uid:
             compound = get_compound_by_uid(study_selection_history.compound_uid)
@@ -1247,27 +1280,56 @@ class StudySelectionCompound(StudySelection):
             )
         else:
             medicinal_product = None
-
+        if study_selection_history.type_of_treatment_uid:
+            type_of_treatment = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.type_of_treatment_uid,
+                codelist_submission_value=settings.type_of_treatment_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            )
+        else:
+            type_of_treatment = None
+        if study_selection_history.dispenser_uid:
+            dispenser = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.dispenser_uid,
+                codelist_submission_value=settings.compound_dispensed_in_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            )
+        else:
+            dispenser = None
+        if study_selection_history.dose_frequency_uid:
+            dose_frequency = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.dose_frequency_uid,
+                codelist_submission_value=settings.dose_frequency_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            )
+        else:
+            dose_frequency = None
+        if study_selection_history.delivery_device_uid:
+            delivery_device = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.delivery_device_uid,
+                codelist_submission_value=settings.delivery_device_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            )
+        else:
+            delivery_device = None
+        if study_selection_history.reason_for_missing_value_uid:
+            reason_for_missing_null_value = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.reason_for_missing_value_uid,
+                codelist_submission_value=settings.null_flavor_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            )
+        else:
+            reason_for_missing_null_value = None
         return cls(
             study_compound_uid=study_selection_history.study_selection_uid,
             order=study_selection_history.order,
             study_uid=study_uid,
-            type_of_treatment=find_simple_term_model_name_by_term_uid(
-                study_selection_history.type_of_treatment_uid
-            ),
-            dispenser=find_simple_term_model_name_by_term_uid(
-                study_selection_history.dispenser_uid
-            ),
-            dose_frequency=find_simple_term_model_name_by_term_uid(
-                study_selection_history.dose_frequency_uid
-            ),
-            delivery_device=find_simple_term_model_name_by_term_uid(
-                study_selection_history.delivery_device_uid
-            ),
+            type_of_treatment=type_of_treatment,
+            dispenser=dispenser,
+            dose_frequency=dose_frequency,
+            delivery_device=delivery_device,
             other_info=study_selection_history.other_info,
-            reason_for_missing_null_value=find_simple_term_model_name_by_term_uid(
-                study_selection_history.reason_for_missing_value_uid
-            ),
+            reason_for_missing_null_value=reason_for_missing_null_value,
             start_date=study_selection_history.start_date,
             compound=compound,
             compound_alias=compound_alias,
@@ -1371,7 +1433,7 @@ class StudySelectionCriteriaCore(StudySelection):
     ]
 
     criteria_type: Annotated[
-        CTTermName | None, Field(json_schema_extra={"nullable": True})
+        SimpleCodelistTermModel | None, Field(json_schema_extra={"nullable": True})
     ] = None
 
     criteria: Annotated[
@@ -1498,7 +1560,9 @@ class StudySelectionCriteria(StudySelectionCriteriaCore):
         get_criteria_template_by_uid_version_callback: Callable[
             [str, str | None], CriteriaTemplate
         ],
-        get_ct_term_criteria_type: Callable[..., CTTermName],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         find_project_by_study_uid: Callable,
         terms_at_specific_datetime: datetime | None,
         accepted_version: bool = False,
@@ -1521,9 +1585,11 @@ class StudySelectionCriteria(StudySelectionCriteriaCore):
         study_criteria_uid = single_study_selection.study_selection_uid
         criteria_template_uid = single_study_selection.syntax_object_uid
 
-        criteria_type = get_ct_term_criteria_type(
-            criteria_type_uid,
-            at_specific_date=terms_at_specific_datetime,
+        criteria_type = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+            term_uid=criteria_type_uid,
+            codelist_submission_value=settings.syntax_criteria_type_cl_submval,
+            find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            at_specific_date_time=terms_at_specific_datetime,
         )
 
         assert criteria_template_uid is not None
@@ -1570,7 +1636,9 @@ class StudySelectionCriteria(StudySelectionCriteriaCore):
         criteria_type_order: int,
         get_criteria_by_uid_callback: Callable[[str], Criteria],
         get_criteria_by_uid_version_callback: Callable[[str, str | None], Criteria],
-        get_ct_term_criteria_type: Callable[..., CTTermName],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         find_project_by_study_uid: Callable,
         terms_at_specific_datetime: datetime | None,
         no_brackets: bool = False,
@@ -1594,9 +1662,11 @@ class StudySelectionCriteria(StudySelectionCriteriaCore):
         study_criteria_uid = single_study_selection.study_selection_uid
         criteria_uid = single_study_selection.syntax_object_uid
 
-        criteria_type = get_ct_term_criteria_type(
-            criteria_type_uid,
-            at_specific_date=terms_at_specific_datetime,
+        criteria_type = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+            term_uid=criteria_type_uid,
+            codelist_submission_value=settings.syntax_criteria_type_cl_submval,
+            find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            at_specific_date_time=terms_at_specific_datetime,
         )
 
         assert criteria_uid is not None
@@ -1646,7 +1716,9 @@ class StudySelectionCriteria(StudySelectionCriteriaCore):
         get_criteria_template_by_uid_version_callback: Callable[
             [str, str | None], CriteriaTemplate
         ],
-        get_ct_term_criteria_type: Callable[..., CTTermName],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         find_project_by_study_uid: Callable,
         terms_at_specific_datetime: datetime | None,
         accepted_version: bool = False,
@@ -1660,9 +1732,11 @@ class StudySelectionCriteria(StudySelectionCriteriaCore):
         study_criteria_uid = study_selection_criteria_vo.study_selection_uid
         criteria_template_uid = study_selection_criteria_vo.syntax_object_uid
 
-        criteria_type = get_ct_term_criteria_type(
-            study_selection_criteria_vo.criteria_type_uid,
-            at_specific_date=terms_at_specific_datetime,
+        criteria_type = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+            term_uid=study_selection_criteria_vo.criteria_type_uid,
+            codelist_submission_value=settings.syntax_criteria_type_cl_submval,
+            find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            at_specific_date_time=terms_at_specific_datetime,
         )
 
         assert criteria_template_uid is not None
@@ -1708,7 +1782,9 @@ class StudySelectionCriteria(StudySelectionCriteriaCore):
         study_selection_criteria_vo: StudySelectionCriteriaVO,
         get_criteria_by_uid_callback: Callable[[str], Criteria],
         get_criteria_by_uid_version_callback: Callable[[str, str | None], Criteria],
-        get_ct_term_criteria_type: Callable[..., CTTermName],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         find_project_by_study_uid: Callable,
         terms_at_specific_datetime: datetime | None,
         no_brackets: bool = False,
@@ -1723,9 +1799,11 @@ class StudySelectionCriteria(StudySelectionCriteriaCore):
         study_criteria_uid = study_selection_criteria_vo.study_selection_uid
         criteria_uid = study_selection_criteria_vo.syntax_object_uid
 
-        criteria_type = get_ct_term_criteria_type(
-            study_selection_criteria_vo.criteria_type_uid,
-            at_specific_date=terms_at_specific_datetime,
+        criteria_type = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+            term_uid=study_selection_criteria_vo.criteria_type_uid,
+            codelist_submission_value=settings.syntax_criteria_type_cl_submval,
+            find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+            at_specific_date_time=terms_at_specific_datetime,
         )
 
         assert criteria_uid is not None
@@ -2362,6 +2440,163 @@ class StudyActivitySyncLatestVersionInput(BaseModel):
 #
 # Study Activity Instance
 #
+class CompactActivity(BaseModel):
+    uid: Annotated[str, Field(description="Activity UID")]
+    name: Annotated[
+        str | None,
+        Field(description="Activity name", json_schema_extra={"nullable": True}),
+    ] = None
+    library_name: Annotated[
+        str | None,
+        Field(
+            description="Activity library name", json_schema_extra={"nullable": True}
+        ),
+    ] = None
+    is_data_collected: Annotated[
+        bool, Field(description="Specifies if Activity is meant for data collection")
+    ]
+
+    @classmethod
+    def activity_from_study_activity_instance_vo(
+        cls,
+        study_activity_instance_vo: (
+            StudySelectionActivityInstanceVO | StudyActivityInstanceSelectionHistory
+        ),
+    ) -> Self:
+        return cls(
+            uid=study_activity_instance_vo.activity_uid,
+            name=study_activity_instance_vo.activity_name,
+            library_name=study_activity_instance_vo.activity_library_name,
+            is_data_collected=study_activity_instance_vo.activity_is_data_collected,
+        )
+
+
+class CompactActivityInstance(BaseModel):
+    uid: Annotated[
+        str | None,
+        Field(
+            description="Activity instance UID", json_schema_extra={"nullable": True}
+        ),
+    ] = None
+    name: Annotated[
+        str | None,
+        Field(
+            description="Activity instance name", json_schema_extra={"nullable": True}
+        ),
+    ] = None
+    topic_code: Annotated[
+        str | None,
+        Field(
+            description="Activity instance topic code",
+            json_schema_extra={"nullable": True},
+        ),
+    ] = None
+    adam_param_code: Annotated[
+        str | None,
+        Field(
+            description="Activity instance adam param code",
+            json_schema_extra={"nullable": True},
+        ),
+    ] = None
+    activity_instance_class: Annotated[
+        CompactActivityInstanceClass,
+        Field(description="The uid and the name of the linked activity instance class"),
+    ]
+    class_uid: Annotated[
+        str | None,
+        Field(
+            description="Activity instance class UID",
+            json_schema_extra={"nullable": True},
+        ),
+    ] = None
+    class_name: Annotated[
+        str | None,
+        Field(
+            description="Activity instance class name",
+            json_schema_extra={"nullable": True},
+        ),
+    ] = None
+    specimen: Annotated[
+        str | None,
+        Field(
+            description="Activity instance specimen",
+            json_schema_extra={"nullable": True},
+        ),
+    ] = None
+    test_name_code: Annotated[
+        str | None,
+        Field(
+            description="Activity instance test name code",
+            json_schema_extra={"nullable": True},
+        ),
+    ] = None
+    standard_unit: Annotated[
+        str | None,
+        Field(
+            description="Activity instance standard unit",
+            json_schema_extra={"nullable": True},
+        ),
+    ] = None
+    version: Annotated[
+        str | None,
+        Field(
+            description="Activity instance version",
+            json_schema_extra={"nullable": True},
+        ),
+    ] = None
+    is_default_selected_for_activity: Annotated[
+        bool,
+        Field(
+            description="Specifies whether given Activity Instance is selected by default for an Activity"
+        ),
+    ] = False
+    is_required_for_activity: Annotated[
+        bool,
+        Field(
+            description="Specifies whether given Activity Instance is required for an Activity"
+        ),
+    ] = False
+
+    @classmethod
+    def activity_instance_from_study_activity_instance_vo(
+        cls,
+        study_activity_instance_vo: (
+            StudySelectionActivityInstanceVO | StudyActivityInstanceSelectionHistory
+        ),
+    ) -> Self:
+        return cls(
+            uid=study_activity_instance_vo.activity_instance_uid,
+            name=study_activity_instance_vo.activity_instance_name,
+            topic_code=study_activity_instance_vo.activity_instance_topic_code,
+            adam_param_code=study_activity_instance_vo.activity_instance_adam_param_code,
+            activity_instance_class=CompactActivityInstanceClass(
+                uid=study_activity_instance_vo.activity_instance_class_uid,
+                name=study_activity_instance_vo.activity_instance_class_name,
+            ),
+            specimen=study_activity_instance_vo.activity_instance_specimen,
+            test_name_code=study_activity_instance_vo.activity_instance_test_name_code,
+            standard_unit=study_activity_instance_vo.activity_instance_standard_unit,
+            version=study_activity_instance_vo.activity_instance_version,
+            is_default_selected_for_activity=study_activity_instance_vo.activity_instance_is_default_selected_for_activity,
+            is_required_for_activity=study_activity_instance_vo.activity_instance_is_required_for_activity,
+        )
+
+    @classmethod
+    def latest_activity_instance_from_study_activity_instance_vo(
+        cls, study_activity_instance_vo: StudySelectionActivityInstanceVO
+    ) -> Self:
+        return cls(
+            uid=study_activity_instance_vo.latest_activity_instance_uid,
+            name=study_activity_instance_vo.latest_activity_instance_name,
+            topic_code=study_activity_instance_vo.latest_activity_instance_topic_code,
+            activity_instance_class=CompactActivityInstanceClass(
+                uid=study_activity_instance_vo.activity_instance_class_uid,
+                name=study_activity_instance_vo.activity_instance_class_name,
+            ),
+            version=study_activity_instance_vo.latest_activity_instance_version,
+        )
+
+
 class StudySelectionActivityInstance(BaseModel):
     study_uid: Annotated[
         str | None,
@@ -2397,9 +2632,9 @@ class StudySelectionActivityInstance(BaseModel):
             json_schema_extra={"nullable": True},
         ),
     ] = None
-    activity: Annotated[Activity, Field()]
+    activity: Annotated[CompactActivity, Field()]
     activity_instance: Annotated[
-        ActivityInstance | None, Field(json_schema_extra={"nullable": True})
+        CompactActivityInstance | None, Field(json_schema_extra={"nullable": True})
     ] = None
     start_date: Annotated[
         datetime | None,
@@ -2416,15 +2651,8 @@ class StudySelectionActivityInstance(BaseModel):
     end_date: Annotated[datetime | None, END_DATE_FIELD] = None
     status: Annotated[str | None, STATUS_FIELD] = None
     change_type: Annotated[str | None, CHANGE_TYPE_FIELD] = None
-    latest_activity: Annotated[
-        Activity | None,
-        Field(
-            description="Latest version of activity selected for study.",
-            json_schema_extra={"nullable": True},
-        ),
-    ] = None
     latest_activity_instance: Annotated[
-        ActivityInstance | None,
+        CompactActivityInstance | None,
         Field(
             description="Latest version of activity instace selected for study.",
             json_schema_extra={"nullable": True},
@@ -2440,7 +2668,9 @@ class StudySelectionActivityInstance(BaseModel):
 
     @classmethod
     def _get_state_out_of_activity_and_activity_instance(
-        cls, activity: Activity, activity_instance: ActivityInstance | None
+        cls,
+        activity: CompactActivity,
+        activity_instance: CompactActivityInstance | None,
     ) -> StudyActivityInstanceState:
         if activity.is_data_collected:
             if activity_instance:
@@ -2457,21 +2687,17 @@ class StudySelectionActivityInstance(BaseModel):
         cls,
         study_selection_history: StudyActivityInstanceSelectionHistory,
         study_uid: str,
-        get_activity_by_uid_version_callback: Callable[[str, str | None], Activity],
-        get_activity_instance_by_uid_version_callback: Callable[
-            [str, str | None], ActivityInstance
-        ],
     ) -> Self:
-        activity = get_activity_by_uid_version_callback(
-            study_selection_history.activity_uid,
-            study_selection_history.activity_version,
+        activity = CompactActivity.activity_from_study_activity_instance_vo(
+            study_activity_instance_vo=study_selection_history
         )
-        activity_instance = None
-        if study_selection_history.activity_instance_uid:
-            activity_instance = get_activity_instance_by_uid_version_callback(
-                study_selection_history.activity_instance_uid,
-                study_selection_history.activity_instance_version,
+        activity_instance = (
+            CompactActivityInstance.activity_instance_from_study_activity_instance_vo(
+                study_activity_instance_vo=study_selection_history
             )
+            if study_selection_history.activity_instance_uid
+            else None
+        )
         return cls(
             study_uid=study_uid,
             study_activity_instance_uid=study_selection_history.study_selection_uid,
@@ -2480,6 +2706,35 @@ class StudySelectionActivityInstance(BaseModel):
             start_date=study_selection_history.start_date,
             activity=activity,
             activity_instance=activity_instance,
+            study_activity_subgroup=(
+                SimpleStudyActivitySubGroup(
+                    study_activity_subgroup_uid=study_selection_history.study_activity_subgroup_uid,
+                    activity_subgroup_uid=study_selection_history.activity_subgroup_uid,
+                    activity_subgroup_name=study_selection_history.activity_subgroup_name,
+                )
+                if study_selection_history.study_activity_subgroup_uid
+                else None
+            ),
+            study_activity_group=(
+                SimpleStudyActivityGroup(
+                    study_activity_group_uid=study_selection_history.study_activity_group_uid,
+                    activity_group_uid=study_selection_history.activity_group_uid,
+                    activity_group_name=study_selection_history.activity_group_name,
+                )
+                if study_selection_history.study_activity_group_uid
+                else None
+            ),
+            study_soa_group=(
+                SimpleStudySoAGroup(
+                    study_soa_group_uid=study_selection_history.study_soa_group_uid,
+                    soa_group_term_uid=study_selection_history.soa_group_term_uid,
+                    soa_group_term_name=study_selection_history.soa_group_term_name,
+                )
+                if study_selection_history.study_soa_group_uid
+                and study_selection_history.soa_group_term_uid
+                and study_selection_history.soa_group_term_name
+                else None
+            ),
             end_date=study_selection_history.end_date,
             change_type=study_selection_history.change_type,
             author_username=UserInfoService.get_author_username_from_id(
@@ -2495,49 +2750,33 @@ class StudySelectionActivityInstance(BaseModel):
         cls,
         study_uid: str,
         study_selection: StudySelectionActivityInstanceVO,
-        get_activity_by_uid_callback: Callable[[str], ActivityForStudyActivity],
-        get_activity_by_uid_version_callback: Callable[
-            [str, str | None], ActivityForStudyActivity
-        ],
-        get_activity_instance_by_uid_callback: Callable[[str], ActivityInstance],
-        get_activity_instance_by_uid_version_callback: Callable[
-            [str, str | None], ActivityInstance
-        ],
-        activity_versions_by_uid: (
-            Mapping[str, Iterable[ActivityForStudyActivity]] | None
-        ) = None,
-        activity_instance_versions_by_uid: (
-            Mapping[str, Iterable[ActivityInstance]] | None
-        ) = None,
     ) -> Self:
 
-        latest_activity, selected_activity = _find_versions(
-            uid=study_selection.activity_uid,
-            version=study_selection.activity_version,
-            versions_by_uid=activity_versions_by_uid,
-            get_by_uid_callback=get_activity_by_uid_callback,
-            get_by_uid_version_callback=get_activity_by_uid_version_callback,
+        selected_activity = CompactActivity.activity_from_study_activity_instance_vo(
+            study_activity_instance_vo=study_selection
         )
-
-        latest_activity_instance, selected_activity_instance = (
-            _find_versions(
-                uid=study_selection.activity_instance_uid,
-                version=study_selection.activity_instance_version,
-                versions_by_uid=activity_instance_versions_by_uid,
-                get_by_uid_callback=get_activity_instance_by_uid_callback,
-                get_by_uid_version_callback=get_activity_instance_by_uid_version_callback,
+        selected_activity_instance = (
+            CompactActivityInstance.activity_instance_from_study_activity_instance_vo(
+                study_activity_instance_vo=study_selection
             )
             if study_selection.activity_instance_uid
-            else (None, None)
+            else None
         )
 
         return cls(
             study_activity_instance_uid=study_selection.study_selection_uid,
             study_activity_uid=study_selection.study_activity_uid,
             activity=selected_activity,
-            latest_activity=latest_activity,
             activity_instance=selected_activity_instance,
-            latest_activity_instance=latest_activity_instance,
+            latest_activity_instance=(
+                CompactActivityInstance.latest_activity_instance_from_study_activity_instance_vo(
+                    study_activity_instance_vo=study_selection
+                )
+                if study_selection.latest_activity_instance_version
+                and study_selection.activity_instance_version
+                != study_selection.latest_activity_instance_version
+                else None
+            ),
             show_activity_instance_in_protocol_flowchart=study_selection.show_activity_instance_in_protocol_flowchart,
             keep_old_version=study_selection.keep_old_version,
             study_uid=study_uid,
@@ -2855,7 +3094,7 @@ class StudyDesignCell(BaseModel):
         Field(
             description="the name of the related study epoch",
             json_schema_extra={
-                "source": "study_epoch.has_epoch.has_name_root.has_latest_value.name"
+                "source": "study_epoch.has_epoch.has_selected_term.has_name_root.has_latest_value.name"
             },
         ),
     ]
@@ -3279,7 +3518,7 @@ class StudySelectionArm(StudySelection):
     ] = None
 
     arm_type: Annotated[
-        CTTermName | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="type for the study arm", json_schema_extra={"nullable": True}
         ),
@@ -3321,13 +3560,17 @@ class StudySelectionArm(StudySelection):
         study_uid: str,
         selection: StudySelectionArmVO,
         order: int,
-        find_simple_term_arm_type_by_term_uid: Callable,
+        find_codelist_term_arm_type: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         terms_at_specific_datetime: datetime | None,
     ):
         if selection.arm_type_uid:
-            arm_type_call_back = find_simple_term_arm_type_by_term_uid(
+            arm_type_call_back = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
                 term_uid=selection.arm_type_uid,
-                at_specific_date=terms_at_specific_datetime,
+                codelist_submission_value="ARMTTP",
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_arm_type,
+                at_specific_date_time=terms_at_specific_datetime,
             )
         else:
             arm_type_call_back = None
@@ -3359,12 +3602,17 @@ class StudySelectionArm(StudySelection):
         cls,
         study_selection_history: SelectionHistoryArm,
         study_uid: str,
-        get_ct_term_arm_type: Callable[..., CTTermName],
+        find_codelist_term_arm_type: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         effective_date: datetime | None = None,
     ) -> Self:
         if study_selection_history.arm_type:
-            arm_type_call_back = get_ct_term_arm_type(
-                study_selection_history.arm_type, at_specific_date=effective_date
+            arm_type_call_back = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.arm_type,
+                codelist_submission_value="ARMTTP",
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_arm_type,
+                at_specific_date_time=effective_date,
             )
         else:
             arm_type_call_back = None
@@ -3407,15 +3655,23 @@ class StudySelectionArmWithConnectedBranchArms(StudySelectionArm):
         study_uid: str,
         selection: StudySelectionArmVO,
         order: int,
-        find_simple_term_arm_type_by_term_uid: Callable,
+        find_codelist_term_arm_type: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
         find_multiple_connected_branch_arm: Callable,
         terms_at_specific_datetime: datetime | None,
         study_value_version: str | None = None,
     ):
         if selection.arm_type_uid:
-            arm_type_call_back = find_simple_term_arm_type_by_term_uid(
+            # arm_type_call_back = find_simple_term_arm_type_by_term_uid(
+            #    term_uid=selection.arm_type_uid,
+            #    at_specific_date=terms_at_specific_datetime,
+            # )
+            arm_type_call_back = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
                 term_uid=selection.arm_type_uid,
-                at_specific_date=terms_at_specific_datetime,
+                codelist_submission_value="ARMTTP",
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_arm_type,
+                at_specific_date_time=terms_at_specific_datetime,
             )
         else:
             arm_type_call_back = None
@@ -3777,7 +4033,7 @@ class StudySelectionElement(StudySelection):
     ] = None
 
     element_subtype: Annotated[
-        CTTermName | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="subtype for the study element",
             json_schema_extra={"nullable": True},
@@ -3785,7 +4041,7 @@ class StudySelectionElement(StudySelection):
     ] = None
 
     element_type: Annotated[
-        CTTermName | None,
+        SimpleCodelistTermModel | None,
         Field(
             description="type for the study element",
             json_schema_extra={"nullable": True},
@@ -3833,27 +4089,35 @@ class StudySelectionElement(StudySelection):
         study_uid: str,
         selection: StudySelectionElementVO,
         order: int,
-        find_simple_term_element_by_term_uid: Callable[..., CTTermName],
-        get_term_element_type_by_element_subtype: Callable[[str], str | None],
-        find_all_study_time_units: Callable[..., tuple[list[UnitDefinitionAR], int]],
+        get_term_element_type_by_element_subtype: Callable[[str | None], str | None],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
+        find_all_study_time_units: Callable[[str], tuple[list[UnitDefinitionAR], int]],
         terms_at_specific_datetime: datetime | None,
         study_value_version: str | None = None,
     ) -> Self:
-        element_subtype = find_simple_term_element_by_term_uid(
-            selection.element_subtype_uid or "",
-            at_specific_date=terms_at_specific_datetime,
-        )
         term_element_type = get_term_element_type_by_element_subtype(
             selection.element_subtype_uid or ""
         )
-        element_type = (
-            find_simple_term_element_by_term_uid(
-                term_element_type or "",
-                at_specific_date=terms_at_specific_datetime,
+        if term_element_type:
+            element_type = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=term_element_type,
+                codelist_submission_value=settings.study_element_type_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
             )
-            if term_element_type
-            else None
-        )
+        else:
+            element_type = None
+        if selection.element_subtype_uid:
+            element_subtype = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=selection.element_subtype_uid,
+                codelist_submission_value=settings.study_element_subtype_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=terms_at_specific_datetime,
+            )
+        else:
+            element_subtype = None
         return cls(
             study_uid=study_uid,
             study_version=(
@@ -3894,27 +4158,34 @@ class StudySelectionElement(StudySelection):
         cls,
         study_selection_history: SelectionHistoryElement,
         study_uid: str,
-        get_ct_term_element_subtype: Callable[..., CTTermName],
-        get_term_element_type_by_element_subtype: Callable[[str], str | None],
+        find_codelist_term_by_uid_and_submval: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
+        get_term_element_type_by_element_subtype: Callable[[str | None], str | None],
         find_all_study_time_units: Callable[[str], tuple[list[UnitDefinitionAR], int]],
         effective_date: datetime | None = None,
     ) -> Self:
-        element_subtype = get_ct_term_element_subtype(
-            study_selection_history.element_subtype or "",
-            at_specific_date=effective_date,
+        term_element_type = get_term_element_type_by_element_subtype(
+            study_selection_history.element_subtype
         )
-        element_type = (
-            get_ct_term_element_subtype(
-                get_term_element_type_by_element_subtype(
-                    study_selection_history.element_subtype or ""
-                )
-                or ""
+        if term_element_type:
+            element_type = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=term_element_type,
+                codelist_submission_value=settings.study_element_type_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=effective_date,
             )
-            if get_term_element_type_by_element_subtype(
-                study_selection_history.element_subtype or ""
+        else:
+            element_type = None
+        if study_selection_history.element_subtype:
+            element_subtype = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=study_selection_history.element_subtype,
+                codelist_submission_value=settings.study_element_subtype_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submval,
+                at_specific_date_time=effective_date,
             )
-            else None
-        )
+        else:
+            element_subtype = None
         return cls(
             study_uid=study_uid,
             order=study_selection_history.order,
@@ -4761,7 +5032,6 @@ class StudyCompoundDosing(StudySelection):
         order: int,
         study_compound_model: StudySelectionCompound,
         study_element_model: StudySelectionElement,
-        # find_simple_term_model_name_by_term_uid: Callable,
         find_unit_by_uid: Callable[[str], UnitDefinitionAR | None],
         find_numeric_value_by_uid: Callable[[str], NumericValueWithUnitAR | None],
     ) -> Self:

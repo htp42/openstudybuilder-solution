@@ -1,7 +1,7 @@
 <template>
   <div class="pa-4 bg-white" style="overflow-x: auto">
     <v-skeleton-loader
-      v-if="cellsLoading || armsLoading || metadataLoading"
+      v-if="cellsLoading || armsLoading"
       class="mx-auto"
       max-width="800px"
       type="table-heading, table-thead, table-tbody"
@@ -57,12 +57,28 @@
           </v-col>
         </v-row>
         <v-row>
-          <v-col cols="3">
+          <v-col cols="4">
             <div class="text-subtitle-1 line-height-125">
               {{ $t('StudyStructureOverview.study_design_class') }}
             </div>
             <div class="text-h6 font-weight-bold mt-1">
               {{ designClass }}
+            </div>
+          </v-col>
+          <v-col v-if="sourceVariable?.source_variable" cols="2">
+            <div class="text-subtitle-1 line-height-125">
+              {{ $t('StudyStructureOverview.source_var') }}
+            </div>
+            <div class="text-h6 font-weight-bold mt-1">
+              {{ sourceVariable.source_variable }}
+            </div>
+          </v-col>
+          <v-col v-if="sourceVariable?.source_variable">
+            <div class="text-subtitle-1 line-height-125">
+              {{ $t('StudyStructureOverview.source_var_desc') }}
+            </div>
+            <div class="text-h6 font-weight-bold mt-1">
+              {{ sourceVariable.source_variable_description }}
             </div>
           </v-col>
         </v-row>
@@ -87,7 +103,9 @@
             <th scope="col">
               {{ $t('StudyStructureOverview.branch_arms') }}
             </th>
-            <th scope="col">{{ $t('StudyStructureOverview.cohorts') }}</th>
+            <th v-if="designClass !== cohortConstants.MANUAL" scope="col">
+              {{ $t('StudyStructureOverview.cohorts') }}
+            </th>
             <td v-for="studyEpoch in visibleStudyEpochs" :key="studyEpoch.uid">
               {{ studyEpoch.epoch_name }}
             </td>
@@ -117,11 +135,15 @@
                     {{ branchArm.name }}
                   </div>
                   <div class="text-body-2 text-gray">
-                    {{ branchArm.number_of_subjects }}
+                    {{
+                      branchArm.number_of_subjects
+                        ? branchArm.number_of_subjects
+                        : 0
+                    }}
                     {{ $t('StudyStructureOverview.subjects') }}
                   </div>
                 </td>
-                <td>
+                <td v-if="designClass !== cohortConstants.MANUAL">
                   <div class="text-subtitle-1 line-height-125">
                     {{ getCohortByBranch(branchArm.branch_arm_uid).name }}
                   </div>
@@ -144,9 +166,17 @@
             </template>
             <template v-else>
               <tr :key="arm.arm_uid">
-                <td>{{ arm.name }}</td>
+                <td>
+                  <div class="text-subtitle-1 line-height-125">
+                    {{ arm.name }}
+                  </div>
+                  <div class="text-body-2 text-gray">
+                    {{ arm.number_of_subjects }}
+                    {{ $t('StudyStructureOverview.subjects') }}
+                  </div>
+                </td>
                 <td />
-                <td>{{ arm.number_of_subjects }}</td>
+                <td v-if="designClass !== cohortConstants.MANUAL" />
                 <td
                   v-for="studyEpoch in visibleStudyEpochs"
                   :key="`${studyEpoch.uid}-${arm.arm_uid}`"
@@ -164,13 +194,13 @@
 
 <script setup>
 import armsApi from '@/api/arms'
-import study from '@/api/study'
 import cohortsApi from '@/api/cohorts'
 import visitConstants from '@/constants/visits'
 import { useStudiesGeneralStore } from '@/stores/studies-general'
 import { useEpochsStore } from '@/stores/studies-epochs'
 import { onMounted, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import cohortConstants from '@/constants/cohorts'
 
 const { t } = useI18n()
 const studiesGeneralStore = useStudiesGeneralStore()
@@ -181,10 +211,9 @@ const branches = ref([])
 const cells = ref([])
 const armsLoading = ref(false)
 const cellsLoading = ref(false)
-const metadataLoading = ref(false)
-const metadata = ref([])
 const cohorts = ref([])
 const designClass = ref('')
+const sourceVariable = ref({})
 
 const studyEpochs = computed(() => {
   return epochsStore.studyEpochs
@@ -232,13 +261,6 @@ onMounted(() => {
         })
         armsLoading.value = false
       })
-    metadataLoading.value = true
-    study
-      .getStudyInterventionMetadata(studiesGeneralStore.selectedStudy.uid)
-      .then((resp) => {
-        metadata.value = resp.data.current_metadata.study_intervention
-        metadataLoading.value = false
-      })
     armsApi
       .getAllCohorts(studiesGeneralStore.selectedStudy.uid, params)
       .then((resp) => {
@@ -252,6 +274,13 @@ onMounted(() => {
       .catch((error) => {
         if (error.response.status === 404) {
           console.error(error)
+        }
+      })
+    cohortsApi
+      .getSourceVariable(studiesGeneralStore.selectedStudy.uid)
+      .then((resp) => {
+        if (resp.data) {
+          sourceVariable.value = resp.data
         }
       })
   } catch (error) {

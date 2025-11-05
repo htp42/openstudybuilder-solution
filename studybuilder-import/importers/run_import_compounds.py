@@ -56,8 +56,8 @@ def fill_template(data, template):
 class Compounds(BaseImporter):
     logging_name = "compounds"
 
-    def __init__(self, api=None, metrics_inst=None, cache=None):
-        super().__init__(api=api, metrics_inst=metrics_inst, cache=cache)
+    def __init__(self, api=None, metrics_inst=None):
+        super().__init__(api=api, metrics_inst=metrics_inst)
         self.dose_units = self.api.get_all_identifiers(
             self.api.get_all_from_api(
                 f"/concepts/unit-definitions?subset={UNIT_SUBSET_DOSE}"

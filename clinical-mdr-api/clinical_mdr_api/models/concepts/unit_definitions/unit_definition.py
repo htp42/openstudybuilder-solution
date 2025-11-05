@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Callable, Self
 
 from pydantic import Field
@@ -6,15 +7,21 @@ from clinical_mdr_api.descriptions.general import CHANGES_FIELD_DESC
 from clinical_mdr_api.domains.concepts.unit_definitions.unit_definition import (
     UnitDefinitionAR,
 )
-from clinical_mdr_api.domains.controlled_terminologies.ct_term_name import CTTermNameAR
+from clinical_mdr_api.domains.controlled_terminologies.ct_codelist_term import (
+    CTSimpleCodelistTermAR,
+)
 from clinical_mdr_api.domains.dictionaries.dictionary_term import DictionaryTermAR
 from clinical_mdr_api.models.concepts.concept import (
     ConceptModel,
     ConceptPatchInput,
     ConceptPostInput,
 )
-from clinical_mdr_api.models.controlled_terminologies.ct_term import SimpleTermModel
+from clinical_mdr_api.models.controlled_terminologies.ct_term import (
+    SimpleCodelistTermModel,
+    SimpleTermModel,
+)
 from clinical_mdr_api.models.utils import BaseModel
+from common.config import settings
 
 
 class UnitDefinitionModel(ConceptModel):
@@ -24,13 +31,13 @@ class UnitDefinitionModel(ConceptModel):
     si_unit: Annotated[bool, Field()]
     us_conventional_unit: Annotated[bool, Field()]
     use_complex_unit_conversion: Annotated[bool, Field()]
-    ct_units: Annotated[list[SimpleTermModel], Field()]
-    unit_subsets: Annotated[list[SimpleTermModel], Field()]
+    ct_units: Annotated[list[SimpleCodelistTermModel], Field()]
+    unit_subsets: Annotated[list[SimpleCodelistTermModel], Field()]
     ucum: Annotated[
         SimpleTermModel | None, Field(json_schema_extra={"nullable": True})
     ] = None
     unit_dimension: Annotated[
-        SimpleTermModel | None, Field(json_schema_extra={"nullable": True})
+        SimpleCodelistTermModel | None, Field(json_schema_extra={"nullable": True})
     ] = None
     legacy_code: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = (
         None
@@ -52,36 +59,34 @@ class UnitDefinitionModel(ConceptModel):
     def from_unit_definition_ar(
         cls,
         unit_definition_ar: UnitDefinitionAR,
-        find_term_by_uid: Callable[[str], CTTermNameAR | None],
         find_dictionary_term_by_uid: Callable[[str], DictionaryTermAR | None],
+        find_codelist_term_by_uid_and_submission_value: Callable[
+            [str | None, str | None, datetime | None], CTSimpleCodelistTermAR | None
+        ],
     ) -> Self:
         ct_units = []
         for ct_unit in unit_definition_ar.concept_vo.ct_units:
-            if ct_unit.name is None:
-                controlled_terminology_unit = SimpleTermModel.from_ct_code(
-                    c_code=ct_unit.uid, find_term_by_uid=find_term_by_uid
-                )
-            else:
-                controlled_terminology_unit = SimpleTermModel(
-                    term_uid=ct_unit.uid, name=ct_unit.name
-                )
-            ct_units.append(controlled_terminology_unit)
-        if not any(ct_unit.name is None for ct_unit in ct_units):
-            ct_units.sort(key=lambda item: item.name or "")
+            controlled_terminology_unit = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=ct_unit.uid,
+                codelist_submission_value=settings.unit_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submission_value,
+            )
+            if controlled_terminology_unit is not None:
+                ct_units.append(controlled_terminology_unit)
+        if not any(ct_unit.term_name is None for ct_unit in ct_units):
+            ct_units.sort(key=lambda item: item.term_name)
 
         unit_subsets = []
         for unit_subset in unit_definition_ar.concept_vo.unit_subsets:
-            if unit_subset.name is None:
-                controlled_terminology_subset = SimpleTermModel.from_ct_code(
-                    c_code=unit_subset.uid, find_term_by_uid=find_term_by_uid
-                )
-            else:
-                controlled_terminology_subset = SimpleTermModel(
-                    term_uid=unit_subset.uid, name=unit_subset.name
-                )
-            unit_subsets.append(controlled_terminology_subset)
-        if not any(unit_subset.name is None for unit_subset in unit_subsets):
-            unit_subsets.sort(key=lambda item: item.name or "")
+            unit_subset_term = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+                term_uid=unit_subset.uid,
+                codelist_submission_value=settings.unit_subset_cl_submval,
+                find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submission_value,
+            )
+            if unit_subset_term is not None:
+                unit_subsets.append(unit_subset_term)
+        if not any(unit_subset.term_name is None for unit_subset in unit_subsets):
+            unit_subsets.sort(key=lambda item: item.term_name)
 
         if unit_definition_ar.concept_vo.ucum_name is None:
             ucum = SimpleTermModel.from_ct_code(
@@ -94,16 +99,17 @@ class UnitDefinitionModel(ConceptModel):
                 name=unit_definition_ar.concept_vo.ucum_name,
             )
 
-        if unit_definition_ar.concept_vo.unit_dimension_name is None:
-            unit_dimension = SimpleTermModel.from_ct_code(
-                c_code=unit_definition_ar.concept_vo.unit_dimension_uid,
-                find_term_by_uid=find_term_by_uid,
-            )
-        else:
-            unit_dimension = SimpleTermModel(
-                term_uid=unit_definition_ar.concept_vo.unit_dimension_uid or "",
-                name=unit_definition_ar.concept_vo.unit_dimension_name,
-            )
+        # if unit_definition_ar.concept_vo.unit_dimension_name is None:
+        #    unit_dimension = SimpleTermModel.from_ct_code(
+        #        c_code=unit_definition_ar.concept_vo.unit_dimension_uid,
+        #        find_term_by_uid=find_term_by_uid,
+        #    )
+        # else:
+        unit_dimension = SimpleCodelistTermModel.from_term_uid_and_codelist_submval(
+            term_uid=unit_definition_ar.concept_vo.unit_dimension_uid,
+            codelist_submission_value=settings.unit_dimension_cl_submval,
+            find_codelist_term_by_uid_and_submission_value=find_codelist_term_by_uid_and_submission_value,
+        )
 
         return UnitDefinitionModel(
             uid=unit_definition_ar.uid,

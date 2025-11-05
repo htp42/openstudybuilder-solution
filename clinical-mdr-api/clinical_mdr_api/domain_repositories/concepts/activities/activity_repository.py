@@ -262,20 +262,26 @@ class ActivityRepository(ConceptGenericRepository[ActivityAR]):
                 # ActivityGroup
                 activity_group_value = activity_valid_group.in_group.get()
                 activity_group_root = activity_group_value.has_version.single()
-                all_group_rels = activity_group_value.has_version.all_relationships(
-                    activity_group_root
-                )
+                all_group_rels = [
+                    has_version
+                    for has_version in activity_group_value.has_version.all_relationships(
+                        activity_group_root
+                    )
+                    if has_version.status in ["Final", "Retired"]
+                ]
                 latest_group = max(
                     all_group_rels, key=lambda r: version_string_to_tuple(r.version)
                 )
                 # ActivitySubGroup
                 activity_subgroup_value = activity_valid_group.has_group.get()
                 activity_subgroup_root = activity_subgroup_value.has_version.single()
-                all_subgroup_rels = (
-                    activity_subgroup_value.has_version.all_relationships(
+                all_subgroup_rels = [
+                    has_version
+                    for has_version in activity_subgroup_value.has_version.all_relationships(
                         activity_subgroup_root
                     )
-                )
+                    if has_version.status in ["Final", "Retired"]
+                ]
                 latest_subgroup = max(
                     all_subgroup_rels, key=lambda r: version_string_to_tuple(r.version)
                 )
@@ -616,7 +622,7 @@ class ActivityRepository(ConceptGenericRepository[ActivityAR]):
         else ''}
              | {{
                  activity_subgroup: head(apoc.coll.sortMulti([(activity_valid_group)<-[:HAS_GROUP]-(activity_subgroup_value:ActivitySubGroupValue)
-                 <-[has_version:HAS_VERSION]-(activity_subgroup_root:ActivitySubGroupRoot)
+                 <-[has_version:HAS_VERSION]-(activity_subgroup_root:ActivitySubGroupRoot) WHERE has_version.status='Final'
                     | {{
                         uid:activity_subgroup_root.uid,
                         major_version: toInteger(split(has_version.version,'.')[0]),
@@ -624,7 +630,7 @@ class ActivityRepository(ConceptGenericRepository[ActivityAR]):
                         name:activity_subgroup_value.name
                     }}], ['major_version', 'minor_version'])),
                     activity_group: head(apoc.coll.sortMulti([(activity_valid_group)-[:IN_GROUP]-(activity_group_value:ActivityGroupValue)
-                    <-[has_version:HAS_VERSION]-(activity_group_root:ActivityGroupRoot)
+                        <-[has_version:HAS_VERSION]-(activity_group_root:ActivityGroupRoot) WHERE has_version.status='Final'
                     | {{
                         uid:activity_group_root.uid,
                         major_version: toInteger(split(has_version.version,'.')[0]),
@@ -665,13 +671,13 @@ class ActivityRepository(ConceptGenericRepository[ActivityAR]):
         match_clause = """
         MATCH (concept_root:ActivityRoot)-[:LATEST]->(concept_value:ActivityValue)
         MATCH (concept_value)-[:HAS_GROUPING]->(activity_grouping:ActivityGrouping)-[:IN_SUBGROUP]->(activity_valid_group:ActivityValidGroup)
-            <-[:HAS_GROUP]-(:ActivitySubGroupValue)<-[:HAS_VERSION]-(activity_subgroup_root:ActivitySubGroupRoot)
-        MATCH (activity_valid_group)-[:IN_GROUP]->(:ActivityGroupValue)<-[:HAS_VERSION]-(activity_group_root:ActivityGroupRoot)
+            <-[:HAS_GROUP]-(activity_subgroup_value:ActivitySubGroupValue)
+        MATCH (activity_valid_group)-[:IN_GROUP]->(activity_group_value:ActivityGroupValue)
         """
         match_clause += filter_statements
 
         alias_clause = """
-        DISTINCT concept_root, concept_value, activity_grouping, activity_subgroup_root, activity_group_root
+        DISTINCT concept_root, concept_value, activity_grouping, activity_subgroup_value, activity_group_value
         CALL {
             WITH concept_root, concept_value
             MATCH (concept_root)-[hv:HAS_VERSION]-(concept_value)
@@ -706,10 +712,10 @@ class ActivityRepository(ConceptGenericRepository[ActivityAR]):
             concept_value.abbreviation AS abbreviation,
             coalesce(concept_value.is_data_collected, False) AS is_data_collected,
             version_rel.status AS status,
-            activity_group_root.uid AS activity_group_uid,
-            head([(:ActivityGroupRoot {uid:activity_group_root.uid})-[:LATEST]->(activity_group_value:ActivityGroupValue) | activity_group_value.name]) as activity_group_name,
-            activity_subgroup_root.uid AS activity_subgroup_uid,
-            head([(:ActivitySubGroupRoot {uid:activity_subgroup_root.uid})-[:LATEST]->(activity_subgroup_value:ActivitySubGroupValue) | activity_subgroup_value.name]) as activity_subgroup_name,
+            activity_group_value.name AS activity_group_name,
+            head([(activity_group_root:ActivityGroupRoot)-[:HAS_VERSION]->(activity_group_value) | activity_group_root.uid]) as activity_group_uid,
+            activity_subgroup_value.name AS activity_subgroup_name,
+            head([(activity_subgroup_root:ActivitySubGroupRoot)-[:HAS_VERSION]->(activity_subgroup_value) | activity_subgroup_root.uid]) as activity_subgroup_uid,
             head([(library)-[:CONTAINS_CONCEPT]->(concept_root) | library.name]) AS library_name,
             CASE WHEN size(all_legacy_codes) > 0
                 THEN all(is_legacy_usage IN all_legacy_codes where is_legacy_usage=true and is_legacy_usage IS NOT NULL)
@@ -1007,7 +1013,7 @@ class ActivityRepository(ConceptGenericRepository[ActivityAR]):
             (activity_instance_value)-[:CONTAINS_ACTIVITY_ITEM]->
             (activity_item:ActivityItem)<-[:HAS_ACTIVITY_ITEM]-(activity_item_class_root:ActivityItemClassRoot)-[:LATEST]->
             (activity_item_class_value:ActivityItemClassValue)
-        OPTIONAL MATCH (activity_item)-[]->(CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(CTTermAttributesRoot)-[:LATEST]->(activity_item_term_attr_value)
+        OPTIONAL MATCH (activity_item)-[]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(CTTermAttributesRoot)-[:LATEST]->(activity_item_term_attr_value)
         OPTIONAL MATCH (activity_item)-[:HAS_UNIT_DEFINITION]->(:UnitDefinitionRoot)-[:LATEST]->(unit_def:UnitDefinitionValue)
         WITH activity_root, activity_value,
             activity_item_class_value,
@@ -1017,8 +1023,9 @@ class ActivityRepository(ConceptGenericRepository[ActivityAR]):
             apoc.map.fromPairs([
                 ['nci_concept_id', activity_item_class_value.nci_concept_id],
                 ['name', activity_item_class_value.name],
-                ['type', head([(activity_item_class_value)-[:HAS_DATA_TYPE]->(data_type_term_root)-[:HAS_ATTRIBUTES_ROOT]->(data_type_term_attr_root)-[:LATEST]->(data_type_term_attr_value) | data_type_term_attr_value.preferred_term])],
-                ['example_set', collect(distinct(coalesce(activity_item_term_attr_value.code_submission_value, unit_def.name)))]
+                ['type', head([(activity_item_class_value)-[:HAS_DATA_TYPE]->(ct_term_context:CTTermContext)
+                    -[:HAS_SELECTED_TERM]->(data_type_root:CTTermRoot)-[:HAS_ATTRIBUTES_ROOT]->(data_type_term_attr_root)-[:LATEST]->(data_type_term_attr_value) | data_type_term_attr_value.preferred_term])],
+                ['example_set', collect(distinct(coalesce(activity_item_term_attr_value.submission_value, unit_def.name)))]
             ]) ELSE null
             END
             AS activity_items
@@ -1694,3 +1701,37 @@ RETURN r.uid, [value IN $syn WHERE value IN v.synonyms] as existingSynonyms
             raise  # Re-raise for now, or handle appropriately
 
         return instances, total_count
+
+    def specific_header_match_clause_lite(self, field_name: str) -> str | None:
+        """This is a lightweight version of the header match clause.
+        It should fetch only the required field, without supporting wildcard filtering.
+        """
+
+        # activities/activities/headers?field_name=is_used_by_legacy_instances
+        if field_name == "is_used_by_legacy_instances":
+            return """
+                WITH concept_value,
+                apoc.coll.toSet([(concept_value)-[:HAS_GROUPING]->(:ActivityGrouping)<-[:HAS_ACTIVITY]-(activity_instance_value:ActivityInstanceValue)
+                <-[has_version:HAS_VERSION]-(activity_instance_root:ActivityInstanceRoot) | {uid: activity_instance_root.uid, name: activity_instance_value.name}]) AS activity_instances,
+                head([(concept_value)-[:REPLACED_BY_ACTIVITY]->(replacing_activity_root:ActivityRoot) | replacing_activity_root.uid]) AS replaced_by_activity,
+                apoc.coll.sortMulti([(concept_value)-[:HAS_GROUPING]->(:ActivityGrouping)<-[:HAS_ACTIVITY]-(activity_instance_value:ActivityInstanceValue)
+                    <-[instance_version:HAS_VERSION WHERE instance_version.status='Final' and instance_version.end_date IS NULL]-(activity_instance_root) |
+                    {
+                        uid:activity_instance_root.uid,
+                        legacy_code:activity_instance_value.is_legacy_usage,
+                        major_version: toInteger(split(instance_version.version,'.')[0]),
+                        minor_version: toInteger(split(instance_version.version,'.')[1])
+                    }], ['^uid', 'major_version', 'minor_version']) AS all_legacy_codes
+                WITH *,
+                    // Sort by uid and instance_version in descending order and leave only latest version of same ActivityInstances
+                    [
+                        i in range(0, size(all_legacy_codes) -1)
+                        WHERE i=0 OR all_legacy_codes[i].uid <> all_legacy_codes[i-1].uid | all_legacy_codes[i].legacy_code ] as all_legacy_codes
+                WITH *,
+                    CASE WHEN size(all_legacy_codes) > 0
+                        THEN all(is_legacy_usage IN all_legacy_codes where is_legacy_usage=true and is_legacy_usage IS NOT NULL)
+                        ELSE false
+                    END as is_used_by_legacy_instances
+            """
+
+        return None

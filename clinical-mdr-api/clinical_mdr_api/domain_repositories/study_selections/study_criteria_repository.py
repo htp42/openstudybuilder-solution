@@ -105,14 +105,16 @@ class StudySelectionCriteriaRepository:
             MATCH (sv)-[:HAS_STUDY_CRITERIA]->(sc:StudyCriteria)
             CALL {{
                 WITH sc
-                MATCH (sc)-[:HAS_SELECTED_CRITERIA]->(:CriteriaValue)<-[ver]-(cr:CriteriaRoot)<-[:HAS_CRITERIA]-(:CriteriaTemplateRoot)-[:HAS_TYPE]->(term:CTTermRoot)
+                MATCH (sc)-[:HAS_SELECTED_CRITERIA]->(:CriteriaValue)<-[ver]-(cr:CriteriaRoot)<-[:HAS_CRITERIA]-
+                  (:CriteriaTemplateRoot)-[:HAS_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term:CTTermRoot)
                 WHERE ver.status = "Final" {criteria_type_query}
                 RETURN ver as ver, cr as obj, term.uid as term_uid, true as is_instance
                 ORDER BY ver.start_date DESC
                 LIMIT 1
             UNION
                 WITH sc
-                MATCH (sc)-[:HAS_SELECTED_CRITERIA_TEMPLATE]->(:CriteriaTemplateValue)<-[ver]-(ctr:CriteriaTemplateRoot)-[:HAS_TYPE]->(term:CTTermRoot)
+                MATCH (sc)-[:HAS_SELECTED_CRITERIA_TEMPLATE]->(:CriteriaTemplateValue)<-[ver]-
+                  (ctr:CriteriaTemplateRoot)-[:HAS_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term:CTTermRoot)
                 WHERE ver.status = "Final" {criteria_type_query}
                 RETURN ver as ver, ctr as obj, term.uid as term_uid, false as is_instance
                 ORDER BY ver.start_date DESC
@@ -504,7 +506,7 @@ class StudySelectionCriteriaRepository:
             CALL {
                 WITH all_sc
                 MATCH (all_sc)-[:HAS_SELECTED_CRITERIA]->(:CriteriaValue)<-[ver]-(cr:CriteriaRoot)<-[:HAS_CRITERIA]
-                -(:CriteriaTemplateRoot)-[:HAS_TYPE]->(term:CTTermRoot)
+                -(:CriteriaTemplateRoot)-[:HAS_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term:CTTermRoot)
                 WHERE ver.status = 'Final'"""
             + (" AND term.uid=$criteria_type_uid" if criteria_type_uid else "")
             + """
@@ -513,7 +515,7 @@ class StudySelectionCriteriaRepository:
                 LIMIT 1
             UNION
                 WITH all_sc
-                MATCH (all_sc)-[:HAS_SELECTED_CRITERIA_TEMPLATE]->(:CriteriaTemplateValue)<-[ver]-(ctr:CriteriaTemplateRoot)-[:HAS_TYPE]->(term:CTTermRoot)
+                MATCH (all_sc)-[:HAS_SELECTED_CRITERIA_TEMPLATE]->(:CriteriaTemplateValue)<-[ver]-(ctr:CriteriaTemplateRoot)-[:HAS_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(term:CTTermRoot)
                 WHERE ver.status = 'Final'"""
             + (" AND term.uid=$criteria_type_uid" if criteria_type_uid else "")
             + """

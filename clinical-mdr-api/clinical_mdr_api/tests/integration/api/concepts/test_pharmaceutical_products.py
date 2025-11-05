@@ -41,6 +41,7 @@ HEADERS = {"content-type": "application/json"}
 # Global variables shared between fixtures and tests
 pharmaceutical_products_all: list[PharmaceuticalProduct]
 ct_term_roa: CTTerm
+roa_codelist_uid: str
 ct_term_dose_form: CTTerm
 active_substances_all: list[ActiveSubstance]
 dictionary_term_unii: DictionaryTerm
@@ -68,6 +69,7 @@ def test_data():
     global pharmaceutical_products_all
     global ct_term_dose_form
     global ct_term_roa
+    global roa_codelist_uid
     global active_substances_all
     global dictionary_term_unii
     global unii_codelist
@@ -76,10 +78,27 @@ def test_data():
     global half_life
     global formulation_1
 
+    catalogue_name = "SDTM CT"
+    library_name = "Sponsor"
     # Create CT Terms
-    ct_term_dose_form = TestUtils.create_ct_term(sponsor_preferred_name="dosage_form_1")
+    ct_term_dose_form = TestUtils.create_ct_term(
+        codelist_uid="C66726",
+        submission_value="dosage_form_1",
+        sponsor_preferred_name="dosage_form_1",
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
+    )
+    roa_codelist_uid = "C66729"
     ct_term_roa = TestUtils.create_ct_term(
-        sponsor_preferred_name="route_of_administration_1"
+        codelist_uid=roa_codelist_uid,
+        submission_value="route_of_administration_1",
+        sponsor_preferred_name="route_of_administration_1",
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
     )
 
     TestUtils.create_library("UNII")
@@ -232,10 +251,13 @@ def test_get_pharmaceutical_product(api_client):
     assert res["external_id"] == "external_id_a"
     assert res["routes_of_administration"][0]["term_uid"] == ct_term_roa.term_uid
     assert (
-        res["routes_of_administration"][0]["name"] == ct_term_roa.sponsor_preferred_name
+        res["routes_of_administration"][0]["term_name"]
+        == ct_term_roa.sponsor_preferred_name
     )
     assert res["dosage_forms"][0]["term_uid"] == ct_term_dose_form.term_uid
-    assert res["dosage_forms"][0]["name"] == ct_term_dose_form.sponsor_preferred_name
+    assert (
+        res["dosage_forms"][0]["term_name"] == ct_term_dose_form.sponsor_preferred_name
+    )
 
     assert res["formulations"][0]["external_id"] == "formulation-prodex-id-a"
 
@@ -321,10 +343,13 @@ def test_update_pharmaceutical_product_property(api_client):
     assert res["external_id"] == pharmaceutical_products_all[0].external_id
     assert res["routes_of_administration"][0]["term_uid"] == ct_term_roa.term_uid
     assert (
-        res["routes_of_administration"][0]["name"] == ct_term_roa.sponsor_preferred_name
+        res["routes_of_administration"][0]["term_name"]
+        == ct_term_roa.sponsor_preferred_name
     )
     assert res["dosage_forms"][0]["term_uid"] == ct_term_dose_form.term_uid
-    assert res["dosage_forms"][0]["name"] == ct_term_dose_form.sponsor_preferred_name
+    assert (
+        res["dosage_forms"][0]["term_name"] == ct_term_dose_form.sponsor_preferred_name
+    )
 
     assert res["version"] == "0.1"
     assert res["status"] == "Draft"
@@ -346,10 +371,13 @@ def test_update_pharmaceutical_product_property(api_client):
     assert res["external_id"] == pharmaceutical_products_all[0].external_id
     assert res["routes_of_administration"][0]["term_uid"] == ct_term_roa.term_uid
     assert (
-        res["routes_of_administration"][0]["name"] == ct_term_roa.sponsor_preferred_name
+        res["routes_of_administration"][0]["term_name"]
+        == ct_term_roa.sponsor_preferred_name
     )
     assert res["dosage_forms"][0]["term_uid"] == ct_term_dose_form.term_uid
-    assert res["dosage_forms"][0]["name"] == ct_term_dose_form.sponsor_preferred_name
+    assert (
+        res["dosage_forms"][0]["term_name"] == ct_term_dose_form.sponsor_preferred_name
+    )
 
     assert res["version"] == "0.1"
     assert res["status"] == "Draft"
@@ -377,10 +405,13 @@ def test_update_pharmaceutical_product_property(api_client):
     assert res["external_id"] == external_id_new
     assert res["routes_of_administration"][0]["term_uid"] == ct_term_roa.term_uid
     assert (
-        res["routes_of_administration"][0]["name"] == ct_term_roa.sponsor_preferred_name
+        res["routes_of_administration"][0]["term_name"]
+        == ct_term_roa.sponsor_preferred_name
     )
     assert res["dosage_forms"][0]["term_uid"] == ct_term_dose_form.term_uid
-    assert res["dosage_forms"][0]["name"] == ct_term_dose_form.sponsor_preferred_name
+    assert (
+        res["dosage_forms"][0]["term_name"] == ct_term_dose_form.sponsor_preferred_name
+    )
 
     assert res["version"] == "0.2"
     assert res["status"] == "Draft"
@@ -407,10 +438,13 @@ def test_update_pharmaceutical_product_property(api_client):
     assert res["external_id"] is None
     assert res["routes_of_administration"][0]["term_uid"] == ct_term_roa.term_uid
     assert (
-        res["routes_of_administration"][0]["name"] == ct_term_roa.sponsor_preferred_name
+        res["routes_of_administration"][0]["term_name"]
+        == ct_term_roa.sponsor_preferred_name
     )
     assert res["dosage_forms"][0]["term_uid"] == ct_term_dose_form.term_uid
-    assert res["dosage_forms"][0]["name"] == ct_term_dose_form.sponsor_preferred_name
+    assert (
+        res["dosage_forms"][0]["term_name"] == ct_term_dose_form.sponsor_preferred_name
+    )
 
     assert res["version"] == "0.3"
     assert res["status"] == "Draft"
@@ -422,7 +456,13 @@ def test_update_pharmaceutical_product_property(api_client):
 
 def test_update_pharmaceutical_product_roa(api_client):
     ct_term_roa_new = TestUtils.create_ct_term(
-        sponsor_preferred_name="route_of_administration_2"
+        codelist_uid=roa_codelist_uid,
+        submission_value="route_of_administration_2",
+        sponsor_preferred_name="route_of_administration_2",
+        order=2,
+        catalogue_name="SDTM CT",
+        library_name="Sponsor",
+        approve=True,
     )
 
     # Change roa
@@ -445,11 +485,13 @@ def test_update_pharmaceutical_product_roa(api_client):
     assert res["external_id"] == "external_id_b"
     assert res["routes_of_administration"][0]["term_uid"] == ct_term_roa_new.term_uid
     assert (
-        res["routes_of_administration"][0]["name"]
+        res["routes_of_administration"][0]["term_name"]
         == ct_term_roa_new.sponsor_preferred_name
     )
     assert res["dosage_forms"][0]["term_uid"] == ct_term_dose_form.term_uid
-    assert res["dosage_forms"][0]["name"] == ct_term_dose_form.sponsor_preferred_name
+    assert (
+        res["dosage_forms"][0]["term_name"] == ct_term_dose_form.sponsor_preferred_name
+    )
 
     assert res["version"] == "0.2"
     assert res["status"] == "Draft"
@@ -807,10 +849,13 @@ def test_create_and_delete_pharmaceutical_product(api_client):
     assert res["external_id"] == "external_id-NEW"
     assert res["routes_of_administration"][0]["term_uid"] == ct_term_roa.term_uid
     assert (
-        res["routes_of_administration"][0]["name"] == ct_term_roa.sponsor_preferred_name
+        res["routes_of_administration"][0]["term_name"]
+        == ct_term_roa.sponsor_preferred_name
     )
     assert res["dosage_forms"][0]["term_uid"] == ct_term_dose_form.term_uid
-    assert res["dosage_forms"][0]["name"] == ct_term_dose_form.sponsor_preferred_name
+    assert (
+        res["dosage_forms"][0]["term_name"] == ct_term_dose_form.sponsor_preferred_name
+    )
 
     assert res["formulations"][0]["external_id"] == "formulation-prodex-id"
 
@@ -886,10 +931,13 @@ def test_create_and_delete_pharmaceutical_product_with_missing_values(api_client
     assert res["external_id"] == "external_id-NEW"
     assert res["routes_of_administration"][0]["term_uid"] == ct_term_roa.term_uid
     assert (
-        res["routes_of_administration"][0]["name"] == ct_term_roa.sponsor_preferred_name
+        res["routes_of_administration"][0]["term_name"]
+        == ct_term_roa.sponsor_preferred_name
     )
     assert res["dosage_forms"][0]["term_uid"] == ct_term_dose_form.term_uid
-    assert res["dosage_forms"][0]["name"] == ct_term_dose_form.sponsor_preferred_name
+    assert (
+        res["dosage_forms"][0]["term_name"] == ct_term_dose_form.sponsor_preferred_name
+    )
 
     assert res["formulations"][0]["external_id"] == "formulation-prodex-id"
 

@@ -84,6 +84,7 @@ Feature: Library - Concepts - Activities - Activity Subgroup Overview Page (Vers
         When User searches for non-existing item in 'Activities' table
         Then The Activities table is empty
 
+    @smoke_test
     Scenario: [Table][Search][Postive case] User must be able to search groups connected to subgroup
         When [API] A subgroup connected to two to groups is created
         And [API] Fetch names of subgroup with two connected groups

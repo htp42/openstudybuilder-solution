@@ -7,6 +7,9 @@ from clinical_mdr_api import utils
 from clinical_mdr_api.domain_repositories._utils.helpers import (
     acquire_write_lock_study_value,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.models.concepts import UnitDefinitionRoot
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
     CTTermRoot,
@@ -115,9 +118,9 @@ class StudySelectionEndpointRepository:
             }
             WITH DISTINCT sr, se, obj, tr, timeframe_ver, ver, is_instance
 
-            OPTIONAL MATCH (se)-[:HAS_ENDPOINT_LEVEL]->(elr:CTTermRoot)<-[has_term:HAS_TERM]-(:CTCodelistRoot)
-            -[:HAS_NAME_ROOT]->(:CTCodelistNameRoot)-[:LATEST_FINAL]->(:CTCodelistNameValue {name: "Endpoint Level"})
-            OPTIONAL MATCH (se)-[:HAS_ENDPOINT_SUB_LEVEL]->(endpoint_sublevel_root:CTTermRoot)
+            OPTIONAL MATCH (se)-[:HAS_ENDPOINT_LEVEL]->(level_term_context:CTTermContext)-[:HAS_SELECTED_TERM]->(elr:CTTermRoot)
+            OPTIONAL MATCH (level_term_context)-[:HAS_SELECTED_CODELIST]->(:CTCodelistRoot)-[has_term:HAS_TERM WHERE has_term.end_date IS NULL]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->(elr)
+            OPTIONAL MATCH (se)-[:HAS_ENDPOINT_SUB_LEVEL]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(endpoint_sublevel_root:CTTermRoot)
         """
         if study_value_version:
             query += """
@@ -518,11 +521,25 @@ class StudySelectionEndpointRepository:
         # Set endpoint level if exists
         if selection.endpoint_level_uid:
             ct_term_root = CTTermRoot.nodes.get(uid=selection.endpoint_level_uid)
-            study_endpoint_selection_node.has_endpoint_level.connect(ct_term_root)
+            selected_term_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    ct_term_root,
+                    codelist_submission_value=settings.study_endpoint_level_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            study_endpoint_selection_node.has_endpoint_level.connect(selected_term_node)
         # Set endpoint sub level if exists
         if selection.endpoint_sublevel_uid:
             ct_term_root = CTTermRoot.nodes.get(uid=selection.endpoint_sublevel_uid)
-            study_endpoint_selection_node.has_endpoint_sublevel.connect(ct_term_root)
+            selected_term_node = CTCodelistAttributesRepository().get_or_create_selected_term(
+                ct_term_root,
+                codelist_submission_value=settings.study_endpoint_sublevel_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+            )
+            study_endpoint_selection_node.has_endpoint_sublevel.connect(
+                selected_term_node
+            )
         # for all units which was set
         for index, unit in enumerate(selection.endpoint_units, start=1):
             # get unit definition node
@@ -605,8 +622,8 @@ class StudySelectionEndpointRepository:
             }
             WITH DISTINCT all_se, er, tr, timeframe_ver, endpoint_ver
 
-            OPTIONAL MATCH (all_se)-[:HAS_ENDPOINT_LEVEL]->(elr:CTTermRoot)-[:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:LATEST_FINAL]->(:CTTermNameValue)
-            OPTIONAL MATCH (all_se)-[:HAS_ENDPOINT_SUB_LEVEL]->(endpoint_sublevel:CTTermRoot)
+            OPTIONAL MATCH (all_se)-[:HAS_ENDPOINT_LEVEL]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(elr:CTTermRoot)
+            OPTIONAL MATCH (all_se)-[:HAS_ENDPOINT_SUB_LEVEL]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(endpoint_sublevel:CTTermRoot)
             OPTIONAL MATCH (all_se)-[:STUDY_ENDPOINT_HAS_STUDY_OBJECTIVE]->(so:StudyObjective)
 
             WITH all_se, er, tr, elr, so, timeframe_ver, endpoint_ver, endpoint_sublevel

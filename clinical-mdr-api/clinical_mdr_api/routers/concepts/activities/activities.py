@@ -386,6 +386,10 @@ Specifies whether Activity should be split into separate rows if it contains mul
 If equals to true, only library_name, sort_by, page_number, page_size, total_count, filters and operator Query parameters will be applied into the query."""
         ),
     ] = False,
+    lite: Annotated[
+        bool,
+        Query(description=_generic_descriptions.HEADERS_QUERY_LITE),
+    ] = False,
 ) -> list[Any]:
     activity_service = ActivityService()
     if split_activity_by_groupings:
@@ -409,6 +413,7 @@ If equals to true, only library_name, sort_by, page_number, page_size, total_cou
             activity_subgroup_names=activity_subgroup_names,
             activity_group_names=activity_group_names,
             group_by_groupings=False,
+            lite=lite,
         )
     return headers
 

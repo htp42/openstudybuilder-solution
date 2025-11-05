@@ -165,15 +165,13 @@ class StudyObjectivesService:
                     with tag("tbody"):
                         for objective_level, objectives, endpoints in sorted(
                             tree.values(),
-                            key=lambda o: (
-                                o[0].codelists[0].order if o[0].codelists else 0
-                            ),
+                            key=lambda o: (o[0].order if o[0].order else 0),
                         ):
                             with tag("tr"):
                                 with tag("td"):
                                     line(
                                         "p",
-                                        f"{objective_level.sponsor_preferred_name}:",
+                                        f"{objective_level.term_name}:",
                                         klass="objective-level",
                                     )
                                     for study_objective in sorted(
@@ -184,15 +182,11 @@ class StudyObjectivesService:
                                 with tag("td"):
                                     for endpoint_level, study_endpoints in sorted(
                                         endpoints.values(),
-                                        key=lambda e: (
-                                            e[0].codelists[0].order
-                                            if e[0].codelists
-                                            else 0
-                                        ),
+                                        key=lambda e: (e[0].order if e[0].order else 0),
                                     ):
                                         line(
                                             "p",
-                                            f"{endpoint_level.sponsor_preferred_name}:",
+                                            f"{endpoint_level.term_name}:",
                                             klass="endpoint-level",
                                         )
                                         with tag("ul"):
@@ -226,17 +220,12 @@ class StudyObjectivesService:
                     with tag("tbody"):
                         for objective_level, study_objectives in sorted(
                             tree.values(),
-                            key=lambda o: (
-                                o[0].codelists[0].order
-                                if o[0].codelists
-                                and o[0].codelists[0].order is not None
-                                else 0
-                            ),
+                            key=lambda o: (o[0].order if o[0].order else 0),
                         ):
                             with tag("tr"):
                                 line(
                                     "th",
-                                    objective_level.sponsor_preferred_name,
+                                    objective_level.term_name,
                                     klass="objective-level",
                                 )
                                 line("th", _gettext("Title"), klass="header2")
@@ -255,12 +244,7 @@ class StudyObjectivesService:
                                 for epl_idx, epl_ste in enumerate(
                                     sorted(
                                         endpoint_levels.values(),
-                                        key=lambda o: (
-                                            o[0].codelists[0].order
-                                            if o[0].codelists
-                                            and o[0].codelists[0].order is not None
-                                            else 0
-                                        ),
+                                        key=lambda o: (o[0].order if o[0].order else 0),
                                     )
                                 ):
                                     endpoint_level, study_endpoints = epl_ste
@@ -276,7 +260,7 @@ class StudyObjectivesService:
                                                 doc.asis(study_objective.objective.name)
                                             line(
                                                 "th",
-                                                endpoint_level.sponsor_preferred_name,
+                                                endpoint_level.term_name,
                                                 klass="endpoint-level",
                                                 colspan=3,
                                             )
@@ -284,7 +268,7 @@ class StudyObjectivesService:
                                         with tag("tr"):
                                             line(
                                                 "th",
-                                                endpoint_level.sponsor_preferred_name,
+                                                endpoint_level.term_name,
                                                 klass="endpoint-level",
                                                 colspan=3,
                                             )
@@ -325,16 +309,15 @@ class StudyObjectivesService:
 
         # Set header row to repeat after page breaks
         docx.repeat_table_header(row)
-
         for objective_level, objectives, endpoints in sorted(
             tree.values(),
-            key=lambda o: o[0].codelists[0].order if o[0].codelists else 0,
+            key=lambda o: o[0].order if o[0].order else 0,
         ):
             row = table.add_row()
 
             cell = row.cells[0]
             cell.add_paragraph(
-                f"{objective_level.sponsor_preferred_name}:",
+                f"{objective_level.term_name}:",
                 style=STYLES["objective-level"][0],
             )
             # Remove first empty paragraph added automatically to cell
@@ -348,10 +331,10 @@ class StudyObjectivesService:
             cell = row.cells[1]
             for endpoint_level, study_endpoints in sorted(
                 endpoints.values(),
-                key=lambda e: e[0].codelists[0].order if e[0].codelists else 0,
+                key=lambda e: e[0].order if e[0].order else 0,
             ):
                 cell.add_paragraph(
-                    f"{endpoint_level.sponsor_preferred_name}:",
+                    f"{endpoint_level.term_name}:",
                     style=STYLES["endpoint-level"][0],
                 )
                 for study_endpoint in sorted(
@@ -388,21 +371,20 @@ class StudyObjectivesService:
 
         for objective_level, study_objectives in sorted(
             tree.values(),
-            key=lambda o: o[0].codelists[0].order if o[0].codelists else 0,
+            key=lambda o: o[0].order if o[0].order else 0,
         ):
             row = table.add_row()
             num_rows += 1
 
             docx.replace_content(
                 row.cells[0],
-                str(objective_level.sponsor_preferred_name),
+                str(objective_level.term_name),
                 style="objective-level",
             )
             # TODO Do we have CT-terms for these?
             docx.replace_content(row.cells[1], _gettext("Title"), style="header2")
             docx.replace_content(row.cells[2], _gettext("Time frame"), style="header2")
             docx.replace_content(row.cells[3], _gettext("Unit"), style="header2")
-
             for study_objective, endpoint_levels in sorted(
                 study_objectives.values(), key=lambda o: o[0].order
             ):
@@ -422,7 +404,7 @@ class StudyObjectivesService:
                 for epl_idx, epl_ste in enumerate(
                     sorted(
                         endpoint_levels.values(),
-                        key=lambda o: o[0].codelists[0].order if o[0].codelists else 0,
+                        key=lambda o: o[0].order if o[0].order else 0,
                     )
                 ):
                     endpoint_level, study_endpoints = epl_ste
@@ -438,7 +420,7 @@ class StudyObjectivesService:
 
                     docx.replace_content(
                         row.cells[1],
-                        str(endpoint_level.sponsor_preferred_name),
+                        str(endpoint_level.term_name),
                         style="endpoint-level",
                     )
                     # Merge 2nd cell to end of row

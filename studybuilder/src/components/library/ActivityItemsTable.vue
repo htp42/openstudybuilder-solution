@@ -17,13 +17,14 @@
             :hide-default-switches="true"
             :export-data-url="exportDataUrl"
             item-value="item_key"
-            :disable-filtering="false"
+            :disable-filtering="true"
             :hide-search-field="false"
             :modifiable-table="true"
             :no-padding="true"
             elevation="0"
             :loading="loading"
             :items-length="paginationTotal"
+            :server-items-length="paginationTotal"
             :no-data-text="t('activityItemsTable.noItemsFound')"
             :use-cached-filtering="false"
             @filter="handleFilter"
@@ -96,11 +97,8 @@ const allActivityItems = ref([]) // Store all items for client-side filtering
 const loading = ref(false)
 const paginationTotal = ref(0)
 const currentSearch = ref('') // Track current search term
-const tableOptions = ref({
-  page: 1,
-  itemsPerPage: 25,
-  sortBy: [{ key: 'activity_item_class.name', order: 'asc' }],
-})
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Define headers for the activity items table
 const itemHeaders = [
@@ -140,8 +138,18 @@ watch(
     () => props.version,
     () => route.params.version,
   ],
-  () => {
-    refresh()
+  (newValues, oldValues) => {
+    // Skip if oldValues is undefined (initial mount)
+    if (!oldValues) return
+
+    // Only refresh if the values actually changed
+    const hasActualChange = newValues.some(
+      (val, index) => val !== oldValues[index]
+    )
+
+    if (hasActualChange) {
+      refresh()
+    }
   }
 )
 
@@ -150,12 +158,12 @@ function refresh() {
   const version = props.version || route.params.version
 
   if (props.activityInstanceId) {
-    fetchActivityItems(props.activityInstanceId, version, tableOptions.value)
+    fetchActivityItems(props.activityInstanceId, version)
   }
 }
 
 // Fetches activity items from API
-async function fetchActivityItems(activityInstanceId, version, options = {}) {
+async function fetchActivityItems(activityInstanceId, version) {
   try {
     loading.value = true
 
@@ -179,8 +187,12 @@ async function fetchActivityItems(activityInstanceId, version, options = {}) {
 
     allActivityItems.value = items
 
-    // Apply search filter if there's a search term
-    applySearchFilter(options.search || currentSearch.value)
+    // Apply initial filter with current pagination
+    applySearchFilter(
+      currentSearch.value,
+      currentPage.value,
+      itemsPerPage.value
+    )
   } catch (error) {
     console.error('Error fetching activity items:', error)
     activityItems.value = []
@@ -232,43 +244,37 @@ function itemMatchesSearch(item, searchTerm) {
 }
 
 // Apply search filter to the items
-function applySearchFilter(searchTerm) {
+function applySearchFilter(searchTerm, page = 1, perPage = 10) {
   currentSearch.value = searchTerm || ''
 
-  if (!searchTerm || searchTerm.trim() === '') {
-    // No search term, show all items with pagination
-    const startIndex =
-      (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage
-    const endIndex = startIndex + tableOptions.value.itemsPerPage
-    activityItems.value = allActivityItems.value.slice(startIndex, endIndex)
-    paginationTotal.value = allActivityItems.value.length
-  } else {
-    // Filter items based on search term
-    const filteredItems = allActivityItems.value.filter((item) =>
+  let itemsToDisplay = allActivityItems.value
+
+  // Apply search filter if needed
+  if (searchTerm && searchTerm.trim() !== '') {
+    itemsToDisplay = allActivityItems.value.filter((item) =>
       itemMatchesSearch(item, searchTerm)
     )
-
-    // Apply pagination to filtered results
-    const startIndex =
-      (tableOptions.value.page - 1) * tableOptions.value.itemsPerPage
-    const endIndex = startIndex + tableOptions.value.itemsPerPage
-    activityItems.value = filteredItems.slice(startIndex, endIndex)
-    paginationTotal.value = filteredItems.length
   }
+
+  // Apply pagination
+  if (perPage === -1) {
+    // Show all items when "All" is selected
+    activityItems.value = itemsToDisplay
+  } else {
+    const startIndex = (page - 1) * perPage
+    const endIndex = startIndex + perPage
+    activityItems.value = itemsToDisplay.slice(startIndex, endIndex)
+  }
+
+  paginationTotal.value = itemsToDisplay.length
 }
 
 // Handles filtering of activity items based on search term
 function handleFilter(_, options) {
-  // Handle search
-  if (options && typeof options.search !== 'undefined') {
-    // Reset to page 1 when searching
-    tableOptions.value.page = 1
-    applySearchFilter(options.search)
-  }
-
-  // Handle sorting changes
-  if (options && options.sortBy && options.sortBy.length > 0) {
-    tableOptions.value.sortBy = [...options.sortBy]
+  // Handle search - only if search actually changed
+  if (options?.search !== currentSearch.value) {
+    currentPage.value = 1 // Reset to page 1 when search changes
+    applySearchFilter(options.search, 1, itemsPerPage.value)
   }
 }
 
@@ -276,17 +282,20 @@ function handleFilter(_, options) {
 function updateTableOptions(options) {
   if (!options) return
 
-  // Check for pagination changes
-  if (
-    options.page !== tableOptions.value.page ||
-    options.itemsPerPage !== tableOptions.value.itemsPerPage
-  ) {
-    tableOptions.value.page = options.page
-    tableOptions.value.itemsPerPage = options.itemsPerPage
-
-    // Reapply search filter with new pagination
-    applySearchFilter(currentSearch.value)
+  // Update pagination values
+  if (options.page !== undefined) {
+    currentPage.value = options.page
   }
+  if (options.itemsPerPage !== undefined) {
+    itemsPerPage.value = options.itemsPerPage
+  }
+
+  // Apply filter with updated pagination
+  applySearchFilter(
+    currentSearch.value,
+    options.page || currentPage.value,
+    options.itemsPerPage || itemsPerPage.value
+  )
 }
 </script>
 

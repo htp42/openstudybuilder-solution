@@ -48,7 +48,7 @@ def test_data():
     inject_and_clear_db(db_name)
 
     global study
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
 
     global study_arm
     study_arm = TestUtils.create_study_arm(
@@ -73,7 +73,6 @@ def test_branch_arm_modify_actions_on_locked_study(api_client):
             "arm_uid": study_arm.arm_uid,
         },
     )
-    res = response.json()
     assert_response_status_code(response, 201)
 
     # get all arms

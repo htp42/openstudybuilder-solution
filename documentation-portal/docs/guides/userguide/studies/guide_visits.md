@@ -80,7 +80,7 @@ The visit 0 is occasionally utilized in early phase studies. This visit is not e
 ![visit_0](~@source/images/user_guides/Visit_0_1.png)
 Figure 7: Visits 0 in a study
 
-Follow the below steps to create an Information visit 0 in StudyBuilder:
+Follow the below steps to create an Information visit 0 in OpenStudyBuilder:
 1.	In studies/define study/study Structure/study visits: click on ”Add content” button
 1.	In Visit scheduling type, select Scheduled visit and click Continue
 1.	Select the screening or first study period (Epoch) and click continue
@@ -91,7 +91,7 @@ Follow the below steps to create an Information visit 0 in StudyBuilder:
 1.	Select time unit as needed
 1.	Set timing as *negative* towards the global anchor visit, e.g. ’-28’ (days). *Note* that the timing must be before any existing Visit 1.
 1.	Set visit window as needed (optional)
-1.	StudyBuilder will now name this very first Information visit as Visit 0 (see green boxes in Figure 8)
+1.	OpenStudyBuilder will now name this very first Information visit as Visit 0 (see green boxes in Figure 8)
 
 ![visit_0](~@source/images/user_guides/Visit_0_2.png)
 Figure 8: Settings to create visit 0

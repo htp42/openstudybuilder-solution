@@ -9,6 +9,7 @@ from clinical_mdr_api.tests.integration.utils.factory_disease_milestone import *
 from clinical_mdr_api.tests.integration.utils.factory_epoch import *
 from clinical_mdr_api.tests.integration.utils.factory_metadata import *
 from clinical_mdr_api.tests.integration.utils.factory_study_design import *
+from clinical_mdr_api.tests.integration.utils.factory_units import *
 from clinical_mdr_api.tests.integration.utils.factory_visit import *
 
 

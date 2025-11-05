@@ -544,10 +544,12 @@ class StudyActivitySelectionService(
         study_uid: str,
         activity_subgroup_uid: str,
         perform_subgroup_validation: bool = True,
+        activity_subgroup_version: str | None = None,
     ):
         activity_subgroup_ar = self._validate_activity_subgroup(
             activity_subgroup_uid=activity_subgroup_uid,
             perform_subgroup_validation=perform_subgroup_validation,
+            activity_subgroup_version=activity_subgroup_version,
         )
 
         # create new VO to add
@@ -563,11 +565,14 @@ class StudyActivitySelectionService(
 
     @classmethod
     def _validate_activity_subgroup(
-        cls, activity_subgroup_uid: str | None, perform_subgroup_validation: bool = True
+        cls,
+        activity_subgroup_uid: str | None,
+        perform_subgroup_validation: bool = True,
+        activity_subgroup_version: str | None = None,
     ) -> ActivitySubGroupAR:
         activity_subgroup_service = ActivitySubGroupService()
         activity_subgroup_ar = activity_subgroup_service.repository.find_by_uid_2(
-            activity_subgroup_uid, for_update=True
+            activity_subgroup_uid, version=activity_subgroup_version
         )
         NotFoundException.raise_if_not(
             activity_subgroup_uid, "Activity Subgroup", activity_subgroup_uid
@@ -633,11 +638,14 @@ class StudyActivitySelectionService(
 
     @classmethod
     def _validate_activity_group(
-        cls, activity_group_uid: str | None, perform_group_validation: bool = True
+        cls,
+        activity_group_uid: str | None,
+        perform_group_validation: bool = True,
+        activity_group_version: str | None = None,
     ) -> ActivityGroupAR:
         activity_group_service = ActivityGroupService()
         activity_group_ar = activity_group_service.repository.find_by_uid_2(
-            activity_group_uid, for_update=True
+            activity_group_uid, version=activity_group_version
         )
 
         NotFoundException.raise_if_not(
@@ -662,10 +670,12 @@ class StudyActivitySelectionService(
         study_uid: str,
         activity_group_uid: str,
         perform_group_validation: bool = True,
+        activity_group_version: str | None = None,
     ):
         activity_group_ar = self._validate_activity_group(
             activity_group_uid=activity_group_uid,
             perform_group_validation=perform_group_validation,
+            activity_group_version=activity_group_version,
         )
         # create new VO to add
         new_selection = StudySelectionActivityGroupVO.from_input_values(
@@ -929,6 +939,7 @@ class StudyActivitySelectionService(
         study_activity_group_uid: str | None,
         soa_group_term_uid: str | None,
         perform_subgroup_validation: bool = True,
+        activity_subgroup_version: str | None = None,
     ) -> StudySelectionActivitySubGroupVO:
         study_activity_subgroup_selection: StudySelectionActivitySubGroupVO | None = (
             None
@@ -957,6 +968,7 @@ class StudyActivitySelectionService(
                         study_uid=study_uid,
                         activity_subgroup_uid=activity_subgroup_uid,
                         perform_subgroup_validation=perform_subgroup_validation,
+                        activity_subgroup_version=activity_subgroup_version,
                     )
                 )
                 # add VO to aggregate
@@ -986,6 +998,7 @@ class StudyActivitySelectionService(
         soa_group_term_uid: str | None,
         study_soa_group_uid: str | None,
         perform_group_validation: bool = True,
+        activity_group_version: str | None = None,
     ) -> StudySelectionActivityGroupVO:
         study_activity_group_selection: StudySelectionActivityGroupVO | None = None
 
@@ -1016,6 +1029,7 @@ class StudyActivitySelectionService(
                         study_uid=study_uid,
                         activity_group_uid=activity_group_uid,
                         perform_group_validation=perform_group_validation,
+                        activity_group_version=activity_group_version,
                     )
                 )
                 # add VO to aggregate
@@ -1126,19 +1140,41 @@ class StudyActivitySelectionService(
                 soa_group_term_uid=selection_create_input.soa_group_term_uid,
             ).study_selection_uid
 
+            activity_service = ActivityService()
+            activity_uid = selection_create_input.activity_uid
+            activity_ar: ActivityAR = activity_service.repository.find_by_uid_2(
+                activity_uid, for_update=True
+            )
+            activity_group_version: str | None = None
+            for activity_grouping in activity_ar.concept_vo.activity_groupings:
+                if (
+                    activity_grouping.activity_group_uid
+                    == selection_create_input.activity_group_uid
+                ):
+                    activity_group_version = activity_grouping.activity_group_version
+
             study_activity_group_selection = self._get_or_create_study_activity_group(
                 study_uid=study_uid,
                 soa_group_term_uid=selection_create_input.soa_group_term_uid,
                 study_soa_group_uid=study_soa_group_selection_uid,
                 activity_group_uid=selection_create_input.activity_group_uid,
                 activity_subgroup_uid=selection_create_input.activity_subgroup_uid,
+                activity_group_version=activity_group_version,
             )
             study_activity_group_selection_uid = (
                 study_activity_group_selection.study_selection_uid
                 if study_activity_group_selection
                 else None
             )
-
+            activity_subgroup_version: str | None = None
+            for activity_grouping in activity_ar.concept_vo.activity_groupings:
+                if (
+                    activity_grouping.activity_subgroup_uid
+                    == selection_create_input.activity_subgroup_uid
+                ):
+                    activity_subgroup_version = (
+                        activity_grouping.activity_subgroup_version
+                    )
             study_activity_subgroup_selection = (
                 self._get_or_create_study_activity_subgroup(
                     study_uid=study_uid,
@@ -1146,6 +1182,7 @@ class StudyActivitySelectionService(
                     activity_group_uid=selection_create_input.activity_group_uid,
                     study_activity_group_uid=study_activity_group_selection_uid,
                     activity_subgroup_uid=selection_create_input.activity_subgroup_uid,
+                    activity_subgroup_version=activity_subgroup_version,
                 )
             )
             study_activity_subgroup_selection_uid = (

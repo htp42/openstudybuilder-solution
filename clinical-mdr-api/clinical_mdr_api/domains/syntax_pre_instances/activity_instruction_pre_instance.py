@@ -55,6 +55,14 @@ class ActivityInstructionPreInstanceAR(PreInstanceAR):
         activity_groups: list[SimpleNameModel] | None = None,
         activity_subgroups: list[SimpleNameModel] | None = None,
     ) -> Self:
+        if indications is None:
+            indications = []
+        if activities is None:
+            activities = []
+        if activity_groups is None:
+            activity_groups = []
+        if activity_subgroups is None:
+            activity_subgroups = []
         return cls(
             _uid=uid,
             _sequence_id=sequence_id,

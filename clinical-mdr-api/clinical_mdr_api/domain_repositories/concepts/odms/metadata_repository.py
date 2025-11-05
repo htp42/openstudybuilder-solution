@@ -76,9 +76,9 @@ class MetadataRepository:
     """
     OPTIONAL_CODELIST_TERM_MATCH = """
     OPTIONAL MATCH (OdmItemRoot)
-    -[:HAS_CODELIST_TERM]->(CTTermRoot:CTTermRoot)
-    -[:HAS_ATTRIBUTES_ROOT]->(CTTermAttributesRoot:CTTermAttributesRoot)
-    -[:LATEST]->(CTTermAttributesValue:CTTermAttributesValue)
+    -[:HAS_CODELIST_TERM]->(:CTTermContext)
+    -[:HAS_SELECTED_CODELIST]-(:CTCodelistRoot)
+    -[:HAS_TERM]-(CTCodelistTerm:CTCodelistTerm)
     """
 
     STUDY_EVENT_NAME_RETURN = "OdmStudyEventValue.name AS StudyEvent_Name"
@@ -98,7 +98,7 @@ class MetadataRepository:
         "apoc.text.join(COLLECT(DISTINCT UnitDefinitionValue.name), '|') as Item_Units"
     )
     ITEM_CODELIST_RETURN = "CTCodelistAttributesValue.name AS Item_Codelist"
-    ITEM_TERM_RETURN = "apoc.text.join(COLLECT(DISTINCT CTTermAttributesValue.code_submission_value), '|') as Item_Terms"
+    ITEM_TERM_RETURN = "apoc.text.join(COLLECT(DISTINCT CTCodelistTerm.submission_value), '|') as Item_Terms"
 
     def get_odm_study_event(self, target_uid: str):
         query = (

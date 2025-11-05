@@ -12,7 +12,7 @@
             prepend-inner-icon="mdi-calendar-outline"
             data-cy="filter-field"
             readonly
-            class="select filterAutocompleteLabel ml-1"
+            class="filterAutocompleteLabel ml-1"
             density="compact"
             rounded="lg"
             hide-details
@@ -48,7 +48,7 @@
         :items="items"
         hide-details
         single-line
-        class="select filterAutocompleteLabel ml-1"
+        class="filterAutocompleteLabel ml-1"
         :loading="loading"
         @input="getColumnData(item.key)"
         @update:model-value="filterTable"
@@ -152,6 +152,11 @@ const props = defineProps({
     default: undefined,
   },
   initialData: {
+    type: Array,
+    required: false,
+    default: null,
+  },
+  fixedData: {
     type: Array,
     required: false,
     default: null,
@@ -264,7 +269,7 @@ function getColumnData(value) {
   if (!_isEmpty(jsonFilter)) {
     params.filters = jsonFilter
   }
-  if (props.resource[1] !== undefined) {
+  if (props.resource[1] && props.resource[1] !== undefined) {
     params.codelist_uid = props.resource[1]
   }
   if (props.library) {
@@ -300,6 +305,9 @@ function getColumnData(value) {
         }
       })
       items.value = Array.from(new Set(deconstructedItems))
+    }
+    if (props.fixedData) {
+      items.value = props.fixedData.concat(items.value)
     }
     if (props.initialData) {
       items.value = items.value.filter(
@@ -384,9 +392,6 @@ if (props.selectedData) {
 <style scoped lang="scss">
 .v-list {
   max-width: 300px !important;
-}
-.select {
-  min-width: 200px !important;
 }
 .fixed-width {
   max-width: 250px !important;

@@ -109,6 +109,8 @@
           <template v-else>
             <TestActivityItemClassField
               v-model="testValue"
+              v-model:code-codelist="testCodeCodelistValue"
+              v-model:name-codelist="testNameCodelistValue"
               :test-code-aic="testCodeAic"
               :test-name-aic="testNameAic"
               :data-domain="step2Form.data_domain"
@@ -116,9 +118,7 @@
             />
 
             <ActivityItemClassField
-              v-for="(
-                activityItemClass, index
-              ) in remainingMdActivityItemClasses"
+              v-for="(activityItemClass, index) in mandatoryActivityItemClasses"
               :key="activityItemClass.uid"
               v-model="step2Form.activityItems[index]"
               :all-activity-item-classes="availableActivityItemClasses"
@@ -398,6 +398,7 @@ import TestActivityItemClassField from './TestActivityItemClassField.vue'
 import activitiesApi from '@/api/activities'
 import activityInstanceClassesApi from '@/api/activityInstanceClasses'
 import activityItemClassesApi from '@/api/activityItemClasses'
+import codelistsApi from '@/api/controlledTerminology/codelists'
 import activityItemClassesConstants from '@/constants/activityItemClasses'
 import libraryConstants from '@/constants/libraries.js'
 import statuses from '@/constants/statuses.js'
@@ -431,6 +432,8 @@ const selectedActivity = ref(null)
 const stepper = ref()
 const totalActivities = ref(0)
 const testValue = ref(null)
+const testCodeCodelistValue = ref(null)
+const testNameCodelistValue = ref(null)
 
 const step1FormRef = ref()
 const step2FormRef = ref()
@@ -470,36 +473,19 @@ const dataDomains = computed(() => {
 const availableActivityItemClasses = ref([])
 
 const mandatoryActivityItemClasses = computed(() => {
-  return availableActivityItemClasses.value.filter((item) => {
+  const result = availableActivityItemClasses.value.filter((item) => {
     return item.mandatory
   })
-})
-// Mandatory Activity Item Classes without test_code and test_name
-const remainingMdActivityItemClasses = computed(() => {
-  const result = availableActivityItemClasses.value.filter((item) => {
-    return item.mandatory && !['test_code', 'test_name'].includes(item.name)
-  })
   if (step2Form.value.activity_instance_class?.name === 'NumericFindings') {
-    // FIXME: This is ugly... The API should be responsible for the sorting
-    const unitDimensionIndex = result.findIndex(
-      (item) => item.name === 'unit_dimension'
-    )
-    const stdUnitIndex = result.findIndex(
-      (item) => item.name === 'standard_unit'
-    )
-    if (unitDimensionIndex < stdUnitIndex) {
-      return [
-        result.find((item) => item.name === 'unit_dimension'),
-        result.find((item) => item.name === 'standard_unit'),
-      ]
-    }
+    // special sorting for NumericFindings
     return [
-      result.find((item) => item.name === 'standard_unit'),
       result.find((item) => item.name === 'unit_dimension'),
+      result.find((item) => item.name === 'standard_unit'),
     ]
   }
   return result
 })
+
 const optionalActivityItemClasses = computed(() => {
   return availableActivityItemClasses.value.filter(
     (item) =>
@@ -524,23 +510,19 @@ const otherAvailableActivityItemClasses = computed(() => {
 })
 
 const testCodeAic = computed(() => {
-  return mandatoryActivityItemClasses.value.find(
+  return availableActivityItemClasses.value.find(
     (aic) => aic.name === 'test_code'
   )
 })
 const testNameAic = computed(() => {
-  return mandatoryActivityItemClasses.value.find(
+  return availableActivityItemClasses.value.find(
     (aic) => aic.name === 'test_name'
   )
 })
 
 const selectedUnitDimension = computed(() => {
   let result = null
-  const itemClasses =
-    testCodeAic.value && testNameAic.value
-      ? remainingMdActivityItemClasses.value
-      : mandatoryActivityItemClasses.value
-  itemClasses.forEach((aic, index) => {
+  mandatoryActivityItemClasses.value.forEach((aic, index) => {
     if (aic.name === 'unit_dimension') {
       result = step2Form.value.activityItems[index].ct_term_name
     }
@@ -659,6 +641,8 @@ function fetchActivities(filters, options, filtersUpdated) {
     delete params.filters['activity_groupings.activity_subgroup_name']
   }
   params.group_by_groupings = false
+  activities.value = []
+  totalActivities.value = 0
   activitiesApi.get(params, 'activities').then((resp) => {
     activities.value = resp.data.items
     totalActivities.value = resp.data.total
@@ -805,10 +789,13 @@ function prepareCreationPayload(forPreview) {
     step4Form.value.activityItems
   )
 
-  function addActivityItem(uid, term_uids) {
+  function addActivityItem(uid, codelistUid, term_uids) {
+    const ct_terms = term_uids.map((term_uid) => {
+      return { codelist_uid: codelistUid, term_uid }
+    })
     activityItems.push({
       activity_item_class_uid: uid,
-      ct_term_uids: term_uids,
+      ct_terms,
       odm_item_uids: [],
       unit_definition_uids: [],
       is_adam_param_specific: false,
@@ -816,8 +803,12 @@ function prepareCreationPayload(forPreview) {
   }
 
   if (testValue.value) {
-    addActivityItem(testCodeAic.value.uid, [testValue.value])
-    addActivityItem(testNameAic.value.uid, [testValue.value])
+    addActivityItem(testCodeAic.value.uid, testCodeCodelistValue.value, [
+      testValue.value,
+    ])
+    addActivityItem(testNameAic.value.uid, testNameCodelistValue.value, [
+      testValue.value,
+    ])
   }
 
   if (step4Form.value.data_category) {
@@ -887,24 +878,36 @@ async function initStep(step) {
   } else if (step === 4) {
     let resp
     if (categoryAic.value) {
-      resp = await activityItemClassesApi.getDatasetTerms(
+      resp = await activityItemClassesApi.getDatasetCodelists(
         categoryAic.value.uid,
         step2Form.value.data_domain,
         {
           page_size: 0,
         }
       )
-      dataCategories.value = resp.data.items
+      if (resp.data.items.length === 1) {
+        const codelistUid = resp.data[0].codelist_uid
+        resp = await codelistsApi.getCodelistTerms(codelistUid, {
+          page_size: 0,
+        })
+        dataCategories.value = resp.data.items
+      }
     }
     if (subcategoryAic.value) {
-      resp = await activityItemClassesApi.getDatasetTerms(
+      resp = await activityItemClassesApi.getDatasetCodelists(
         subcategoryAic.value.uid,
         step2Form.value.data_domain,
         {
           page_size: 0,
         }
       )
-      dataSubcategories.value = resp.data.items
+      if (resp.data.items.length === 1) {
+        const codelistUid = resp.data[0].codelist_uid
+        resp = await codelistsApi.getCodelistTerms(codelistUid, {
+          page_size: 0,
+        })
+        dataSubcategories.value = resp.data.items
+      }
     }
   }
 }

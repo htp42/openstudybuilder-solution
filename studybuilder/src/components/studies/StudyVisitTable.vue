@@ -199,7 +199,7 @@
           <v-select
             v-model="item.repeating_frequency_uid"
             :items="frequencies"
-            item-title="name.sponsor_preferred_name"
+            item-title="sponsor_preferred_name"
             item-value="term_uid"
             density="compact"
             :disabled="
@@ -336,7 +336,7 @@
             v-model="item.visit_contact_mode_uid"
             class="cellWidth"
             :items="contactModes"
-            item-title="name.sponsor_preferred_name"
+            item-title="sponsor_preferred_name"
             item-value="term_uid"
             density="compact"
             :disabled="item.disabled && itemsDisabled"
@@ -367,7 +367,7 @@
             v-model="item.time_reference_uid"
             class="cellWidth"
             :items="timeReferences"
-            item-title="name.sponsor_preferred_name"
+            item-title="sponsor_preferred_name"
             item-value="term_uid"
             density="compact"
             :disabled="item.disabled && itemsDisabled"
@@ -942,13 +942,13 @@ onMounted(() => {
     .then((resp) => {
       preferredTimeUnits.value = resp.data.items
     })
-  terms.getByCodelist('contactModes').then((resp) => {
+  terms.getTermsByCodelist('contactModes').then((resp) => {
     contactModes.value = resp.data.items
   })
-  terms.getByCodelist('timepointReferences').then((resp) => {
+  terms.getTermsCodelist('timepointReferences').then((resp) => {
     timeReferences.value = resp.data.items
   })
-  codelists.getByCodelist('repeatingVisitFrequency').then((resp) => {
+  codelists.getTermsByCodelist('repeatingVisitFrequency').then((resp) => {
     frequencies.value = resp.data.items
   })
   if (studiesGeneralStore.studyPreferredTimeUnit) {

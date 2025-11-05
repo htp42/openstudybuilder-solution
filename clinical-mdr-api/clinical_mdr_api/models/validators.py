@@ -11,8 +11,7 @@ from common.exceptions import ValidationException
 FLOAT_REGEX = "^[0-9]+\\.?[0-9]*$"
 
 
-# pylint: disable=unused-argument
-def validate_string_represents_boolean(cls, value, info: ValidationInfo):
+def validate_string_represents_boolean(value, info: ValidationInfo):
     """
     Validates whether a string value represents a boolean value.
 
@@ -41,7 +40,7 @@ def validate_string_represents_boolean(cls, value, info: ValidationInfo):
     return value
 
 
-def validate_name_only_contains_letters(cls, value, info: ValidationInfo):
+def validate_name_only_contains_letters(value, info: ValidationInfo):
     """
     Validates whether a string value contains only letters.
 
@@ -63,7 +62,7 @@ def validate_name_only_contains_letters(cls, value, info: ValidationInfo):
     return value
 
 
-def validate_regex(cls, value, info: ValidationInfo):
+def validate_regex(value, info: ValidationInfo):
     """
     Validates whether a string value is a valid regular expression.
 
@@ -89,8 +88,7 @@ def validate_regex(cls, value, info: ValidationInfo):
     return value
 
 
-# pylint: disable=unused-argument
-def transform_to_utc(cls, value: datetime | None, info: ValidationInfo):
+def transform_to_utc(value: datetime | None, info: ValidationInfo):
     if not value:
         return None
 
@@ -104,8 +102,7 @@ def transform_to_utc(cls, value: datetime | None, info: ValidationInfo):
         ) from exc
 
 
-# pylint: disable=unused-argument
-def is_language_supported(cls, value: str):
+def is_language_supported(value: str):
     if not value:
         return None
 

@@ -27,13 +27,27 @@ class CompactCTTerm(BaseModel):
 
     uid: Annotated[
         str | None,
-        Field(json_schema_extra={"source": "has_ct_term.uid", "nullable": True}),
+        Field(
+            json_schema_extra={
+                "source": "has_ct_term.has_selected_term.uid",
+                "nullable": True,
+            }
+        ),
+    ] = None
+    codelist_uid: Annotated[
+        str | None,
+        Field(
+            json_schema_extra={
+                "source": "has_ct_term.has_selected_codelist.uid",
+                "nullable": True,
+            }
+        ),
     ] = None
     name: Annotated[
         str | None,
         Field(
             json_schema_extra={
-                "source": "has_ct_term.has_name_root.has_latest_value.name",
+                "source": "has_ct_term.has_selected_term.has_name_root.has_latest_value.name",
                 "nullable": True,
             },
         ),
@@ -163,8 +177,12 @@ class ActivityItem(BaseModel):
 
 
 class ActivityItemCreateInput(PostInputModel):
+    class CTTermsInput(PostInputModel):
+        term_uid: Annotated[str, Field(min_length=1)]
+        codelist_uid: Annotated[str, Field(min_length=1)]
+
     activity_item_class_uid: Annotated[str, Field(min_length=1)]
-    ct_term_uids: Annotated[list[str], Field()]
+    ct_terms: Annotated[list[CTTermsInput], Field()]
     unit_definition_uids: Annotated[list[str], Field()]
     is_adam_param_specific: Annotated[bool, Field()]
     odm_form_uids: list[str] = Field(default_factory=list)

@@ -141,7 +141,7 @@ class StudyDesignCellService(StudySelectionMixin):
     ) -> StudyDesignCell:
         sdc_node = (
             StudyDesignCellNeoModel.nodes.fetch_relations(
-                "study_epoch__has_epoch__has_name_root__has_latest_value",
+                "study_epoch__has_epoch__has_selected_term__has_name_root__has_latest_value",
                 "study_element",
                 "has_after__audit_trail",
                 Optional("study_arm"),

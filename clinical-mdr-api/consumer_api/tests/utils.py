@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 from neomodel.sync_.core import db
 
 from common.config import settings
+from common.database import configure_database
 
 log = logging.getLogger(__name__)
 
@@ -23,11 +24,12 @@ log = logging.getLogger(__name__)
 def set_db(db_name):
     os.environ["NEO4J_DATABASE"] = db_name
 
-    from neomodel import config as neoconfig
-
-    full_dsn = f"{settings.neo4j_dsn}"
-    neoconfig.DATABASE_URL = full_dsn
-    db.set_connection(full_dsn)
+    driver = configure_database(
+        settings.neo4j_dsn,
+        max_connection_lifetime=settings.neo4j_connection_lifetime,
+        liveness_check_timeout=settings.neo4j_liveness_check_timeout,
+    )
+    db.set_connection(driver=driver)
 
     if db_name.strip() != "":
         db.cypher_query("CREATE OR REPLACE DATABASE $db", {"db": db_name})
@@ -39,9 +41,12 @@ def set_db(db_name):
             # Database creation can take a couple of seconds
             # db.set_connection will return a ClientError if the database isn't ready
             # This allows for retrying after a small pause
-            full_dsn = urljoin(settings.neo4j_dsn, f"/{db_name}")
-            neoconfig.DATABASE_URL = full_dsn
-            db.set_connection(full_dsn)
+            driver = configure_database(
+                urljoin(settings.neo4j_dsn, f"/{db_name}"),
+                max_connection_lifetime=settings.neo4j_connection_lifetime,
+                liveness_check_timeout=settings.neo4j_liveness_check_timeout,
+            )
+            db.set_connection(driver=driver)
 
             # AuraDB workaround for not supporting multiple db's:
             # Use the main db for tests and remove all nodes

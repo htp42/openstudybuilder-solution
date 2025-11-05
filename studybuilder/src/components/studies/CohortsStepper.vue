@@ -53,7 +53,7 @@
                 color="nnBaseBlue"
                 base-color="nnBaseBlue"
                 rounded="lg"
-                item-title="name.sponsor_preferred_name"
+                item-title="sponsor_preferred_name"
                 item-value="term_uid"
                 clearable
                 density="compact"
@@ -110,6 +110,8 @@
                   v-model="arm.number_of_subjects"
                   data-cy="number-of-subjects"
                   :label="$t('CohortsStepper.no_participants')"
+                  type="number"
+                  :rules="[formRules.min_value(arm.number_of_subjects, 0)]"
                   class="mr-1"
                   variant="outlined"
                   bg-color="white"
@@ -697,9 +699,9 @@ onMounted(async () => {
   cohortsApi
     .checkDesignClassEditable(studiesGeneralStore.selectedStudy.uid)
     .then((resp) => {
-      editableDesignClass.value = !resp.data
+      editableDesignClass.value = resp.data
     })
-  codelists.getByCodelist('armTypes').then((resp) => {
+  codelists.getTermsByCodelist('armTypes').then((resp) => {
     armTypes.value = resp.data.items
   })
   stepper.value.currentStep = props.initialStep
@@ -872,10 +874,11 @@ async function saveDesignClass() {
       creationMode.value !== cohortConstants.MANUAL
     ) {
       if (
-        await confirm.value.open(
+        editableDesignClass.value ||
+        (await confirm.value.open(
           t('CohortsStepper.change_class_warning_1'),
           options
-        )
+        ))
       ) {
         cohortsApi
           .changeStudyDesignClass(studiesGeneralStore.selectedStudy.uid, {
@@ -899,10 +902,11 @@ async function saveDesignClass() {
       creationMode.value !== cohortConstants.FULL
     ) {
       if (
-        await confirm.value.open(
+        editableDesignClass.value ||
+        (await confirm.value.open(
           t('CohortsStepper.change_class_warning_2'),
           options
-        )
+        ))
       ) {
         cohortsApi
           .changeStudyDesignClass(studiesGeneralStore.selectedStudy.uid, {
@@ -1092,7 +1096,7 @@ function previousStep() {
     cohortsApi
       .checkDesignClassEditable(studiesGeneralStore.selectedStudy.uid)
       .then((resp) => {
-        editableDesignClass.value = !resp.data
+        editableDesignClass.value = resp.data
       })
   }
   stepper.value.currentStep -= 1

@@ -62,7 +62,8 @@ def test_data():
     db_name = "activityrequests.api"
     inject_and_clear_db(db_name)
     global study_uid
-    study_uid = inject_base_data().uid
+    study, _test_data_dict = inject_base_data()
+    study_uid = study.uid
 
     catalogue_name = CT_CATALOGUE_NAME
     flowchart_codelist = TestUtils.create_ct_codelist(
@@ -70,6 +71,7 @@ def test_data():
         catalogue_name=catalogue_name,
         extensible=True,
         approve=True,
+        submission_value="FLWCRTGRP",
     )
     global biomarkers_flowchart
     biomarkers_flowchart = TestUtils.create_ct_term(

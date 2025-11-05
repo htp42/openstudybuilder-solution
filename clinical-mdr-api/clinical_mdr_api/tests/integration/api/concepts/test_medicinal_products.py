@@ -33,7 +33,11 @@ from clinical_mdr_api.tests.integration.utils.api import (
     inject_and_clear_db,
     inject_base_data,
 )
-from clinical_mdr_api.tests.integration.utils.utils import CT_CODELIST_NAMES, TestUtils
+from clinical_mdr_api.tests.integration.utils.utils import (
+    CT_CODELIST_NAMES,
+    CT_CODELIST_UIDS,
+    TestUtils,
+)
 from clinical_mdr_api.tests.utils.checks import assert_response_status_code
 
 log = logging.getLogger(__name__)
@@ -106,39 +110,58 @@ def test_data():
         CT_CODELIST_NAMES.dispenser,
         CT_CODELIST_NAMES.adverse_events,
     ]
-    codelists = TestUtils.get_codelists_by_names(relevant_codelists)
+    _codelists = TestUtils.get_codelists_by_names(relevant_codelists)
 
     # Create CT Terms
+    catalogue_name = "SDTM CT"
+    library_name = "Sponsor"
+
     ct_term_dose_form = TestUtils.create_ct_term(
+        codelist_uid=CT_CODELIST_UIDS.dosage_form,
+        submission_value="dosage_form_1",
         sponsor_preferred_name="dosage_form_1",
-        codelist_uid=TestUtils.get_codelist_uid_by_name(
-            codelists, CT_CODELIST_NAMES.dosage_form
-        ),
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
     )
     ct_term_roa = TestUtils.create_ct_term(
+        codelist_uid=CT_CODELIST_UIDS.roa,
+        submission_value="route_of_administration_1",
         sponsor_preferred_name="route_of_administration_1",
-        codelist_uid=TestUtils.get_codelist_uid_by_name(
-            codelists, CT_CODELIST_NAMES.roa
-        ),
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
+    )
+    ct_term_delivery_device = TestUtils.create_ct_term(
+        codelist_uid=CT_CODELIST_UIDS.delivery_device,
+        submission_value="delivery_device_1a",
+        sponsor_preferred_name="delivery_device_1a",
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
     )
 
-    ct_term_delivery_device = TestUtils.create_ct_term(
-        sponsor_preferred_name="delivery_device_1",
-        codelist_uid=TestUtils.get_codelist_uid_by_name(
-            codelists, CT_CODELIST_NAMES.delivery_device
-        ),
-    )
     ct_term_dose_frequency = TestUtils.create_ct_term(
+        codelist_uid=CT_CODELIST_UIDS.frequency,
+        submission_value="dose_frequency_1",
         sponsor_preferred_name="dose_frequency_1",
-        codelist_uid=TestUtils.get_codelist_uid_by_name(
-            codelists, CT_CODELIST_NAMES.frequency
-        ),
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
     )
+
     ct_term_dispenser = TestUtils.create_ct_term(
+        codelist_uid=CT_CODELIST_UIDS.dispenser,
+        submission_value="dispenser_1",
         sponsor_preferred_name="dispenser_1",
-        codelist_uid=TestUtils.get_codelist_uid_by_name(
-            codelists, CT_CODELIST_NAMES.dispenser
-        ),
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
     )
 
     TestUtils.create_library("UNII")
@@ -569,7 +592,9 @@ def test_update_medicinal_product_property(api_client):
 
 def test_update_medicinal_product_delivery_device(api_client):
     ct_term_delivery_device_new = TestUtils.create_ct_term(
-        sponsor_preferred_name="delivery_device_2"
+        sponsor_preferred_name="delivery_device_2",
+        codelist_uid=CT_CODELIST_UIDS.delivery_device,
+        order=2,
     )
 
     payload: dict[Any, Any]

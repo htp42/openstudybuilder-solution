@@ -81,11 +81,11 @@ initialize_ct_data_map: dict[str, Any] = {
         ("C48660", "Not Applicable"),
         ("C49686", "Phase IIa Trial"),
     ],
-    "StudyStopRules": ("C49698_STOPRULE", "Study Stop Rule"),
-    "IsExtensionTrial": [("C49488_Y", "Y"), ("C49487_N", "N")],
-    "IsAdaptiveDesign": [("C49488_Y", "Y"), ("C49487_N", "N")],
+    "StudyStopRules": ("C49698", "Study Stop Rule"),
+    "IsExtensionTrial": [("C49488", "Y"), ("C49487", "N")],
+    "IsAdaptiveDesign": [("C49488", "Y"), ("C49487", "N")],
     "PostAuthIndicator": (
-        "C139275_PASSIND",
+        "C139275",
         "Post Authorization Safety Study Indicator",
     ),
     "TherapeuticAreas": [
@@ -111,27 +111,27 @@ initialize_ct_data_map: dict[str, Any] = {
     ],
     "SexOfParticipants": [("C16576", "Female"), ("C20197", "Male"), ("C49636", "Both")],
     "StableDiseaseMinimumDuration": (
-        "C98783_SDMDUR",
+        "C98783",
         "Stable Disease Minimum Duration",
     ),
-    "RareDiseaseIndicator": [("C49488_Y", "Y"), ("C49487_N", "N")],  # SDTM catalogue
-    "HealthySubjectIndicator": [("C49488_Y", "Y"), ("C49487_N", "N")],  # SDTM catalogue
+    "RareDiseaseIndicator": [("C49488", "Y"), ("C49487", "N")],  # SDTM catalogue
+    "HealthySubjectIndicator": [("C49488", "Y"), ("C49487", "N")],  # SDTM catalogue
     "PlannedMinimumAgeOfSubject": (
-        "C49693_AGEMIN",
+        "C49693",
         "Planned Minimum Age of Subjects",
     ),  # SDTM catalogue
     "PlannedMaximumAgeOfSubject": (
-        "C49694_AGEMAX",
+        "C49694",
         "Planned Maximum Age of Subjects",
     ),  # SDTM catalogue
-    "PediatricStudyIndicator": [("C49488_Y", "Y"), ("C49487_N", "N")],  # SDTM catalogue
+    "PediatricStudyIndicator": [("C49488", "Y"), ("C49487", "N")],  # SDTM catalogue
     "PediatricPostmarketStudyIndicator": [
-        ("C49488_Y", "Y"),
-        ("C49487_N", "N"),
+        ("C49488", "Y"),
+        ("C49487", "N"),
     ],  # SDTM catalogue
-    "PediatricInvestigationPlanIndicator": [("C49488_Y", "Y"), ("C49487_N", "N")],
+    "PediatricInvestigationPlanIndicator": [("C49488", "Y"), ("C49487", "N")],
     # SDTM catalogue
-    "RelapseCriteria": ("C117961_RLPSCRIT", "Relapse Criteria"),
+    "RelapseCriteria": ("C117961", "Relapse Criteria"),
     "InterventionType": [
         ("C127574", "MJDIAEVS"),
         ("C122086", "Augmentation Pressure Point P2"),
@@ -142,8 +142,8 @@ initialize_ct_data_map: dict[str, Any] = {
         ("C147156", "Pressure Half Time"),
     ],
     "AddOnToExistingTreatments": [
-        ("C49488_Y", "Y"),
-        ("C49487_N", "N"),
+        ("C49488", "Y"),
+        ("C49487", "N"),
     ],  # SDTM catalogue
     "ControlType": [
         ("C120841", "Dose Response Control"),
@@ -158,9 +158,9 @@ initialize_ct_data_map: dict[str, Any] = {
         ("C82639", "Parallel Study"),
         ("C82640", "Single Group Study"),
     ],
-    "IsTrialRandomised": [("C49488_Y", "Y"), ("C49487_N", "N")],  # SDTM catalogue
+    "IsTrialRandomised": [("C49488", "Y"), ("C49487", "N")],  # SDTM catalogue
     "StratificationFactor": (
-        "C16153_STRATFCT",
+        "C16153",
         "Stratification Factors",
     ),  # SDTM catalogue
     "TrialBlindingSchema": [
@@ -169,14 +169,63 @@ initialize_ct_data_map: dict[str, Any] = {
         ("C156592", "OPEN LABEL TO TREATMENT AND DOUBLE BLIND TO IMP DOSE"),
         ("C28233", "Single Blind Study"),
     ],
-    "PlannedStudyLength": ("C49697_LENGTH", "Trial Length"),  # SDTM catalogue
+    "PlannedStudyLength": ("C49697", "Trial Length"),  # SDTM catalogue
     "ConfirmedResponseMinimumDuration": (
-        "C98715_CRMDUR",
+        "C98715",
         "ConfirmedResponseMinimumDuration",
     ),  # SDTM catalogue
-    "DrugStudyIndication": [("C49488_Y", "Y"), ("C49487_N", "N")],  # SDTM catalogue
-    "DeviceStudyIndication": [("C49488_Y", "Y"), ("C49487_N", "N")],  # SDTM catalogue
-    "StudyTitle": ("C49802_TITLE", "Trial Title"),  # SDTM catalogue
+    "DrugStudyIndication": [("C49488", "Y"), ("C49487", "N")],  # SDTM catalogue
+    "DeviceStudyIndication": [("C49488", "Y"), ("C49487", "N")],  # SDTM catalogue
+    "StudyTitle": ("C49802", "Trial Title"),  # SDTM catalogue
+}
+
+initialize_ct_codelist_map = {
+    "NullValueCodes": (None, "Null Flavor", "NULLFLVR"),
+    "StudyType": ("C99077", "Study Type", "STYPE"),
+    "TrialIntentType": ("C66736", "Trial Indication Type", "TINDTP"),
+    "TrialType": ("C66739", "Trial Type", "TTYPE"),
+    "TrialPhase": ("C66737", "Trial Phase", "TPHASE"),
+    "StudyStopRules": ("C66738", "Trial Summary Parameter Test Code", "TSPARMCD"),
+    "IsExtensionTrial": ("C66742", "No Yes Response", "NY"),
+    "IsAdaptiveDesign": ("C66742", "No Yes Response", "NY"),
+    "PostAuthIndicator": ("C66742", "No Yes Response", "NY"),
+    "SexOfParticipants": ("C66732", "Sex of Participants", "SEXPOP"),
+    "StableDiseaseMinimumDuration": (
+        "C66738",
+        "Trial Summary Parameter Test Code",
+        "TSPARMCD",
+    ),
+    "RareDiseaseIndicator": ("C66742", "No Yes Response", "NY"),
+    "HealthySubjectIndicator": ("C66742", "No Yes Response", "NY"),
+    "PlannedMinimumAgeOfSubject": (
+        "C66738",
+        "Trial Summary Parameter Test Code",
+        "TSPARMCD",
+    ),
+    "PlannedMaximumAgeOfSubject": (
+        "C66738",
+        "Trial Summary Parameter Test Code",
+        "TSPARMCD",
+    ),
+    "PediatricStudyIndicator": ("C66742", "No Yes Response", "NY"),
+    "PediatricPostmarketStudyIndicator": ("C66742", "No Yes Response", "NY"),
+    "PediatricInvestigationPlanIndicator": ("C66742", "No Yes Response", "NY"),
+    "RelapseCriteria": ("C66738", "Trial Summary Parameter Test Code", "TSPARMCD"),
+    "InterventionType": ("C99078", "Intervention Type", "INTTYPE"),
+    "AddOnToExistingTreatments": ("C66742", "No Yes Response", "NY"),
+    "ControlType": ("C66785", "Control Type", "TCNTRL"),
+    "InterventionModel": ("C99076", "Intervention Model", "INTMODEL"),
+    "IsTrialRandomised": ("C66742", "No Yes Response", "NY"),
+    "StratificationFactor": ("C66738", "Trial Summary Parameter Test Code", "TSPARMCD"),
+    "TrialBlindingSchema": ("C66735", "Trial Blinding Schema", "TBLIND"),
+    "PlannedStudyLength": ("C66738", "Trial Summary Parameter Test Code", "TSPARMCD"),
+    "ConfirmedResponseMinimumDuration": (
+        "C66738",
+        "Trial Summary Parameter Test Code",
+        "TSPARMCD",
+    ),
+    "DrugStudyIndication": ("C66742", "No Yes Response", "NY"),
+    "DeviceStudyIndication": ("C66742", "No Yes Response", "NY"),
 }
 
 

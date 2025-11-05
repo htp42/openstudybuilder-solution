@@ -113,6 +113,8 @@ class SimpleListingCTModel(BaseModel):
     ] = None
 
 
+# TODO this function needs to know what codelist to get submission value from.
+# Note, this is currently not used by the UI.
 def ct_term_uid_to_str(
     ct_uid: str | None, find_term_by_uid: Callable[[str], Any | None]
 ):
@@ -120,7 +122,8 @@ def ct_term_uid_to_str(
         term = find_term_by_uid(ct_uid)
         if term is not None:
             if hasattr(term, "ct_term_vo"):
-                return getattr(term.ct_term_vo, "code_submission_value")
+                # return getattr(term.ct_term_vo, "code_submission_value")
+                return getattr(term.ct_term_vo, "preferred_term")
         else:
             return f"uid: {ct_uid} not found"
     return ""

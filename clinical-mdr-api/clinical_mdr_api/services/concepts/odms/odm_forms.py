@@ -48,7 +48,6 @@ class OdmFormService(OdmGenericService[OdmFormAR]):
     ) -> OdmForm:
         return OdmForm.from_odm_form_ar(
             odm_form_ar=item_ar,
-            find_term_callback=self._repos.ct_term_attributes_repository.find_by_uid,
             find_odm_description_by_uid=self._repos.odm_description_repository.find_by_uid_2,
             find_odm_alias_by_uid=self._repos.odm_alias_repository.find_by_uid_2,
             find_activity_group_by_uid=self._repos.activity_group_repository.find_by_uid_2,
@@ -72,7 +71,6 @@ class OdmFormService(OdmGenericService[OdmFormAR]):
                 name=concept_input.name,
                 sdtm_version=concept_input.sdtm_version,
                 repeating=strtobool(concept_input.repeating),
-                scope_uid=concept_input.scope_uid,
                 description_uids=[
                     description if isinstance(description, str) else description.uid
                     for description in concept_input.descriptions
@@ -87,7 +85,6 @@ class OdmFormService(OdmGenericService[OdmFormAR]):
             library=library,
             generate_uid_callback=self.repository.generate_uid,
             odm_object_exists_callback=self._repos.odm_form_repository.odm_object_exists,
-            find_term_callback=self._repos.ct_term_attributes_repository.find_by_uid,
             odm_description_exists_by_callback=self._repos.odm_description_repository.exists_by,
             get_odm_description_parent_uids_callback=self._repos.odm_description_repository.get_parent_uids,
             odm_alias_exists_by_callback=self._repos.odm_alias_repository.exists_by,
@@ -104,7 +101,6 @@ class OdmFormService(OdmGenericService[OdmFormAR]):
                 name=concept_edit_input.name,
                 sdtm_version=concept_edit_input.sdtm_version,
                 repeating=strtobool(concept_edit_input.repeating),
-                scope_uid=concept_edit_input.scope_uid,
                 description_uids=[
                     description if isinstance(description, str) else description.uid
                     for description in concept_edit_input.descriptions
@@ -117,7 +113,6 @@ class OdmFormService(OdmGenericService[OdmFormAR]):
                 vendor_element_attribute_uids=[],
             ),
             odm_object_exists_callback=self._repos.odm_form_repository.odm_object_exists,
-            find_term_callback=self._repos.ct_term_attributes_repository.find_by_uid,
             odm_description_exists_by_callback=self._repos.odm_description_repository.exists_by,
             get_odm_description_parent_uids_callback=self._repos.odm_description_repository.get_parent_uids,
             odm_alias_exists_by_callback=self._repos.odm_alias_repository.exists_by,
@@ -144,7 +139,6 @@ class OdmFormService(OdmGenericService[OdmFormAR]):
                 sdtm_version=concept_input.sdtm_version,
                 oid=get_input_or_new_value(concept_input.oid, "F.", concept_input.name),
                 repeating=concept_input.repeating,
-                scope_uid=concept_input.scope_uid,
                 descriptions=description_uids,
                 alias_uids=concept_input.alias_uids,
             )
@@ -185,7 +179,6 @@ class OdmFormService(OdmGenericService[OdmFormAR]):
                 sdtm_version=concept_edit_input.sdtm_version,
                 oid=concept_edit_input.oid,
                 repeating=concept_edit_input.repeating,
-                scope_uid=concept_edit_input.scope_uid,
                 descriptions=description_uids,
                 alias_uids=concept_edit_input.alias_uids,
             ),

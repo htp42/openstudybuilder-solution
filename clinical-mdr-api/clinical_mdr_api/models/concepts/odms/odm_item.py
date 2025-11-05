@@ -109,6 +109,7 @@ class OdmItemTermRelationshipModel(BaseModel):
                     order=term.order,
                     display_text=term.display_text,
                     version=term.version,
+                    submission_value=term.submission_value,
                 )
             else:
                 simple_term_model = cls(
@@ -118,6 +119,7 @@ class OdmItemTermRelationshipModel(BaseModel):
                     order=None,
                     display_text=None,
                     version=None,
+                    submission_value=None,
                 )
         return simple_term_model
 
@@ -129,6 +131,9 @@ class OdmItemTermRelationshipModel(BaseModel):
         None
     )
     version: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = None
+    submission_value: Annotated[
+        str | None, Field(json_schema_extra={"nullable": True})
+    ] = None
 
 
 class OdmItemUnitDefinitionWithRelationship(BaseModel):

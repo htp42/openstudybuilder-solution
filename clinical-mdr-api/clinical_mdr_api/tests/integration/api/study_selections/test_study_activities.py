@@ -51,13 +51,13 @@ from clinical_mdr_api.tests.integration.utils.data_library import (
     STARTUP_ACTIVITY_SUB_GROUPS,
     STARTUP_CT_CATALOGUE_CYPHER,
     STARTUP_STUDY_LIST_CYPHER,
-    get_codelist_with_term_cypher,
 )
 from clinical_mdr_api.tests.integration.utils.factory_activity import (
     create_study_activity,
 )
 from clinical_mdr_api.tests.integration.utils.factory_controlled_terminology import (
     create_codelist,
+    create_ct_term,
     get_catalogue_name_library_name,
 )
 from clinical_mdr_api.tests.integration.utils.factory_visit import (
@@ -113,25 +113,12 @@ def test_data():
     db_name = "studyactivityapi"
     inject_and_clear_db(db_name)
     global study
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
 
     db.cypher_query(STARTUP_ACTIVITY_GROUPS)
     db.cypher_query(STARTUP_ACTIVITY_SUB_GROUPS)
     db.cypher_query(STARTUP_ACTIVITIES)
-    global term_efficacy_uid
-    term_efficacy_uid = "term_efficacy_uid"
-    db.cypher_query(
-        get_codelist_with_term_cypher(
-            "EFFICACY", "Flowchart Group", term_uid=term_efficacy_uid
-        )
-    )
-    global informed_consent_uid
-    informed_consent_uid = "informed_consent_uid"
-    db.cypher_query(
-        get_codelist_with_term_cypher(
-            "SAFETY", "Flowchart Group", term_uid=informed_consent_uid
-        )
-    )
+
     db.cypher_query(STARTUP_STUDY_LIST_CYPHER)
     db.cypher_query(STARTUP_CT_CATALOGUE_CYPHER)
     create_library_data()
@@ -263,10 +250,45 @@ def test_data():
         clinical_programme_uid=clinical_programme.uid,
     )
 
-    catalogue_name, library_name = get_catalogue_name_library_name(use_test_utils=True)
+    _catalogue_name, library_name = get_catalogue_name_library_name(use_test_utils=True)
+    catalogue_name = "SDTM CT"
     # Create a study selection
     ct_term_codelist = create_codelist(
-        "Flowchart Group", "CTCodelist_Name", catalogue_name, library_name
+        "Flowchart Group",
+        "CTCodelist_Name",
+        catalogue_name,
+        library_name,
+        submission_value="FLWCRTGRP",
+    )
+    global term_efficacy_uid
+    term_efficacy_uid = "term_efficacy_uid"
+    create_ct_term(
+        codelists=[
+            {
+                "uid": ct_term_codelist.codelist_uid,
+                "submission_value": "EFFICACY",
+                "order": 1,
+            },
+        ],
+        name="EFFICACY",
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        uid=term_efficacy_uid,
+    )
+    global informed_consent_uid
+    informed_consent_uid = "informed_consent_uid"
+    create_ct_term(
+        codelists=[
+            {
+                "uid": ct_term_codelist.codelist_uid,
+                "submission_value": "SAFETY",
+                "order": 2,
+            },
+        ],
+        name="SAFETY",
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        uid=informed_consent_uid,
     )
 
     # create visit
@@ -292,7 +314,7 @@ def test_data():
     ct_term_start_date = datetime(2020, 3, 25, tzinfo=timezone.utc)
     initial_ct_term_study_standard_test = TestUtils.create_ct_term(
         codelist_uid=ct_term_codelist.codelist_uid,
-        name_submission_value=ct_term_name,
+        submission_value=ct_term_name,
         sponsor_preferred_name=ct_term_name,
         order=1,
         catalogue_name=catalogue_name,
@@ -3778,3 +3800,67 @@ def test_batch_operations_for_combined_study_activity_and_activity_schedules(
     assert_response_status_code(response, 200)
     study_activity_schedules = response.json()
     assert len(study_activity_schedules) == 0
+
+
+def test_study_activity_should_link_subgroup_and_group_version_based_on_the_version_linked_by_activity(
+    api_client,
+):
+    test_study = TestUtils.create_study(project_number=project.project_number)
+    response = api_client.post(
+        f"/concepts/activities/activity-groups/{general_activity_group.uid}/versions",
+    )
+    assert_response_status_code(response, 201)
+    response = api_client.put(
+        f"/concepts/activities/activity-groups/{general_activity_group.uid}",
+        json={
+            "name": general_activity_group.name + "V2",
+            "name_sentence_case": general_activity_group.name_sentence_case + "v2",
+            "change_description": "V2",
+        },
+    )
+    assert_response_status_code(response, 200)
+    response = api_client.post(
+        f"/concepts/activities/activity-groups/{general_activity_group.uid}/approvals",
+    )
+    assert_response_status_code(response, 201)
+
+    response = api_client.get(
+        f"/concepts/activities/activities/{randomized_activity.uid}",
+    )
+    assert_response_status_code(response, 200)
+    randomized_activity_after_group_update = response.json()
+
+    assert (
+        randomized_activity_after_group_update["activity_groupings"][0][
+            "activity_group_uid"
+        ]
+        == general_activity_group.uid
+    )
+    group_version_linked_by_activity = randomized_activity_after_group_update[
+        "activity_groupings"
+    ][0]["activity_group_version"]
+    response = api_client.get(
+        f"/concepts/activities/activity-groups/{general_activity_group.uid}/versions",
+    )
+    assert_response_status_code(response, 200)
+    group_versions = response.json()
+    group_in_specific_version = None
+    for group_ver in group_versions:
+        if group_ver["version"] == group_version_linked_by_activity:
+            group_in_specific_version = group_ver
+
+    response = api_client.post(
+        f"/studies/{test_study.uid}/study-activities",
+        json={
+            "activity_uid": randomized_activity.uid,
+            "activity_subgroup_uid": randomisation_activity_subgroup.uid,
+            "activity_group_uid": general_activity_group.uid,
+            "soa_group_term_uid": term_efficacy_uid,
+        },
+    )
+    res = response.json()
+    assert_response_status_code(response, 201)
+    assert (
+        res["study_activity_group"]["activity_group_name"]
+        == group_in_specific_version["name"]
+    )

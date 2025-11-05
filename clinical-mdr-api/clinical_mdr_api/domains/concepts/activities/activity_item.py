@@ -16,6 +16,10 @@ class LibraryItem(BaseModel):
     name: str | None = None
 
 
+class CTTermItem(LibraryItem):
+    codelist_uid: str | None = None
+
+
 @dataclass(frozen=True)
 class ActivityItemVO:
     """
@@ -25,7 +29,7 @@ class ActivityItemVO:
     is_adam_param_specific: bool
     activity_item_class_uid: str
     activity_item_class_name: str | None
-    ct_terms: list[LibraryItem]
+    ct_terms: list[CTTermItem]
     unit_definitions: list[CompactUnitDefinition]
     odm_forms: list[CompactOdmForm]
     odm_item_groups: list[CompactOdmItemGroup]
@@ -37,7 +41,7 @@ class ActivityItemVO:
         is_adam_param_specific: bool,
         activity_item_class_uid: str,
         activity_item_class_name: str | None,
-        ct_terms: list[LibraryItem],
+        ct_terms: list[CTTermItem],
         unit_definitions: list[CompactUnitDefinition],
         odm_forms: list[CompactOdmForm],
         odm_item_groups: list[CompactOdmItemGroup],

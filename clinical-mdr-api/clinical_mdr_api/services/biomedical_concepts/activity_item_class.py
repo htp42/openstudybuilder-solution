@@ -7,22 +7,29 @@ from clinical_mdr_api.domains.biomedical_concepts.activity_item_class import (
     ActivityInstanceClassActivityItemClassRelVO,
     ActivityItemClassAR,
     ActivityItemClassVO,
+    CTTermItem,
 )
 from clinical_mdr_api.domains.versioned_object_aggregate import LibraryVO
 from clinical_mdr_api.models.biomedical_concepts.activity_item_class import (
     ActivityItemClass,
+    ActivityItemClassCodelist,
     ActivityItemClassCreateInput,
     ActivityItemClassEditInput,
     ActivityItemClassMappingInput,
     ActivityItemClassVersion,
     CompactActivityItemClass,
 )
-from clinical_mdr_api.models.controlled_terminologies.ct_term import (
-    TermWithCodelistMetadata,
+from clinical_mdr_api.models.controlled_terminologies.ct_codelist import (
+    CTCodelistNameAndAttributes,
 )
-from clinical_mdr_api.models.utils import EmptyGenericFilteringResult
+from clinical_mdr_api.models.utils import (
+    EmptyGenericFilteringResult,
+    GenericFilteringReturn,
+)
 from clinical_mdr_api.repositories._utils import FilterOperator
-from clinical_mdr_api.services.controlled_terminologies.ct_term import CTTermService
+from clinical_mdr_api.services.controlled_terminologies.ct_codelist import (
+    CTCodelistService,
+)
 from clinical_mdr_api.services.neomodel_ext_generic import NeomodelExtGenericService
 from common.exceptions import NotFoundException
 
@@ -58,8 +65,10 @@ class ActivityItemClassService(NeomodelExtGenericService[ActivityItemClassAR]):
                     )
                     for item in item_input.activity_instance_classes
                 ],
-                role_uid=item_input.role_uid,
-                data_type_uid=item_input.data_type_uid,
+                role=CTTermItem(uid=item_input.role_uid, name=None, codelist_uid=None),
+                data_type=CTTermItem(
+                    uid=item_input.data_type_uid, name=None, codelist_uid=None
+                ),
             ),
             library=library,
             generate_uid_callback=self.repository.generate_uid,
@@ -87,15 +96,19 @@ class ActivityItemClassService(NeomodelExtGenericService[ActivityItemClassAR]):
                     )
                     for item in item_edit_input.activity_instance_classes
                 ],
-                role_uid=(
-                    item_edit_input.role_uid
+                role=(
+                    CTTermItem(
+                        uid=item_edit_input.role_uid, name=None, codelist_uid=None
+                    )
                     if item_edit_input.role_uid
-                    else item.activity_item_class_vo.role_uid
+                    else item.activity_item_class_vo.role
                 ),
-                data_type_uid=(
-                    item_edit_input.data_type_uid
+                data_type=(
+                    CTTermItem(
+                        uid=item_edit_input.data_type_uid, name=None, codelist_uid=None
+                    )
                     if item_edit_input.data_type_uid
-                    else item.activity_item_class_vo.data_type_uid
+                    else item.activity_item_class_vo.data_type
                 ),
             ),
             activity_instance_class_exists=self._repos.activity_instance_class_repository.check_exists_final_version,
@@ -122,7 +135,7 @@ class ActivityItemClassService(NeomodelExtGenericService[ActivityItemClassAR]):
 
         return self.get_by_uid(uid)
 
-    def get_terms_of_activity_item_class(
+    def get_codelists_of_activity_item_class(
         self,
         activity_item_class_uid: str,
         dataset_uid: str,
@@ -133,35 +146,45 @@ class ActivityItemClassService(NeomodelExtGenericService[ActivityItemClassAR]):
         filter_by: dict[str, dict[str, Any]] | None = None,
         filter_operator: FilterOperator = FilterOperator.AND,
         total_count: bool = False,
-    ) -> list[TermWithCodelistMetadata]:
-        codelist_uids, term_uids = (
-            self._repos.activity_item_class_repository.get_referenced_codelist_and_term_uids(
-                activity_item_class_uid=activity_item_class_uid,
-                dataset_uid=dataset_uid,
-                use_sponsor_model=use_sponsor_model,
-            )
+    ) -> GenericFilteringReturn[ActivityItemClassCodelist]:
+
+        codelists_and_terms = self._repos.activity_item_class_repository.get_referenced_codelist_and_term_uids(
+            activity_item_class_uid, dataset_uid, use_sponsor_model
         )
 
-        if not codelist_uids:
+        if not codelists_and_terms:
             return EmptyGenericFilteringResult
-        if not filter_by:
+        codelist_uids = codelists_and_terms.keys()
+
+        if filter_by is None:
             filter_by = {}
-        filter_by |= {"codelist_uid": {"v": codelist_uids}}
-        if term_uids:
-            filter_by |= {"term_uid": {"v": term_uids}}
+        filter_by["codelist_uid"] = {"v": codelist_uids, "op": "eq"}
 
-        all_aggregated_terms = (
-            CTTermService()._repos.ct_term_name_repository.find_all_name_simple_result(
-                total_count=total_count,
-                sort_by=sort_by,
-                filter_by=filter_by,
-                filter_operator=filter_operator,
-                page_number=page_number,
-                page_size=page_size,
-            )
+        (
+            all_aggregated_terms,
+            count,
+        ) = CTCodelistService()._repos.ct_codelist_aggregated_repository.find_all_aggregated_result(
+            total_count=total_count,
+            sort_by=sort_by,
+            filter_by=filter_by,
+            filter_operator=filter_operator,
+            page_number=page_number,
+            page_size=page_size,
         )
+        items = [
+            ActivityItemClassCodelist.from_codelist_and_terms(
+                CTCodelistNameAndAttributes.from_ct_codelist_ar(
+                    name,
+                    attrs,
+                    paired_codes_codelist_uid=paired.paired_codes_codelist_uid,
+                    paired_names_codelist_uid=paired.paired_names_codelist_uid,
+                ),
+                codelists_and_terms[attrs.uid],
+            )
+            for name, attrs, paired in all_aggregated_terms
+        ]
 
-        return all_aggregated_terms
+        return GenericFilteringReturn.create(items, count)
 
     def get_all_for_activity_instance_class(
         self, activity_item_class_uid: str

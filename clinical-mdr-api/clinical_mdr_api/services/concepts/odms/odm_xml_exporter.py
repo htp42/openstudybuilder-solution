@@ -74,7 +74,7 @@ class OdmXmlExporterService:
 
     def __init__(
         self,
-        target_uid: str,
+        target_uids: list[str],
         target_type: TargetType,
         status: ObjectStatus,
         allowed_namespaces: list[str],
@@ -86,7 +86,7 @@ class OdmXmlExporterService:
         Initializes a new instance of the `OdmXmlGenerator` class.
 
         Args:
-            target_uid (str): The UID of the ODM element to generate XML for.
+            target_uids (list[str]): The UIDs of the ODM elements to generate XML for.
             target_type (TargetType): The type of the ODM element to generate XML for.
             status (ObjectStatus): The status of the ODM elements to generate XML for.
             allowed_namespaces (list[str]): A list of allowed vendor namespace prefixes.
@@ -98,7 +98,9 @@ class OdmXmlExporterService:
         Returns:
             None
         """
-        self.odm_data_extractor = OdmDataExtractor(target_uid, target_type, status.name)
+        self.odm_data_extractor = OdmDataExtractor(
+            target_uids, target_type, status.name
+        )
         self.mapper_file = mapper_file
         self.allowed_namespaces = allowed_namespaces
         self.used_vendor_namespaces = {}
@@ -472,7 +474,7 @@ class OdmXmlExporterService:
                             (
                                 "|".join(
                                     [
-                                        f"{sdtm_domain.code_submission_value}:{sdtm_domain.preferred_term}"
+                                        f"{sdtm_domain.submission_value}:{sdtm_domain.preferred_term}"
                                         for sdtm_domain in item_group.sdtm_domains
                                     ]
                                 )
@@ -516,7 +518,7 @@ class OdmXmlExporterService:
                         self._get_vendor_elements_or_empty_list(
                             [
                                 OsbDomainColor(
-                                    f"{sdtm_domain.code_submission_value}:{self.SDTM_MSG_COLOURS[idx%len(self.SDTM_MSG_COLOURS)]} !important;"
+                                    f"{sdtm_domain.submission_value}:{self.SDTM_MSG_COLOURS[idx%len(self.SDTM_MSG_COLOURS)]} !important;"
                                 )
                                 for idx, sdtm_domain in enumerate(
                                     item_group.sdtm_domains
@@ -863,7 +865,7 @@ class OdmXmlExporterService:
                                 CodeListItem(
                                     coded_value=Attribute(
                                         "CodedValue",
-                                        codelist_item["code_submission_value"],
+                                        codelist_item["submission_value"],
                                     ),
                                     decode=Decode(
                                         TranslatedText(
@@ -962,7 +964,7 @@ class OdmXmlExporterService:
             study=Study(
                 oid=Attribute(
                     "OID",
-                    f"{self.odm_data_extractor.target_name}-{self.odm_data_extractor.target_uid}",
+                    f"{self.odm_data_extractor.target_name}-{self.odm_data_extractor.target_uids[0]}",
                 ),
                 meta_data_version=MetaDataVersion(
                     oid=Attribute("OID", "MDV.0.1"),
