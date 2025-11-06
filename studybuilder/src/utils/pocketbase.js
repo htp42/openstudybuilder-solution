@@ -2,7 +2,7 @@ import PocketBase from 'pocketbase'
 import { ref } from 'vue'
 
 // Initialize PocketBase instance
-export const pb = new PocketBase('http://127.0.0.1:8090')
+export const pb = new PocketBase(process.env.POCKETBASE_PATH)
 
 // Enable auto cancellation for requests
 pb.autoCancellation(false)

@@ -6,7 +6,7 @@
       <div class="text-center mb-8">
         <div class="logo-section mb-6">
           <div class="logo-text">
-            <img class="logoSrc" src="http://192.168.1.173:5005/assets/study_builder_homepage_logo-3a74f034.png">
+            <img class="logoSrc" src="../assets/study_builder_homepage_logo.png" alt="StudyBuilder Logo" />
             
           </div>
         </div>
@@ -367,7 +367,7 @@ export default {
   padding: 20px;
 }
 .logoSrc{
-  width: 50% !important;
+  width: 75% !important;
 }
 .login-content {
   width: 100%;

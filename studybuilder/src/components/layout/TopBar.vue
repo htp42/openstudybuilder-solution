@@ -423,19 +423,33 @@ function handleProfileClick() {
 function handleLogout() {
   console.log('Logging out...')
   
-  // Logout from PocketBase if authenticated
-  if (isPocketBaseAuthenticated()) {
-    pocketBaseLogout()
-    console.log('PocketBase logout successful')
+  try {
+    // Logout from PocketBase if authenticated
+    if (isPocketBaseAuthenticated()) {
+      pocketBaseLogout()
+      console.log('PocketBase logout successful')
+    }
+    
+    // Also clear OAuth auth if present
+    if (authStore.userInfo) {
+      authStore.clear()
+    }
+    
+    // Clear all localStorage
+    localStorage.clear()
+    console.log('LocalStorage cleared')
+    
+    // Clear session storage as well
+    sessionStorage.clear()
+    console.log('SessionStorage cleared')
+    
+  } catch (error) {
+    console.error('Error during logout:', error)
+  } finally {
+    // Force a full page reload to login page - this will happen regardless
+    console.log('Navigating to login page...')
+    window.location.replace('/login')
   }
-  
-  // Also clear OAuth auth if present
-  if (authStore.userInfo) {
-    authStore.clear()
-  }
-  
-  // Redirect to login page
-  router.push({ name: 'Login' })
 }
 function redirectToStudyTable() {
   confirm.value.cancel()
