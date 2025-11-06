@@ -95,7 +95,7 @@
         "reactivate": "Reactivate",
         "not_applicable_full_name": "Not Applicable",
         "positive_infinity_full_name": "Positive Infinity",
-        "na_uid": "C48660_NA",
+        "na_uid": "C48660",
         "filtering_to_add": "Filtering currently not activated",
         "save_anyway": "Save anyway",
         "add_defaults": "Default values",
@@ -150,6 +150,8 @@
         "reports": "Reports",
         "download": "Download",
         "and_or": "And/Or",
+        "submission_value": "Submission value",
+        "none": "(none/blank)",
         "select": "Select",
         "view_all": "View All",
         "author": "Author",
@@ -411,7 +413,7 @@
             "catalogue": "The new code list will be created in this catalogue"
         },
         "CodelistSponsorValuesForm": {
-            "pref_name": "The sponsor preferred name is used by the StudyBuilder as the default display name for the code list",
+            "pref_name": "The sponsor preferred name is used by the OpenStudyBuilder as the default display name for the code list",
             "tpl_parameter": "If set/active, the code list is used as parameter in the creation of templates."
         },
         "CodelistAttributesForm": {
@@ -419,17 +421,33 @@
             "subm_value": "Provide a unique submission value. If a duplicate exists then the application will request a unique value.",
             "nci_pref_name": "Provide if applicable a preferred name",
             "extensible": "Allow addition of new term(s)",
+            "ordinal": "Mark the codelist as ordinal, meaning that the 'order' of the terms represent their numeric value.",
             "definition": "Provide a complete definition of the code list"
         },
         "CodelistTermCreationForm": {
             "sponsor_pref_name": "Preferred name of the term",
             "sponsor_sentence_case_name": "The sponsor sentence case name should be the same as the sponsor preferred name but with no capital letters",
             "term_name": "Provide the term name that represent the only allowed reply for a data item",
-            "submission_value": "Provide a unique submission value. If a duplicate exists then the application will use it instead",
+            "submission_value": "Provide a submission value that is unique within the codelist.",
+            "concept_id": "If available, provide an NCI Concept ID",
             "nci_pref_name": "Provide if applicable a preferred NCI name",
             "definition": "Provide a complete definition of the term",
             "synonyms": "Provide if applicable one or more synonym(s), separated by a ';'. If those synonyms already exist in the database, they will be linked",
             "order": "Order of term in the codelist"
+        },
+        "CodelistAddPairedForm": {
+            "pair_type_names": "Choose this option if the current codelist contains code submission values. Pair it with a codelist that contains the name submission values.",
+            "pair_type_codes": "Choose this option if the current codelist contains name submission values. Pair it with a codelist that contains the code submission values"
+        },
+        "AddChildTermForm": {
+            "type": "Select a child term for which the current term specifies the type.",
+            "subtype": "Select a child term for which the current term specifies the subtype.",
+            "predecessor": "Select a child term to which the current term is the predecessor. This is used to indicate that this child term replaces the current term."
+        },
+        "AddParentTermForm": {
+            "type": "Select a parent term that specifies the type of this term.",
+            "subtype": "Select a parent term that specifies the subtype of this term.",
+            "predecessor": "Select a parent term that specifies the predecessor of this term. This is used to indicate that this term replaces the parent."
         },
         "DictionaryTermForm": {
             "dictionary_id": "Add an ID of the dictionary term. Ensure that the ID follows the nomenclature for the dictionary. Example UNII for Insulin Detemir (levemir) is 4FT78T86XV, MED-RT for Insulin analogue is N0000175453, and SNOMED ID for Diabetes Mellitus is 73211009.",
@@ -514,7 +532,7 @@
             "added_to_et": "The addition of a therapeutic product to the existing regimen in a clinical study, where both entities remain as discrete products"
         },
         "StudyCompoundForm": {
-            "general": "Compounds are defined in the Study Builder Library. If a new compound or additional information to an existing compound is needed it must be defined in the library.",
+            "general": "Compounds are defined in the OpenStudyBuilder Library. If a new compound or additional information to an existing compound is needed it must be defined in the library.",
             "type_of_treatment": "Each Type of Treatment will be classified into IMP (Investigational Medical Product) or NIMP (Non-investigational Medical Product) - this will be used when generating the study interventions table for the protocol. Choose type of intervention from drop-down. Investigational Product (IMP):Following Study Compound will be linked to TSPARM 'TRT' (Investigational Therapy or Treatment) and SDTM.EX, Comparative Treatment (IMP): Following Study Compound will be linked to TSPARM 'COMPTRT' (Comparative Treatment Name) and SDTM.EX, Placebo Treatment (IMP): Following Study Compound will not be linked to TSPARM - but info used for SDTM.EX, Current Treatment (NIMP): Following Study Compound will be linked to TSPARM 'CURTRT' (Current Therapy or Treatment) and SDTM.EX. if Type of treatment is  either 'Investigational Product', 'Comparative Treatment' or 'Current Treatment' then NA can be ticked. This implies that no details for the compound will be/is provided (the next steps in this edit menu (select alias and details for the compound) will disappear. A reason for NA should be provided.",
             "compound": "Choose compound from drop-down.",
             "compound_alias": "Choose compound alias from drop-down",
@@ -631,7 +649,7 @@
             "study_visits": "A clinical encounter where the the subject interacts with the investigator. There can be one more visits in an Epoch. To edit visit(s) in the table view click on the pencil in the top-right menu.",
             "design_matrix": "The tabular (matrix) view of the study arms, epochs and elements. Click on the pencil to select the elements in the epochs for the different arms",
             "edit_visit_tableview": "To edit visits in a tabular view (all visits displayed) then click on the pencil (top right menu of the table). Use the dropdowns to change information as needed. To save an edit for row (a visit) click on the context menu and press Save. This must be done for all visits edited to save the edits. If timing or time reference is changed then the visits timeline will be recalculated and the visit edited may change Visit name. Tip: Write the original Visits name/number in the Visit Description to track where the visit being edited has been placed on the visit timeline. Delete the note afterwards.",
-            "disease_milestones": "A disease milestone is an event or activity that can be anticipated in the course of a disease, and which trigger the collection of data, but whose timing is not controlled by the study schedule (Planned visits). A disease milestone may also be something that occurred pre-study. Example is DIAGNOSIS (activity typically occurred pre-study), or HYPOGLYCAEMIC EVENT (event anticipated during a diabetes study). A Disease Milestone can be marked for repetition for milestones expected more than once in a study. If a new milestone is need in the drop-down it must be added to the codelist MIDSTYPE in the StudyBuilder Library."
+            "disease_milestones": "A disease milestone is an event or activity that can be anticipated in the course of a disease, and which trigger the collection of data, but whose timing is not controlled by the study schedule (Planned visits). A disease milestone may also be something that occurred pre-study. Example is DIAGNOSIS (activity typically occurred pre-study), or HYPOGLYCAEMIC EVENT (event anticipated during a diabetes study). A Disease Milestone can be marked for repetition for milestones expected more than once in a study. If a new milestone is need in the drop-down it must be added to the codelist MIDSTYPE in the OpenStudyBuilder Library."
         },
         "StudyBranchArms": {
             "study_arm": "Select the study arm in which the branching applies.",
@@ -724,6 +742,9 @@
             "QS_FT_CT": "Questionnaire and Functional Test Controlled Terminology. With the December 19th 2014 release of the CDISC terminologies, the standalone Questionnaire and Functional Test (QS-FT) Terminology was deprecated and its content subsumed into the Clinical Outcome Assessments (COA) Terminology",
             "SDTM_CT": "Study Data Tabulation Controlled Terminology. Terminology to support the tabulation of the collected data. SDTM is one of the required standards for data submission to FDA (U.S.) and PMDA (Japan).",
             "SEND_CT": "Standard for the Exchange of Nonclinical Data Controlled Terminology. SEND is an implementation of the SDTM standard for nonclinical studies. SEND is one of the required standards for data submission to FDA."
+        },
+        "CtTermsTable": {
+            "general": "A listing of all terms within the controlled terminology. The listing includes both CDISC and sponsor terms. It also includes terms that are not included in any codelist."
         },
         "CtSponsorPackagesTable": {
             "general": "The CT Sponsor Packages displays all version of both CDISC and Sponsor code lists and terms. Navigate using the CT Sponsor package date to show specific subsets of terminology."
@@ -897,7 +918,7 @@
             "name": "Name for the new clinical programme."
         },
         "UsdmPage": {
-            "general": "This page display the JSON file generated based on the  Digital Data Flow (DDF) CDISC / TransCelerate Unified Study Definitions Model (USDM). The data available here are extracted and converted into the USDM model, based on mapping rules defined within the StudyBuilder team: Be aware about that.",
+            "general": "This page display the JSON file generated based on the  Digital Data Flow (DDF) CDISC / TransCelerate Unified Study Definitions Model (USDM). The data available here are extracted and converted into the USDM model, based on mapping rules defined within the OpenStudyBuilder team: Be aware about that.",
             "official_protocol_title": "The formal descriptive name for the protocol.",
             "clinical_study_def": "A clinical study involves research using human volunteers (also called participants) that is intended to add to medical knowledge. There are two main types of clinical studies: clinical trials (also called interventional studies) and observational studies. [[http://ClinicalTrials.gov]](CDISC Glossary)",
             "study_protocol_version": "A plan at a particular point in time for a formal investigation to assess the utility, impact, pharmacological, physiological, and/or psychological effects of a particular treatment, procedure, drug, device, biologic, food product, cosmetic, care plan, or subject characteristic. (BRIDG)",
@@ -921,7 +942,7 @@
             "step4_description": "Specify optional activity items that are not part of PARAM/PARAMCD but will be in SDTM. These values are used to specify data that can be collected on a CRF or a external specification. Examples are methods, anatomical locations or evaluator information that will increase the value of secondary use of data."
         },
         "CohortsStepper": {
-            "select_class":"“Study with cohorts, branches and subpopulations” will bring up the full stepper, helping you set up cohorts and branches in an easy and controlled way. Study participants must be as-signed to each branch and are then automatically assigned to cohorts and arms as well. “Study with arms only” will only bring up the first page of the stepper and participants must be assigned to arms directly. It is still possible to add cohorts and branches manually after-wards.",
+            "select_class": "“Study with cohorts, branches and subpopulations” will bring up the full stepper, helping you set up cohorts and branches in an easy and controlled way. Study participants must be as-signed to each branch and are then automatically assigned to cohorts and arms as well. “Study with arms only” will only bring up the first page of the stepper and participants must be assigned to arms directly. It is still possible to add cohorts and branches manually after-wards.",
             "set_arms_for_study": "You can add as many arms as required in your study using the “Add arm” button.",
             "study_arm_type": "There are four options available for study arm type: Comparator arm, Investigational arm, Observational arm and Placebo arm.",
             "arm_name": "Arm name can be filled in with free text but is most commonly the name of the investigation, e.g. “Semaglutide” or “Placebo”.",
@@ -934,6 +955,21 @@
             "cohort_name": "Cohort/subpop. name can be filled in with free text but is most commonly the name of the investigation + dose level, e.g. “Semaglutide 2.4 mg” or “Placebo 2.4 mg”.",
             "cohort_short_name": "Cohort/subpop. short name can be filled in with free text but is most commonly the same as the cohort/subpop. name or sometimes just the dose level.",
             "link_arms_cohorts": "Enter the number of participants per branch. It is possible to copy the number of participants from the first row to all other rows. Branch name and branch short name is automatically generated based on the cohort and arm that the branch is assigned to. Using the Edit button, it is possible to rename the branch name and branch short name."
+        },
+        "DataSupplierView": {
+            "DataSupplierTable": {
+                "general": "TBD"
+            },
+            "DataSupplierForm": {
+                "name": "TBD",
+                "description": "TBD",
+                "order": "TBD",
+                "supplier_api_base_url": "TBD",
+                "supplier_ui_base_url": "TBD",
+                "supplier_type": "TBD",
+                "supplier_origin_source": "TBD",
+                "supplier_origin_type": "TBDe"
+            }
         }
     },
     "Topbar": {
@@ -953,7 +989,7 @@
     "Library": {
         "description_top_before": "The ",
         "description_top_after": " helps you manage the",
-        "description_bottom": "standards used in the StudyBuilder",
+        "description_bottom": "standards used in the OpenStudyBuilder",
         "dashboard_description": "A simple graphical presentation of the current status and historical trends of the metadata stored in the Library",
         "codelist_description": "Find the CDISC controlled terminology, including the code lists, the valid values and associated definitions for each code list and the evolution in packages and terms over time. Sponsor defined list and terms are also included.",
         "dictionaries_description": "Find relevant external dictionaries and thesaurus for clinical development such as SNOMED, MedDRA, MED-RT, UNII, LOINC, UCUM. Since some of these dictionaries are very large, only selected terms relevant for the Novo Nordisk pipeline are included.",
@@ -990,8 +1026,8 @@
     },
     "About": {
         "header": "We are using the following combination of components:",
-        "about_release_number": "StudyBuilder version:",
-        "components_list": "Clinical-MDR and StudyBuilder build number:",
+        "about_release_number": "OpenStudyBuilder version:",
+        "components_list": "Clinical-MDR and OpenStudyBuilder build number:",
         "component": "Component",
         "description": "Description",
         "database": "Database",
@@ -1002,13 +1038,13 @@
         "clinical-mdr-api_description": "Built using Python3 and FastAPI",
         "studybuilder": "Frontend application",
         "studybuilder_description": "Built using VueJS and Vuetify",
-        "studybuilder-export": "StudyBuilder Export",
-        "studybuilder-export_description": "Export of StudyBuilder data",
+        "studybuilder-export": "OpenStudyBuilder Export",
+        "studybuilder-export_description": "Export of OpenStudyBuilder data",
         "build_number": "Build number",
-        "title": "About StudyBuilder",
+        "title": "About OpenStudyBuilder",
         "license": "Component License",
         "sbom": "Software Bill of Materials",
-        "studybuilder-import": "StudyBuilder Import",
+        "studybuilder-import": "OpenStudyBuilder Import",
         "studybuilder-import_description": "Dictionary and sponsor data import",
         "mdr-standards-import": "Standards Import",
         "mdr-standards-import_description": "CDISC Library Standards Import",
@@ -1030,6 +1066,8 @@
             "activities_instances": "Activity Instances",
             "units": "Units",
             "crfs": "CRFs",
+            "crf_viewer": "CRF viewer",
+            "crf_builder": "CRF builder",
             "compounds": "Compounds",
             "dictionaries": "Dictionaries",
             "snomed": "SNOMED",
@@ -1080,10 +1118,12 @@
             "clinical_programmes": "Clinical Programmes",
             "projects": "Projects",
             "administrative_definitions": "Admin Definitions",
+            "terms": "Terms",
             "overview_pages": "Overview Pages",
             "study_structures": "Study Structures",
             "activities_subgroups": "Activity Subgroups",
-            "activities_groups": "Activity Groups"
+            "activities_groups": "Activity Groups",
+            "data_suppliers": "Data Suppliers"
         },
         "study": {
             "about": "About Studies",
@@ -1187,7 +1227,7 @@
         }
     },
     "HomeView": {
-        "title": "Welcome to the StudyBuilder {env} application",
+        "title": "Welcome to the OpenStudyBuilder {env} application",
         "subtitle": "Study Specification made easy",
         "design": "Build",
         "design_text1": "your study in a",
@@ -1412,8 +1452,6 @@
         "history": "history",
         "catalogue_name": "Catalogue Name",
         "sponsor_pref_name": "Sponsored Preferred Name",
-        "code_submission_value": "Code Submission Value",
-        "name_submission_value": "Name Submission Value",
         "nci_pref_name": "NCI Preferred Name",
         "action": "Action",
         "date": "Date",
@@ -1535,7 +1573,10 @@
         "brand_name": "Brand name",
         "title": "Study title",
         "subpart_id": "Subpart ID",
-        "sub_study_id": "Sub study ID"
+        "sub_study_id": "Sub study ID",
+        "lts_locked_ver": "Latest locked version",
+        "lts_released_ver": "Latest released version",
+        "lts_version": "Latest version"
     },
     "StudyCreationForm": {
         "title": "Add study",
@@ -1635,7 +1676,9 @@
         "study_structure": "Study structure",
         "cohorts": "Cohorts",
         "subjects": "subjects",
-        "total_subjects": " subjects in total per cohort"
+        "total_subjects": " subjects in total per cohort",
+        "source_var": "Source variable",
+        "source_var_desc": "Source variable description"
     },
     "NullFlavorSelect": {
         "label": "Reason for missing"
@@ -2335,6 +2378,7 @@
         "submission_value": "Submission value",
         "definition": "Definition",
         "extensible": "Extensible",
+        "ordinal": "Ordinal",
         "new_attributes_version": "Create new attributes version",
         "new_attributes_version_success": "New version of attributes created",
         "approve_attributes_version": "Change status to Final",
@@ -2342,7 +2386,14 @@
         "names_history_title": "Sponsor values history for code list [{codelist}]",
         "attributes_history_title": "Attributes values history for code list [{codelist}]",
         "terms_listing": "Terms listing",
-        "open_ct": "Open CT"
+        "open_ct": "Open CT",
+        "pair_type": "Pair type",
+        "pair_type_names": "Names",
+        "pair_type_codes": "Codes",
+        "paired_codelists": "Paired code lists",
+        "add_paired_codelist": "Add paired code list",
+        "remove_paired_codelist": "The paired code list will be removed",
+        "remove_paired_codelist_success": "The paired code list was removed"
     },
     "CodelistSponsorValuesForm": {
         "title": "Edit Sponsor Code list",
@@ -2365,6 +2416,8 @@
         "nci_pref_name_hint": "Provide if applicable a preferred name",
         "extensible": "Extensible?",
         "extensible_hint": "Allow addition of new term(s)",
+        "ordinal": "Ordinal?",
+        "ordinal_hint": "Mark the codelist as ordinal, meaning that the 'order' of the terms represent their numeric value.",
         "definition": "Definition",
         "definition_hint": "Provide a complete definition of the code list"
     },
@@ -2387,11 +2440,25 @@
         "attr_status": "Attributes status",
         "name_date": "Name date",
         "attr_date": "Attributes date",
-        "name_submission_value": "Name submission value",
-        "code_submission_value": "Code submission value",
-        "subject_trial_status": "Subject Trial Status"
+        "subject_trial_status": "Subject Trial Status",
+        "added_date": "Added date",
+        "removed_date": "Removed date",
+        "show_removed": "Show removed terms"
+    },
+    "TermsView": {
+        "codelist_names": "Code list names",
+        "codelist_submvals": "Code list submission values",
+        "submission_values": "Submission values",
+        "sponsor_name": "Sponsor name",
+        "add_term": "Add a new term",
+        "terms": "Terms",
+        "name_status": "Name status",
+        "attr_status": "Attributes status",
+        "name_date": "Name date",
+        "attr_date": "Attributes date"
     },
     "CodelistTermTable": {
+        "edit": "View or edit details",
         "open_sponsor_history": "Sponsor values history",
         "open_ct_history": "CT values history",
         "history_label_name": "Sponsor values history for term [{term}]",
@@ -2402,9 +2469,9 @@
         "add_term": "Add term",
         "term_detail": "Term Detail",
         "concept_id": "Concept ID",
+        "term_uid": "UID",
         "sponsor_title": "Term sponsor values",
-        "name_submission_value": "Name submission value",
-        "code_submission_value": "Code submission value",
+        "codelist_submission_value": "Codelist submission value",
         "nci_pref_name": "NCI preferred name",
         "synonyms": "Synonyms",
         "edit_names": "Edit term names",
@@ -2430,19 +2497,54 @@
         "delete_attributes": "Delete term attributes",
         "delete_attributes_success": "Term attributes deleted",
         "sentence_case_name": "Sentence case name",
-        "order": "Order"
+        "order": "Order",
+        "code_lists": "Code Lists",
+        "code_list_name": "Codelist name",
+        "submission_value": "Submission value",
+        "codelist_cid": "Codelist concept ID",
+        "name_status": "Name status",
+        "attributes_status": "Attr. status",
+        "name_date": "Name date",
+        "attributes_date": "Attr. date",
+        "name_version": "Name version",
+        "attributes_version": "Attr. version",
+        "parents": "Parents",
+        "children": "Children",
+        "relationship_type": "Relationship type",
+        "edit_order_submval": "Edit term order and submission value",
+        "add_parent": "Add a parent term",
+        "add_child": "Add a child term",
+        "remove_parent": "Remove this parent term",
+        "remove_child": "Remove this child term",
+        "add_to_codelists": "Add this term to additional codelists"
+    },
+    "CodelistTermOrderSubmvalForm": {
+        "order_and_submval_edit": "Edit order and/or submission value",
+        "term": "Term",
+        "codelist": "Code list",
+        "update_success": "Order and/or submission value updated"
+    },
+    "CodelistTermAddToCodelistsForm": {
+        "title": "Add term '{term}' to additional codelists",
+        "concept_id": "Concept ID",
+        "submission_value": "Submission value",
+        "sponsor_name": "Sponsor name",
+        "term": "Term",
+        "codelist": "Code list",
+        "update_success": "Added term to codelists(s)",
+        "select_codelists_label": "Select codelists",
+        "order_and_submval_label": "Enter term order and submission value for each codelist"
     },
     "CodelistTermCreationForm": {
-        "title": "Add term",
+        "title": "Add one or more terms to codelist '{codelist}'",
         "creation_mode_label": "How do you want to add a new term",
-        "select_mode": "Select an existing one",
-        "create_mode": "Create a new one",
+        "select_mode": "Add one or more existing terms to this codelist",
+        "create_mode": "Create a new sponsor defined term and add to this codelist",
         "create_sponsor_name": "Manage sponsor term preferred name",
         "sponsor_pref_name": "Sponsor preferred name",
         "sponsor_sentence_case_name": "Sponsor sentence case name",
         "create_term_attributes": "Manage term attribute values",
-        "name_submission_value": "Name submission value",
-        "code_submission_value": "Code submission value",
+        "submission_value": "Submission value",
         "nci_pref_name": "NCI preferred name",
         "definition": "Definition",
         "synonyms": "Synonym(s)",
@@ -2453,7 +2555,33 @@
         "concept_id": "Concept ID",
         "sponsor_name": "Sponsor name",
         "no_selection": "You must select at least one term to add",
-        "submission_value": "Submission Value"
+        "order_and_submval_label": "Enter term order and submission value"
+    },
+    "CodelistAddPairedForm": {
+        "title": "Add paired code list",
+        "codelist": "Code list",
+        "add_success": "Paired code list added",
+        "remove_success": "Paired code list removed",
+        "select_pair_type": "Select pair type",
+        "select_codelist": "Select a code list to pair with",
+        "pair_type_names": "Names",
+        "pair_type_codes": "Codes"
+    },
+    "AddChildTermForm": {
+        "title": "Add a child term to the current term",
+        "type": "Type",
+        "subtype": "Subtype",
+        "predecessor": "Predecessor",
+        "select_relationship": "Select relationship",
+        "select_term": "Select a term to add as child"
+    },
+    "AddParentTermForm": {
+        "title": "Add a parent term to the current term",
+        "type": "Type",
+        "subtype": "Subtype",
+        "predecessor": "Predecessor",
+        "select_relationship": "Select relationship",
+        "select_term": "Select a term to add as parent"
     },
     "CodelistTermNamesForm": {
         "title": "Edit sponsor term",
@@ -2511,7 +2639,7 @@
         "tab3_title": "Item Groups",
         "tab4_title": "Items",
         "tab5_title": "CRF Tree",
-        "tab6_title": "CRF View",
+        "tab6_title": "CRF Viewer",
         "tab7_title": "Alias",
         "tab8_title": "Extensions"
     },
@@ -3830,7 +3958,7 @@
         "number_of_participants": "No. of participants",
         "cohort_name": "Cohort name",
         "cohort_code": "Cohort code",
-        "cohorts_stepper":"Cohorts Stepper",
+        "cohorts_stepper": "Cohorts Stepper",
         "branch": "Branch",
         "branch_short_name": "Branch short name",
         "branch_rand_group": "Branch Randomisation group",
@@ -3953,7 +4081,9 @@
         "element_status": "ODM Element Status",
         "export": "Export ",
         "format": "Format",
-        "xml_code": "XML Code"
+        "xml_code": "XML Code",
+        "crf_template": "CRF Template",
+        "select_forms": "Select CRF Forms"
     },
     "TemplateIndexingDialog": {
         "title": "Edit indexing properties",
@@ -4440,14 +4570,14 @@
     "SystemAnnouncementsView": {
         "title": "System announcement",
         "show_title": "Show announcement",
-        "show_help": "The annoucement will be shown at the top of StudyBuilder as a system-wide message",
+        "show_help": "The annoucement will be shown at the top of OpenStudyBuilder as a system-wide message",
         "announcement_type": "Choose type of announcement",
         "type_informative": "Informative",
         "help_informative": "An information that is not an error or potentially dangerous",
         "type_warning": "Warning",
         "help_warning": "A potential dangerous situation such as when changes are not saved due to release",
         "type_error": "Error",
-        "help_error": "A major error in StudyBuilder with high severity",
+        "help_error": "A major error in OpenStudyBuilder with high severity",
         "announcement_content": "Announcement content",
         "announcement_title": "Announcement title",
         "announcement_description": "Announcement description",
@@ -4469,7 +4599,7 @@
         "table_7": "Eligibility",
         "table_8": "Conditions",
         "intervention_type": "Intervention Type",
-        "sb_term": "StudyBuilder term",
+        "sb_term": "OpenStudyBuilder term",
         "pharma_term": "PharmaCM term",
         "secondary_id": "Secondary ID",
         "secondary_id_type": "Secondary ID Type",
@@ -4484,7 +4614,7 @@
         "study_acronym": "Study Acronym",
         "acronym": "Acronym",
         "study_type_resp": "Study Type Response",
-        "not_available_in_sb": "Not available in StudyBuilder. Data available in COSMOS",
+        "not_available_in_sb": "Not available in OpenStudyBuilder. Data available in COSMOS",
         "record_verification_date": "Record Verification Date",
         "overall_recruitment_status": "Overall Recruitment Status",
         "study_start_date": "Study Start Date",
@@ -4530,7 +4660,7 @@
     },
     "FeatureFlagsView": {
         "title": "Feature flags",
-        "help": "Feature flags enable you to toggle features in StudyBuilder on/off, thus controlling the visibility for the users. It only has an effect on the visibility in the environment you currently are in."
+        "help": "Feature flags enable you to toggle features in OpenStudyBuilder on/off, thus controlling the visibility for the users. It only has an effect on the visibility in the environment you currently are in."
     },
     "ActivityInstanceForm": {
         "add_title": "Add activity instance",
@@ -4576,7 +4706,8 @@
         "step4_description": "Optional activity item selection",
         "code_submission_value": "Code submission value",
         "name_submission_value": "Name submission value",
-        "activity_not_selected": "You must select an activity from the list"
+        "activity_not_selected": "You must select an activity from the list",
+        "codelist": "Codelist"
     },
     "ActivityInstancePreview": {
         "activity_instance_name": "Activity instance name",
@@ -4586,7 +4717,7 @@
         "adam_param_code": "ADaM parameter code",
         "nci_code": "NCI Code (optional)"
     },
-    "CohortsStepper" : {
+    "CohortsStepper": {
         "select_class": "Select study design class",
         "full_stepper": "Study with cohorts, branches and subpopulations",
         "arms_only_stepper": "Study with arms only",
@@ -4639,5 +4770,30 @@
         "remove_cohort": "Remove cohort",
         "remove_cohort_warning": "You are about to remove a cohort and all its participants. This will decrease the total numbers of participants in the study.",
         "create_arms": "Create arms"
+    },
+    "DataSupplierView": {
+        "title": "Data Suppliers",
+        "DataSupplierTable": {
+            "add_data_supplier": "Add Data Supplier",
+            "supplier_api_base_url": "API base URL",
+            "supplier_ui_base_url": "UI base URL",
+            "supplier_type": "Type",
+            "supplier_origin_source": "Origin Source",
+            "supplier_origin_type": "Origin Type"
+        },
+        "DataSupplierForm": {
+            "add_data_supplier": "Add a new Data Supplier",
+            "data_supplier_created": "Data Supplier created successfully",
+            "edit_data_supplier": "Edit Data Supplier",
+            "data_supplier_updated": "Data Supplier updated successfully",
+            "name": "Name",
+            "description": "Desciption",
+            "order": "Order",
+            "supplier_api_base_url": "API base URL",
+            "supplier_ui_base_url": "UI base URL",
+            "supplier_type": "Type",
+            "supplier_origin_source": "Origin Source",
+            "supplier_origin_type": "Origin Type"
+        }
     }
 }

@@ -78,7 +78,7 @@ def test_data(request: FixtureRequest):
     global study_endpoint
     global study_endpoint_2
 
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
     study_uid = study.uid
     database.cypher_query(data_library.STARTUP_PARAMETERS_CYPHER)
 

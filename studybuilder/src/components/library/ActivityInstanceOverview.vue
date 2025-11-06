@@ -37,17 +37,11 @@
               <NNTable
                 :headers="groupingsHeaders"
                 :items="displayedGroupings"
-                :items-length="
-                  activityGroupings.length
-                    ? convertActivityGroupingsToTableItems(
-                        activityGroupings.value
-                      ).length
-                    : 0
-                "
+                :items-length="displayedGroupings.length"
                 :items-per-page="10"
                 :hide-export-button="false"
                 :hide-default-switches="true"
-                :disable-filtering="false"
+                :disable-filtering="true"
                 :hide-search-field="false"
                 :modifiable-table="true"
                 :no-padding="true"
@@ -57,13 +51,7 @@
                 :disable-sort="false"
                 :loading="loadingGroupings"
                 :items-per-page-options="[10, 25, 50, 100]"
-                :server-items-length="
-                  activityGroupings.length
-                    ? convertActivityGroupingsToTableItems(
-                        activityGroupings.value
-                      ).length
-                    : 0
-                "
+                :server-items-length="displayedGroupings.length"
                 :export-data-url="`concepts/activities/activity-instances/${route.params.id}/activity-groupings`"
                 export-object-label="Activity Groupings"
                 @filter="handleGroupingsFilter"

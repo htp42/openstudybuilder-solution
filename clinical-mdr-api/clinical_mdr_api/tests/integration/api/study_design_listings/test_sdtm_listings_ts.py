@@ -66,28 +66,43 @@ def test_data():
     study = generate_study_root()
     # Create an epoch
     create_study_epoch_codelists_ret_cat_and_lib()
-    catalogue_name, library_name = get_catalogue_name_library_name()
+    _catalogue_name, library_name = get_catalogue_name_library_name()
+    catalogue_name = "SDTM CT"
     study_epoch = create_study_epoch("EpochSubType_0001")
     study_epoch2 = create_study_epoch("EpochSubType_0001")
     # Create a study element
     element_type_codelist = create_codelist(
-        "Element Type", "CTCodelist_ElementType", catalogue_name, library_name
+        "Element Type",
+        "CTCodelist_ElementType",
+        catalogue_name,
+        library_name,
+        submission_value="ELEMSTP",
     )
     element_type_term = create_ct_term(
-        element_type_codelist.codelist_uid,
         "Element Type",
         "ElementType_0001",
-        1,
         catalogue_name,
         library_name,
+        codelists=[
+            {
+                "uid": element_type_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Element Type",
+            },
+        ],
     )
     element_type_term_2 = create_ct_term(
-        element_type_codelist.codelist_uid,
-        "Element Type",
+        "Element Type 2",
         "ElementType_0002",
-        2,
         catalogue_name,
         library_name,
+        codelists=[
+            {
+                "uid": element_type_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Element Type2",
+            },
+        ],
     )
     study_elements = [
         create_study_element(element_type_term.uid, study.uid),
@@ -99,14 +114,20 @@ def test_data():
         uid="CTCodelist_00004",
         catalogue=catalogue_name,
         library=library_name,
+        submission_value="ARMTTP",
     )
     arm_type = create_ct_term(
-        codelist=codelist.codelist_uid,
         name="Arm Type",
         uid="ArmType_0001",
-        order=1,
         catalogue_name=catalogue_name,
         library_name=library_name,
+        codelists=[
+            {
+                "uid": codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Arm Type",
+            },
+        ],
     )
 
     create_study_arm(
@@ -204,44 +225,60 @@ def test_data():
     # edit an epoch to track if the relationships have been updated
     edit_study_epoch(epoch_uid=study_epoch2.uid)
 
-    codelist = create_codelist(
+    code_codelist = create_codelist(
         name="Trial Summary Parameter Test Code",
         uid="C66738",
         catalogue=catalogue_name,
         library=library_name,
     )
-
-    arm_type = create_ct_term(
-        codelist=codelist.codelist_uid,
-        name="C98771",
-        uid="C98771_NARMS",
-        code_submission_value="NARMS",
-        name_submission_value="Planned Number of Arms",
-        preferred_term="Planned Number of Arms",
-        definition="The planned number of intervention groups.",
-        order=1,
-        catalogue_name=catalogue_name,
-        library_name=library_name,
-    )
-
-    codelist = create_codelist(
+    name_codelist = create_codelist(
         name="Trial Summary Parameter Test Name",
         uid="C67152",
         catalogue=catalogue_name,
         library=library_name,
+        paired_code_codelist_uid="C66738",
     )
 
-    arm_type = create_ct_term(
-        codelist=codelist.codelist_uid,
-        name="C126063",
-        uid="C126063_NCOHORT",
-        code_submission_value="NCOHORT",
-        name_submission_value="Number of Groups/Cohorts",
-        preferred_term="Number of Groups or Cohorts",
-        definition="The number of groups or cohorts that are part of the study.",
-        order=1,
+    _narms = create_ct_term(
+        name="C98771",
+        uid="C98771",
+        preferred_term="Planned Number of Arms",
+        definition="The planned number of intervention groups.",
         catalogue_name=catalogue_name,
         library_name=library_name,
+        codelists=[
+            {
+                "uid": code_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "NARMS",
+            },
+            {
+                "uid": name_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Planned Number of Arms",
+            },
+        ],
+    )
+
+    _ncohorts = create_ct_term(
+        name="C126063",
+        uid="C126063",
+        preferred_term="Number of Groups or Cohorts",
+        definition="The number of groups or cohorts that are part of the study.",
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        codelists=[
+            {
+                "uid": code_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "NCOHORT",
+            },
+            {
+                "uid": name_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Number of Groups/Cohorts",
+            },
+        ],
     )
     TestUtils.create_study_fields_configuration()
     # Creating library and catalogue for study standard version

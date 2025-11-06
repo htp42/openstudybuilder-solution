@@ -33,8 +33,8 @@ class UnitDefinitionService(ConceptGenericService[UnitDefinitionAR]):
     ) -> UnitDefinitionModel:
         return UnitDefinitionModel.from_unit_definition_ar(
             item_ar,
-            find_term_by_uid=self._repos.ct_term_name_repository.find_by_uid,
             find_dictionary_term_by_uid=self._repos.dictionary_term_generic_repository.find_by_uid,
+            find_codelist_term_by_uid_and_submission_value=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
         )
 
     def _create_aggregate_root(

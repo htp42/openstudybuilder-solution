@@ -1,11 +1,14 @@
 from typing import Any
 
+from neomodel import db
+
 from clinical_mdr_api.domain_repositories.concepts.odms.odm_generic_repository import (
     OdmGenericRepository,
 )
 from clinical_mdr_api.domain_repositories.models.concepts import UnitDefinitionRoot
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
     CTCodelistRoot,
+    CTCodelistTerm,
     CTTermRoot,
 )
 from clinical_mdr_api.domain_repositories.models.generic import (
@@ -76,7 +79,11 @@ class ItemRepository(OdmGenericRepository[OdmItemAR]):
                     for unit_definition in root.has_unit_definition.all()
                 ],
                 codelist_uid=codelist.uid if codelist else None,
-                term_uids=[term.uid for term in root.has_codelist_term.all()],
+                term_uids=[
+                    term.uid
+                    for term_context in root.has_codelist_term.all()
+                    if (term := term_context.has_selected_term.get_or_none())
+                ],
                 activity_uid=activity.uid if activity else None,
                 vendor_element_uids=[
                     vendor_element.uid
@@ -174,7 +181,8 @@ concept_value.comment as comment,
 head([(concept_value)<-[:{only_specific_status}]-(:OdmItemRoot)-[:HAS_CODELIST]->(ctcr:CTCodelistRoot)-[:HAS_ATTRIBUTES_ROOT]->
 (:CTCodelistAttributesRoot)-[:LATEST]->(ctcav:CTCodelistAttributesValue) | ctcr.uid]) AS codelist_uid,
 
-[(concept_value)<-[:{only_specific_status}]-(:OdmItemRoot)-[hct:HAS_CODELIST_TERM]->(cttr:CTTermRoot)-[:HAS_NAME_ROOT]->(cttnr:CTTermNameRoot)-[:LATEST]->(cttnv:CTTermNameValue) |
+[(concept_value)<-[:{only_specific_status}]-(:OdmItemRoot)-[hct:HAS_CODELIST_TERM]->(:CTTermContext)-[:HAS_SELECTED_TERM]->
+  (cttr:CTTermRoot)-[:HAS_NAME_ROOT]->(cttnr:CTTermNameRoot)-[:LATEST]->(cttnv:CTTermNameValue) |
 {{uid: cttr.uid, name: cttnv.name, mandatory: hct.mandatory, order: hct.order}}] AS terms,
 
 head([(concept_value)<-[:{only_specific_status}]-(:OdmItemRoot)-[:HAS_ACTIVITY]->(ar:ActivityRoot)-[:LATEST]->(av:ActivityValue) |
@@ -255,7 +263,11 @@ apoc.coll.toSet([vendor_element_attribute in vendor_element_attributes | vendor_
         codelist_uid = (
             codelist.uid if (codelist := root.has_codelist.get_or_none()) else None
         )
-        term_uids = {term.uid for term in root.has_codelist_term.all()}
+        term_uids = {
+            term.uid
+            for term_context in root.has_codelist_term.all()
+            for term in term_context.has_selected_term.all()
+        }
 
         are_rels_changed = (
             set(ar.concept_vo.description_uids) != description_uids
@@ -353,9 +365,27 @@ apoc.coll.toSet([vendor_element_attribute in vendor_element_attributes | vendor_
             ct_term_attributes_root.latest_final.get_or_none()
         )
 
-        rel = item_root.has_codelist_term.relationship(ct_term_root)
+        rel = next(
+            (
+                item_root.has_codelist_term.relationship(term_context)
+                for term_context in item_root.has_codelist_term.all()
+                if (term := term_context.has_selected_term.get_or_none())
+                and term.uid == ct_term_root.uid
+            ),
+            None,
+        )
 
-        if rel:
+        codelist_uid = item_root.has_codelist.get_or_none().uid
+        cl_term_nodes = (
+            CTCodelistTerm.nodes.fetch_relations("has_term_root", "has_term").filter(
+                has_term__uid=codelist_uid, has_term_root__uid=term_uid
+            )
+        ).all()
+        submission_value = (
+            cl_term_nodes[0][0].submission_value if cl_term_nodes else None
+        )
+
+        if rel and submission_value:
             return OdmItemTermVO.from_repository_values(
                 uid=uid,
                 name=ct_term_name_value.name,
@@ -363,6 +393,7 @@ apoc.coll.toSet([vendor_element_attribute in vendor_element_attributes | vendor_
                 order=rel.order,
                 display_text=rel.display_text,
                 version=_get_relationship().version,
+                submission_value=submission_value,
             )
         return None
 
@@ -386,3 +417,12 @@ apoc.coll.toSet([vendor_element_attribute in vendor_element_attributes | vendor_
                 order=rel.order,
             )
         return None
+
+    def remove_all_codelist_terms_from_item(self, item_uid: str):
+        db.cypher_query(
+            """
+                MATCH (:OdmItemRoot {uid: $uid})-[r:HAS_CODELIST_TERM]->(:CTTermContext)
+                DELETE r
+                """,
+            params={"uid": item_uid},
+        )

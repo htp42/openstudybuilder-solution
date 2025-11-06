@@ -22,7 +22,7 @@ Figure 1: Study Overview for 2-arms, parallel study
 
 ## Study Arms
 
-The Study Arms section is designed to support different types of study design classes. The user can create a study with arms only or a study with cohorts, branches and subpopulations. There is no limitation in the number of arms from a StudyBuilder perspective.
+The Study Arms section is designed to support different types of study design classes. The user can create a study with arms only or a study with cohorts, branches and subpopulations. There is no limitation in the number of arms from a OpenStudyBuilder perspective.
 
 A Study arm must be created with the following mandatory items:
 

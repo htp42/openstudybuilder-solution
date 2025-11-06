@@ -49,8 +49,8 @@ ACTIVITY_ITEM_CLASSES_PATH = "/activity-item-classes"
 class SponsorModels(BaseImporter):
     logging_name = "sponsor_models"
 
-    def __init__(self, api=None, metrics_inst=None, cache=None):
-        super().__init__(api=api, metrics_inst=metrics_inst, cache=cache)
+    def __init__(self, api=None, metrics_inst=None):
+        super().__init__(api=api, metrics_inst=metrics_inst)
 
         self._common_body_params = {}
         self._model_body_params = {}
@@ -383,36 +383,17 @@ class SponsorModels(BaseImporter):
 
         await asyncio.gather(*api_tasks)
 
-    # Get all terms from a codelist
-    def _get_codelist_terms(self, codelist_uid):
-        self.ensure_cache()
-        if codelist_uid is not None:
-            terms = [
-                term
-                for term in self.cache.all_terms_attributes
-                if codelist_uid in [x["codelist_uid"] for x in term["codelists"]]
-            ]
-            return terms
-
     # Get a dictionary mapping submission values to term uids for a codelist identified by its uid
-    def _get_submissionvalues_for_codelist(self, codelist_uid):
-        terms = self._get_codelist_terms(codelist_uid)
-        name_submvals = CaselessDict(
+    def _get_submissionvalues_for_codelist(self, cl_uid):
+        terms = self.api.get_all_from_api(f"/ct/codelists/{cl_uid}/terms")
+        submvals = CaselessDict(
             self.api.get_all_identifiers(
                 terms,
-                identifier="name_submission_value",
+                identifier="submission_value",
                 value="term_uid",
             )
         )
-        code_submvals = CaselessDict(
-            self.api.get_all_identifiers(
-                terms,
-                identifier="code_submission_value",
-                value="term_uid",
-            )
-        )
-        name_submvals.update(code_submvals)
-        return name_submvals
+        return submvals
 
     def parse_referenced_ct(self, headers, row, all_codelist_uids) -> tuple[dict, dict]:
         # Sponsor specific code

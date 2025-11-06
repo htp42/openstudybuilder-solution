@@ -16,7 +16,6 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from neomodel import db
 
 from clinical_mdr_api.main import app
 from clinical_mdr_api.models.concepts.activities.activity import Activity
@@ -51,9 +50,6 @@ from clinical_mdr_api.services.studies.study_activity_selection import (
 from clinical_mdr_api.tests.integration.utils.api import (
     inject_and_clear_db,
     inject_base_data,
-)
-from clinical_mdr_api.tests.integration.utils.data_library import (
-    get_codelist_with_term_cypher,
 )
 from clinical_mdr_api.tests.integration.utils.utils import TestUtils
 from clinical_mdr_api.tests.utils.checks import assert_response_status_code
@@ -244,16 +240,14 @@ def test_data():
         )
 
     flowchart_group_codelist = TestUtils.create_ct_codelist(
-        sponsor_preferred_name="Flowchart Group", extensible=True, approve=True
+        sponsor_preferred_name="Flowchart Group",
+        extensible=True,
+        approve=True,
+        submission_value="FLWCRTGRP",
     )
     ct_term_soa_group = TestUtils.create_ct_term(
         sponsor_preferred_name="SoA Group",
         codelist_uid=flowchart_group_codelist.codelist_uid,
-    )
-    db.cypher_query(
-        get_codelist_with_term_cypher(
-            "EFFICACY", "Flowchart Group", term_uid="term_efficacy_uid"
-        )
     )
 
     study_activity = StudyActivitySelectionService().make_selection(

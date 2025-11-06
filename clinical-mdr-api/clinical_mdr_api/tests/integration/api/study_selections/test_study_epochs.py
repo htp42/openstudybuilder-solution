@@ -82,7 +82,7 @@ def test_data():
     epoch_type_term_name = "Epoch Type for StudyStandardVersion"
     epoch_type_standard_version = TestUtils.create_ct_term(
         codelist_uid="CTCodelist_00002",
-        name_submission_value=epoch_type_term_name,
+        submission_value=epoch_type_term_name,
         sponsor_preferred_name=epoch_type_term_name,
         order=1,
         catalogue_name=catalogue_name,
@@ -94,7 +94,7 @@ def test_data():
     global initial_ct_term_study_standard_test
     initial_ct_term_study_standard_test = TestUtils.create_ct_term(
         codelist_uid="CTCodelist_00003",  # ct_term_codelist.codelist_uid,
-        name_submission_value=ct_term_name,
+        submission_value=ct_term_name,
         sponsor_preferred_name=ct_term_name,
         order=2,
         catalogue_name=catalogue_name,
@@ -113,7 +113,7 @@ def test_data():
     global epoch_epoch
     epoch_epoch = TestUtils.create_ct_term(
         codelist_uid="C99079",
-        name_submission_value=epoch_term_name,
+        submission_value=epoch_term_name,
         sponsor_preferred_name=epoch_term_name,
         order=3,
         catalogue_name=catalogue_name,

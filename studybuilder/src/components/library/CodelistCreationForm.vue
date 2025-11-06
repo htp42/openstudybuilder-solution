@@ -105,6 +105,17 @@
         </v-row>
         <v-row>
           <v-col>
+            <v-switch
+              v-model="form.ordinal"
+              color="primary"
+              data-cy="ordinal-toggle"
+              :label="$t('CodelistAttributesForm.ordinal')"
+              density="compact"
+            />
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
             <v-textarea
               v-model="form.definition"
               data-cy="definition"
@@ -142,6 +153,7 @@ const catalogues = computed(() => ctCataloguesStore.catalogues)
 
 const form = ref({
   extensible: false,
+  ordinal: false,
   library_name: 'Sponsor',
   template_parameter: false,
 })
@@ -159,6 +171,7 @@ const helpItems = [
   'CodelistAttributesForm.subm_value',
   'CodelistAttributesForm.nci_pref_name',
   'CodelistAttributesForm.extensible',
+  'CodelistAttributesForm.ordinal',
   'CodelistAttributesForm.definition',
 ]
 const steps = [
@@ -206,6 +219,9 @@ function getObserver(step) {
 
 async function submit() {
   form.value.terms = []
+  form.value.catalogue_names = [form.value.catalogue_name]
+  // remove the catalogue_name from the form
+  delete form.value.catalogue_name
   const data = JSON.parse(JSON.stringify(form.value))
   try {
     const resp = await controlledTerminology.createCodelist(data)

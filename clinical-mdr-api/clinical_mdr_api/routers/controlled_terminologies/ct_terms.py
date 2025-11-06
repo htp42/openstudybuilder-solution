@@ -1,5 +1,6 @@
 """CTTerms router."""
 
+from datetime import datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, Path, Query
@@ -8,9 +9,11 @@ from starlette.requests import Request
 
 from clinical_mdr_api.models.controlled_terminologies.ct_term import (
     CTTerm,
+    CTTermCodelists,
     CTTermCreateInput,
     CTTermNameAndAttributes,
-    CTTermNewOrder,
+    CTTermNewCodelist,
+    CTTermRelatives,
 )
 from clinical_mdr_api.models.utils import CustomPage
 from clinical_mdr_api.repositories._utils import FilterOperator
@@ -89,8 +92,6 @@ def create(
             "name.version",
             "name.change_description",
             "name.author_username",
-            "attributes.code_submission_value",
-            "attributes.name_submission_value",
             "attributes.nci_preferred_name",
             "attributes.definition",
             "attributes.start_date",
@@ -281,7 +282,7 @@ def add_parent(
         str,
         Query(
             description="The type of the parent relationship.\n"
-            "Valid types are 'type' or 'subtype'",
+            "Valid types are 'type' or 'subtype' or 'predecessor'",
         ),
     ],
 ) -> CTTerm:
@@ -319,7 +320,7 @@ def remove_parent(
         str,
         Query(
             description="The type of the parent relationship.\n"
-            "Valid types are 'type' or 'subtype'",
+            "Valid types are 'type' or 'subtype' or 'predecessor'",
         ),
     ],
 ) -> CTTerm:
@@ -330,13 +331,13 @@ def remove_parent(
 
 
 @router.patch(
-    "/terms/{term_uid}/order",
+    "/terms/{term_uid}/codelists",
     dependencies=[security, rbac.LIBRARY_WRITE],
     summary="Change an order of codelist-term relationship",
     description="""Reordering will create new HAS_TERM relationship.""",
+    response_model=CTTermNewCodelist,
     status_code=200,
     responses={
-        403: _generic_descriptions.ERROR_403,
         400: {
             "model": ErrorResponse,
             "description": "Forbidden - Order is larger than the number of selections",
@@ -347,15 +348,63 @@ def remove_parent(
         },
     },
 )
-def patch_new_term_order(
-    term_uid: Annotated[str, CTTermUID],
-    new_order_input: Annotated[
-        CTTermNewOrder, Body(description="Parameters needed for the reorder action.")
-    ],
-) -> CTTerm:
+def patch_new_term_codelist(
+    term_uid: str = CTTermUID,
+    new_order_input: CTTermNewCodelist = Body(
+        description="Parameters needed for the reorder action."
+    ),
+) -> CTTermNewCodelist:
     ct_term_service = CTTermService()
-    return ct_term_service.set_new_order(
+    return ct_term_service.set_new_order_and_submission_value(
         term_uid=term_uid,
         codelist_uid=new_order_input.codelist_uid,
-        new_order=new_order_input.new_order,
+        new_order=new_order_input.order,
+        new_submission_value=new_order_input.submission_value,
+    )
+
+
+@router.get(
+    "/terms/{term_uid}/codelists",
+    dependencies=[security, rbac.LIBRARY_READ],
+    summary="Returns the latest/newest version of the codelists that the ct term identified by 'term_uid' is included in",
+    response_model=CTTermCodelists,
+    status_code=200,
+    responses={
+        404: _generic_descriptions.ERROR_404,
+    },
+)
+def get_term_codelists(
+    term_uid: str = CTTermUID,
+    at_specified_date_time: datetime | None = Query(
+        None,
+        description="If specified then the latest/newest representation of the "
+        "CTTermAttributesValue at this point in time is returned.\n"
+        "The point in time needs to be specified in ISO 8601 format including the timezone, "
+        "e.g.: '2020-10-31T16:00:00+02:00' for October 31, 2020 at 4pm in UTC+2 timezone. "
+        "If the timezone is omitted, UTC±0 is assumed.",
+    ),
+):
+    ct_term_service = CTTermService()
+    return ct_term_service.get_codelists_by_uid(
+        term_uid=term_uid,
+        at_specific_date_time=at_specified_date_time,
+    )
+
+
+@router.get(
+    "/terms/{term_uid}/parents",
+    dependencies=[security, rbac.LIBRARY_READ],
+    summary="Returns the latest/newest version of the codelists that the ct term identified by 'term_uid' is included in",
+    response_model=CTTermRelatives,
+    status_code=200,
+    responses={
+        404: _generic_descriptions.ERROR_404,
+    },
+)
+def get_term_parents(
+    term_uid: str = CTTermUID,
+):
+    ct_term_service = CTTermService()
+    return ct_term_service.get_parents_by_uid(
+        term_uid=term_uid,
     )

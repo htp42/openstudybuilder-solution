@@ -10,6 +10,7 @@ Feature: Library - Admin Definitions - Projects
         When The first column is selected from Select Columns option for table with actions
         Then The table contain only selected column and actions column
 
+    @smoke_test
     Scenario: [Create][Postive case] User must be able to create a new project
         Given The '/library/clinical_programmes' page is opened
         Given A Clinical Programme is created

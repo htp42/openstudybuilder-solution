@@ -46,6 +46,7 @@ from clinical_mdr_api.services.studies.study_selection_base import StudySelectio
 from clinical_mdr_api.services.syntax_instances.objectives import ObjectiveService
 from common import exceptions
 from common.auth.user import user
+from common.config import settings
 
 
 class StudyObjectiveSelectionService(StudySelectionMixin):
@@ -120,7 +121,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
                         accepted_version=selection.accepted_version,
                         get_objective_by_uid_callback=self._transform_latest_objective_model,
                         get_objective_by_uid_version_callback=self._transform_objective_model,
-                        get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+                        find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                         get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
                         no_brackets=no_brackets,
                         find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
@@ -171,7 +172,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
             order=order,
             get_objective_by_uid_callback=self._transform_latest_objective_model,
             get_objective_by_uid_version_callback=self._transform_objective_model,
-            get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+            find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
             find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
             terms_at_specific_datetime=terms_at_specific_datetime,
@@ -206,7 +207,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
             accepted_version=new_selection.accepted_version,
             get_objective_by_uid_callback=self._transform_latest_objective_model,
             get_objective_by_uid_version_callback=self._transform_objective_model,
-            get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+            find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
             find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
             terms_at_specific_datetime=terms_at_specific_datetime,
@@ -237,10 +238,9 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
 
             # load the order of the Objective level CT term
             if selection_create_input.objective_level_uid is not None:
-                objective_level_order = (
-                    self._repos.ct_term_name_repository.term_specific_order_by_uid(
-                        uid=selection_create_input.objective_level_uid
-                    )
+                objective_level_order = self._repos.ct_term_name_repository.term_specific_order_by_uid_and_cl_submval(
+                    uid=selection_create_input.objective_level_uid,
+                    cl_submval=settings.study_objective_level_cl_submval,
                 )
             else:
                 objective_level_order = None
@@ -300,7 +300,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
                 order=order,
                 get_objective_by_uid_callback=self._transform_latest_objective_model,
                 get_objective_by_uid_version_callback=self._transform_objective_model,
-                get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+                find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
                 find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
                 terms_at_specific_datetime=terms_at_specific_datetime,
@@ -399,7 +399,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
                 order=order,
                 get_objective_by_uid_callback=self._transform_latest_objective_model,
                 get_objective_by_uid_version_callback=self._transform_objective_model,
-                get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+                find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
                 find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
                 terms_at_specific_datetime=terms_at_specific_datetime,
@@ -587,7 +587,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
                     get_objective_by_uid_version_callback=(
                         lambda uid, version: Objective.from_objective_ar(objective_ar)
                     ),
-                    get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+                    find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                     get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
                     find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
                     terms_at_specific_datetime=terms_at_specific_datetime,
@@ -806,7 +806,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
                     study_selection_history=history,
                     study_uid=study_uid,
                     get_objective_by_uid_version_callback=self._transform_objective_model,
-                    get_ct_term_objective_level=self._find_by_uid_or_raise_not_found,
+                    find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                     effective_date=effective_date,
                 )
             )
@@ -895,7 +895,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
                 accepted_version=new_selection.accepted_version,
                 get_objective_by_uid_callback=self._transform_latest_objective_model,
                 get_objective_by_uid_version_callback=self._transform_objective_model,
-                get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+                find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
                 find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
                 terms_at_specific_datetime=terms_at_specific_datetime,
@@ -966,7 +966,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
                 order=order,
                 get_objective_by_uid_callback=self._transform_latest_objective_model,
                 get_objective_by_uid_version_callback=self._transform_objective_model,
-                get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+                find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
                 find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
                 terms_at_specific_datetime=terms_at_specific_datetime,
@@ -1137,7 +1137,7 @@ class StudyObjectiveSelectionService(StudySelectionMixin):
                 order=order,
                 get_objective_by_uid_callback=self._transform_latest_objective_model,
                 get_objective_by_uid_version_callback=self._transform_objective_model,
-                get_ct_term_by_uid=self._find_by_uid_or_raise_not_found,
+                find_codelist_term_by_uid_and_submval=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
                 get_study_endpoint_count_callback=self._repos.study_endpoint_repository.quantity_of_study_endpoints_in_study_objective_uid,
                 find_project_by_study_uid=self._repos.project_repository.find_by_study_uid,
                 terms_at_specific_datetime=terms_at_specific_datetime,

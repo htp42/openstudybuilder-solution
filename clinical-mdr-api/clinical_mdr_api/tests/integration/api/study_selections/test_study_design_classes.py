@@ -48,7 +48,7 @@ def test_data():
     inject_and_clear_db(db_name)
 
     global study
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
 
     clinical_programme = TestUtils.create_clinical_programme(name="Test CP")
     global project

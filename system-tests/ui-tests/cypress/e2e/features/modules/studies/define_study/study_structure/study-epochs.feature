@@ -5,6 +5,7 @@ Feature: Studies - Define Study - Study Structure - Study Epochs
         Given The user is logged in
         And A test study is selected
 
+    @smoke_test
     Scenario: [Navigation] Opening the page
         Given The '/studies' page is opened
         When The 'Study Structure' submenu is clicked in the 'Define Study' section
@@ -17,6 +18,7 @@ Feature: Studies - Define Study - Study Structure - Study Epochs
             | options                                                         |
             | Add select boxes to table to allow selection of rows for export |
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the Study Visit table with following columns
         Given The test study '/study_structure/epochs' page is opened
         And A table is visible with following headers
@@ -41,6 +43,7 @@ Feature: Studies - Define Study - Study Structure - Study Epochs
         When The first column is selected from Select Columns option for table with actions
         Then The table contain only selected column and actions column
     
+    @smoke_test
     Scenario: [Create][Positve case] User must be able to add a Study Epoch
         Given The test study '/study_structure/epochs' page is opened
         When A new Study Epoch is added

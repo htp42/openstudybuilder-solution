@@ -8,6 +8,7 @@ Feature: Library - Concepts - Activities - Activity Subgroups
         And The '/library/activities/activity-subgroups' page is opened
         And User sets status filter to 'all'
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to the Activity Subgroups page
         Given The '/library' page is opened
         When The 'Activities' submenu is clicked in the 'Concepts' section
@@ -25,6 +26,7 @@ Feature: Library - Concepts - Activities - Activity Subgroups
             | Add select boxes to table to allow selection of rows for export |
             | search-field                                                    |
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the columns list on the main page as below
         Then A table is visible with following headers
             | headers            |
@@ -41,6 +43,7 @@ Feature: Library - Concepts - Activities - Activity Subgroups
         When The first column is selected from Select Columns option for table with actions
         Then The table contain only selected column and actions column
 
+    @smoke_test
     Scenario: [Create][Positive case] User must be able to add a new activity subgroups
         When The Add activity subgroup button is clicked
         And The activity subgroup form is filled with data
@@ -200,6 +203,7 @@ Feature: Library - Concepts - Activities - Activity Subgroups
         And The item actions button is clicked
         Then Only actions that should be avaiable for the Retired item are displayed
 
+    @smoke_test
     Scenario: [Table][Search][Postive case] User must be able to search created subgroup
         When [API] First activity subgroup for search test is created
         And [API] Second activity subgroup for search test is created

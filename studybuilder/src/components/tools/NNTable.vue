@@ -8,6 +8,7 @@
         :class="props.noPadding ? 'pa-0' : 'pt-0'"
       >
         <div class="search-container d-flex align-center pl-0">
+          <slot name="beforeSearch" />
           <v-text-field
             v-if="!hideSearchField || onlyTextSearch"
             v-model="search"
@@ -84,7 +85,7 @@
           <v-menu rounded offset-y :close-on-content-click="false">
             <template #activator="{ props }">
               <v-btn
-                v-if="modifiableTable && !onlyTextSearch"
+                v-if="(modifiableTable || modifyOnlyColumns) && !onlyTextSearch"
                 class="ml-2"
                 size="small"
                 variant="outlined"
@@ -147,6 +148,7 @@
         <slot name="beforeTable" />
       </v-card-title>
       <v-card-text :class="{ 'pa-0': props.noPadding }">
+        <slot name="customFiltering" />
         <v-fade-transition>
           <v-toolbar
             v-show="showFilterBar"
@@ -167,6 +169,7 @@
                 :resource="[columnDataResource, codelistUid]"
                 :parameters="columnDataParameters"
                 :initial-data="getColumnInitialData(item)"
+                :fixed-data="getColumnFixedData(item)"
                 :selected-data="getColumnSelectedData(item)"
                 :filters-modify-function="filtersModifyFunction"
                 :table-items="items"
@@ -212,6 +215,7 @@
               disable-sort
               v-bind="$attrs"
               @update:options="filterTable"
+              @update:sort-by="customSort"
             >
               <template
                 v-for="header in shownColumns"
@@ -283,6 +287,7 @@
                       </template>
                     </v-list>
                   </v-menu>
+                  <div v-else style="width: 50px"></div>
                 </div>
               </template>
               <template
@@ -459,9 +464,13 @@ const props = defineProps({
     type: Object,
     default: undefined,
   },
+  fixedColumnData: {
+    type: Object,
+    default: undefined,
+  },
   codelistUid: {
     type: String,
-    default: '',
+    default: undefined,
   },
   subTables: {
     type: Boolean,
@@ -526,6 +535,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  modifyOnlyColumns: {
+    type: Boolean,
+    default: false,
+  },
   fixedHeader: {
     type: Boolean,
     default: true,
@@ -578,7 +591,7 @@ const props = defineProps({
     default: false,
   },
 })
-const emit = defineEmits(['filter'])
+const emit = defineEmits(['filter', 'customSort'])
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -789,7 +802,7 @@ function enableFiltering() {
 }
 
 function updateColumns() {
-  if (!props.modifiableTable) {
+  if (!props.modifiableTable && !props.modifyOnlyColumns) {
     if (props.defaultHeaders && props.defaultHeaders.length !== 0) {
       shownColumns.value = props.defaultHeaders
     } else {
@@ -829,6 +842,9 @@ function getColumnInitialData(column) {
   return props.initialColumnData
     ? props.initialColumnData[column.key]
     : undefined
+}
+function getColumnFixedData(column) {
+  return props.fixedColumnData ? props.fixedColumnData[column.key] : undefined
 }
 function getColumnSelectedData(column) {
   return selectedColumnData.value
@@ -894,6 +910,7 @@ function columnFilter(params) {
   savedOptions.page = 1
   filterTable()
 }
+
 function filterTable(options) {
   loading.value = true
   if (timeout) clearTimeout(timeout)
@@ -982,6 +999,9 @@ async function openHistory() {
 }
 function closeHistory() {
   showHistory.value = false
+}
+function customSort(data) {
+  emit('customSort', data)
 }
 
 defineExpose({

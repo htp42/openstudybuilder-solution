@@ -305,7 +305,6 @@ class GenericSyntaxInstanceRepository(
                         ],
                     ),
                     attributes=SimpleTermAttributes(
-                        code_submission_value=template["code_submission_value"],
                         nci_preferred_name=template["preferred_term"],
                     ),
                 )

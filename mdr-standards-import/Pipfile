@@ -4,24 +4,24 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-requests = "*"
+requests = "~=2.27"
 neo4j = "~=5.26"
+pytest = "~=8.4.1"
+openpyxl = "~=3.1"
 
 [dev-packages]
 pylint = "~=3.3.1"
 black = "*"
-pytest = "~=8.3.3"
-pytest-cov = "~=3.0.0"
+pytest = "~=8.4.1"
+pytest-cov = "~=6.0.0"
 
 [requires]
 python_version = "3.13.0"
 
 [scripts]
-bulk_import = "python -m mdr_standards_import.scripts.wrapper.wrapper_bulk_import"
-bulk_import_ct = "python -m mdr_standards_import.scripts.wrapper.cdisc_ct.wrapper_bulk_import"
+import_cdisc_ct_into_cdisc_db = "python cdisc_staging.py"
+import_ct_from_cdisc_db_into_mdr = "python cdisc_import.py"
 bulk_import_data_models = "python -m mdr_standards_import.scripts.wrapper.cdisc_data_models.wrapper_bulk_import"
-import_cdisc_ct_into_cdisc_db = "python -m mdr_standards_import.scripts.wrapper.cdisc_ct.wrapper_import_into_cdisc_db"
-import_ct_from_cdisc_db_into_mdr = "python -m mdr_standards_import.scripts.wrapper.cdisc_ct.wrapper_import_from_cdisc_db_into_mdr"
 import_cdisc_data_models_into_cdisc_db = "python -m mdr_standards_import.scripts.wrapper.cdisc_data_models.wrapper_import_into_cdisc_db"
 import_data_models_from_cdisc_db_into_mdr = "python -m mdr_standards_import.scripts.wrapper.cdisc_data_models.wrapper_import_from_cdisc_db_into_mdr"
 download_ct_json_data_from_cdisc_api = "python -m mdr_standards_import.scripts.import_scripts.cdisc_ct.download_json_data_from_cdisc_api"

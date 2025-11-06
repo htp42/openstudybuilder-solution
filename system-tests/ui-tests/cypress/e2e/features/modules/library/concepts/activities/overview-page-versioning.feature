@@ -22,6 +22,7 @@ Feature: Library - Concepts - Activities - Overview Page Versioning
     And The status displayed on the summary has value 'Draft' and version is '1.1'
     And The linked activity instance is found in the Acivity Instances table with status 'Final' and version '1.0'
     And Activity instance is expanded by clicking chevron button
+    And User waits for 1 seconds
     And The previous version of linked activity instance is found in the Acivity Instances table with status 'Draft' and version '0.1'
     When I click 'Edit' button 
     And Activity name is changed

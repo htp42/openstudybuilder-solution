@@ -5,12 +5,14 @@ Feature: Library - Syntax Templates - Criteria - Dosing - Parent
   Background: User must be logged in
     Given The user is logged in
 
+  @smoke_test
   Scenario: [Navigation] User must be able to navigate to the Dosing Criteria template under the Syntax template Library
     Given The '/library' page is opened
     When The 'Criteria' submenu is clicked in the 'Syntax Templates' section
     And The 'Dosing' tab is selected
     Then The current URL is 'library/criteria_templates/Dosing/parent'
-
+  
+  @smoke_test
   Scenario: [Table][Columns][Names] User must be able to see the table with correct columns
     Given The 'library/criteria_templates/Dosing/parent' page is opened
     Then A table is visible with following headers
@@ -38,6 +40,7 @@ Feature: Library - Syntax Templates - Criteria - Dosing - Parent
     And The criteria is found
     Then Sequence number is incremented
 
+  @smoke_test
   Scenario: [Create][Positive Case] User must be able to create Dosing Criteria template
     Given The 'library/criteria_templates/Dosing/parent' page is opened
     And The Add template button is clicked
@@ -359,6 +362,7 @@ Feature: Library - Syntax Templates - Criteria - Dosing - Parent
     And The item actions button is clicked
     Then Only actions that should be avaiable for the Retired item are displayed
 
+  @smoke_test
   Scenario: [Table][Search][Postive case] User must be able to search created Dosing Criteria template
     When [API] Search Test - Create first 'Dosing' criteria template
     And [API] Search Test - Create second 'Dosing' criteria template

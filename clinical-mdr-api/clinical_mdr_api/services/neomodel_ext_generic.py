@@ -131,7 +131,7 @@ class NeomodelExtGenericService(ABC, Generic[_AggregateRootType]):
         )
         return item
 
-    @db.transaction
+    @ensure_transaction(db)
     def get_version_history(self, uid: str) -> list[BaseModel]:
         if self.version_class is not None:
             all_versions = self.repository.get_all_versions_2(uid=uid)
@@ -149,7 +149,7 @@ class NeomodelExtGenericService(ABC, Generic[_AggregateRootType]):
             return calculate_diffs(versions, self.version_class)
         return []
 
-    @db.transaction
+    @ensure_transaction(db)
     def create_new_version(self, uid: str) -> BaseModel:
         item = self._find_by_uid_or_raise_not_found(uid, for_update=True)
         item.create_new_version(author_id=self.author_id)
@@ -186,28 +186,28 @@ class NeomodelExtGenericService(ABC, Generic[_AggregateRootType]):
         self.repository.save(concept_ar)
         return self._transform_aggregate_root_to_pydantic_model(concept_ar)
 
-    @db.transaction
+    @ensure_transaction(db)
     def approve(self, uid: str) -> BaseModel:
         item = self._find_by_uid_or_raise_not_found(uid, for_update=True)
         item.approve(author_id=self.author_id)
         self.repository.save(item)
         return self._transform_aggregate_root_to_pydantic_model(item)
 
-    @db.transaction
+    @ensure_transaction(db)
     def inactivate_final(self, uid: str) -> BaseModel:
         item = self._find_by_uid_or_raise_not_found(uid, for_update=True)
         item.inactivate(author_id=self.author_id)
         self.repository.save(item)
         return self._transform_aggregate_root_to_pydantic_model(item)
 
-    @db.transaction
+    @ensure_transaction(db)
     def reactivate_retired(self, uid: str) -> BaseModel:
         item = self._find_by_uid_or_raise_not_found(uid, for_update=True)
         item.reactivate(author_id=self.author_id)
         self.repository.save(item)
         return self._transform_aggregate_root_to_pydantic_model(item)
 
-    @db.transaction
+    @ensure_transaction(db)
     def soft_delete(self, uid: str) -> None:
         item = self._find_by_uid_or_raise_not_found(uid, for_update=True)
         item.soft_delete()

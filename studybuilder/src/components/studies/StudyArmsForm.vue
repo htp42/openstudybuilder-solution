@@ -15,7 +15,7 @@
               v-model="form.arm_type_uid"
               :label="$t('StudyArmsForm.arm_type')"
               :items="armTypes"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               item-value="term_uid"
               data-cy="arm-type"
               clearable
@@ -182,7 +182,7 @@ export default {
     },
   },
   mounted() {
-    codelists.getByCodelist('armTypes').then((resp) => {
+    codelists.getTermsByCodelist('armTypes').then((resp) => {
       this.armTypes = resp.data.items
     })
     if (Object.keys(this.editedArm).length !== 0) {

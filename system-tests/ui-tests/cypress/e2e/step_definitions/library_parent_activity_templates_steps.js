@@ -1,3 +1,4 @@
+import { activity_uid, group_uid, subgroup_uid } from '../../support/api_requests/library_activities';
 import { fillTemplateNameAndContinue, changeIndex } from './library_syntax_templates_common'
 const { Given, When, Then } = require("@badeball/cypress-cucumber-preprocessor");
 
@@ -27,11 +28,21 @@ Then('Activity Instruction is searched for', () => saveActivityInstructionAndSea
 
 When('The activity instruction template form is filled with already existing name', () => fillTemplateNameAndContinue(defaultActivityName))
 
-When('The mandatory indexes are filled', () => changeMandatoryIndexes(false, false))
+When('The mandatory indexes are filled', () => changeMandatoryIndexes())
 
-When('All activity instruction indexes are filled in', () => changeIndexes(false, false))
+When('All activity instruction indexes are filled in', () => {
+  changeMandatoryIndexes()
+  changeIndex('template-indication-dropdown', false, false)
+  changeIndex('template-activity-activity', false, false)
+})
 
-When('All activity instruction indexes are cleared and filled in', () => changeIndexes(true, true))
+When('All activity instruction indexes are cleared and filled in', () => {
+  cy.wait(1000)
+  cy.selectLastVSelect('template-activity-group')
+  changeIndex('template-activity-sub-group', true, true)
+  changeIndex('template-indication-dropdown', true, true)
+  changeIndex('template-activity-activity', true, true)
+})
 
 When('The activity instruction template form is filled with base data', () => fillBaseData(`ActivityInstruction${Date.now()}`))
 
@@ -54,7 +65,7 @@ When('[API] Search Test - Create second activity instruction template', () => cr
 
 function createActivityInstructionViaApi(customName = '') {
   cy.getInidicationUid()
-  cy.createActivityInstruction(customName)
+  cy.createActivityInstruction(group_uid, subgroup_uid, activity_uid, customName)
   cy.getActivityInstructionName().then(name => defaultActivityName = name.replace('<p>', '').replace('</p>', '').trim())
 }
 
@@ -66,16 +77,10 @@ function saveActivityInstructionAndSearch(save = true) {
   cy.searchAndCheckPresence(defaultActivityName, true)
 }
 
-function changeIndexes(update, clear) {
+function changeMandatoryIndexes() {
   cy.wait(1000)
-  changeMandatoryIndexes(update, clear)
-  changeIndex('template-indication-dropdown', update, clear)
-  changeIndex('template-activity-activity', update, clear)
-}
-
-function changeMandatoryIndexes(update, clear) {
-  changeIndex('template-activity-group', update, clear)
-  changeIndex('template-activity-sub-group', update, clear)
+  cy.selectFirstVSelect('template-activity-group')
+  changeIndex('template-activity-sub-group', false, false)
 }
 
 function fillBaseData(name) {

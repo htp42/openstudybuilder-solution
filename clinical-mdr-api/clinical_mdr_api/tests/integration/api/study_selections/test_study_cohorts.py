@@ -47,7 +47,7 @@ def test_data():
     inject_and_clear_db(db_name)
 
     global study
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
     global study_arm
     study_arm = TestUtils.create_study_arm(
         study_uid=study.uid,

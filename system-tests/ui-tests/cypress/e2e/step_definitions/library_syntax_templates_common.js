@@ -120,7 +120,7 @@ function checkIndexValue(expectedValue) {
 }
 
 export function changeIndex(indexLocator, update, clear) {
-  let select = update ? (locator) => cy.selectLastMultipleSelect(locator) : (locator) => cy.selectFirstMultipleSelect(locator)
+  let select = update ? (locator) => cy.checkLastMultipleSelect(locator) : (locator) => cy.checkFirstMultipleSelect(locator)
   if (clear) cy.clearField(indexLocator)
   select(indexLocator)
 }

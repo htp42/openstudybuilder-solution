@@ -9,7 +9,7 @@ study_standard_version_ct_terms_datetime = dedent(
         WITH study_value 
         OPTIONAL MATCH (study_value)-[:HAS_STUDY_STANDARD_VERSION]->(study_standard_version:StudyStandardVersion)-[:HAS_CT_PACKAGE]->(ct_package:CTPackage)
         WHERE ct_package.uid CONTAINS "SDTM CT"
-        RETURN datetime(toString(ct_package.effective_date) + 'T23:59:59.999999000Z') AS ct_terms_datetime
+        RETURN datetime(toString(date(ct_package.effective_date)) + 'T23:59:59.999999000Z') AS ct_terms_datetime
     }
 """
 )

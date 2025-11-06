@@ -12,9 +12,9 @@ from neomodel import db
 from clinical_mdr_api.main import app
 from clinical_mdr_api.tests.data.odm_xml import (
     export_form,
+    export_forms,
     export_item,
     export_item_group,
-    export_study_event,
     export_with_csv,
     export_with_namespace,
 )
@@ -63,33 +63,14 @@ def test_data():
     db.cypher_query(STARTUP_ODM_VENDOR_ELEMENTS)
     db.cypher_query(STARTUP_ODM_VENDOR_ATTRIBUTES)
     db.cypher_query(STARTUP_ODM_XML_EXPORTER)
-
     yield
 
     drop_db("old.json.test.odm.xml.exporter")
 
 
-def test_get_odm_xml_study_event(api_client):
-    response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_uid=odm_study_event1&target_type=study_event&stylesheet=file.xsl&allowed_namespaces=*",
-    )
-
-    expected_xml = ET.fromstring(export_study_event)
-    actual_xml = ET.fromstring(response.content)
-
-    expected_xml.set("FileOID", actual_xml.attrib["FileOID"])
-    expected_xml.set("CreationDateTime", actual_xml.attrib["CreationDateTime"])
-
-    assert '<?xml-stylesheet type="text/xsl" href="file.xsl"?>' in response.text
-    assert_response_status_code(response, 200)
-    assert response.headers.get("content-type") == CONTENT_TYPE
-
-    xml_diff(expected_xml, actual_xml)
-
-
 def test_get_odm_xml_form(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_uid=odm_form1&target_type=form&stylesheet=file.xsl&allowed_namespaces=*",
+        "concepts/odms/metadata/xmls/export?target_uids=odm_form1&target_type=form&stylesheet=file.xsl&allowed_namespaces=*",
     )
 
     expected_xml = ET.fromstring(export_form)
@@ -105,9 +86,29 @@ def test_get_odm_xml_form(api_client):
     xml_diff(expected_xml, actual_xml)
 
 
+def test_get_odm_xml_forms(api_client):
+    response = api_client.post(
+        "concepts/odms/metadata/xmls/export?target_uids=odm_form1&target_uids=odm_form2&target_type=form&stylesheet=file.xsl&allowed_namespaces=*",
+    )
+
+    expected_xml = ET.fromstring(export_forms)
+    actual_xml = ET.fromstring(response.content)
+
+    expected_xml.set("FileOID", actual_xml.attrib["FileOID"])
+    expected_xml.set("CreationDateTime", actual_xml.attrib["CreationDateTime"])
+
+    assert '<?xml-stylesheet type="text/xsl" href="file.xsl"?>' in response.text
+    assert_response_status_code(response, 200)
+    assert response.headers.get("content-type") == CONTENT_TYPE
+
+    # breakpoint()
+
+    xml_diff(expected_xml, actual_xml)
+
+
 def test_get_odm_xml_item_group(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_uid=odm_item_group1&target_type=item_group&stylesheet=file.xsl&allowed_namespaces=*",
+        "concepts/odms/metadata/xmls/export?target_uids=odm_item_group1&target_type=item_group&stylesheet=file.xsl&allowed_namespaces=*",
     )
 
     expected_xml = ET.fromstring(export_item_group)
@@ -125,7 +126,7 @@ def test_get_odm_xml_item_group(api_client):
 
 def test_get_odm_xml_item(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_uid=odm_item1&target_type=item&stylesheet=file.xsl&allowed_namespaces=*",
+        "concepts/odms/metadata/xmls/export?target_uids=odm_item1&target_type=item&stylesheet=file.xsl&allowed_namespaces=*",
     )
 
     expected_xml = ET.fromstring(export_item)
@@ -143,7 +144,7 @@ def test_get_odm_xml_item(api_client):
 
 def test_get_odm_xml_with_allowed_namespaces(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_uid=odm_study_event1&target_type=study_event&allowed_namespaces=prefix",
+        "concepts/odms/metadata/xmls/export?target_uids=odm_form1&target_type=form&allowed_namespaces=prefix",
     )
 
     expected_xml = ET.fromstring(export_with_namespace)
@@ -159,7 +160,7 @@ def test_get_odm_xml_with_allowed_namespaces(api_client):
 
 def test_get_odm_xml_with_mapper_csv(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_type=study_event&target_uid=odm_study_event1&allowed_namespaces=*",
+        "concepts/odms/metadata/xmls/export?target_type=form&target_uids=odm_form1&allowed_namespaces=*",
         files={
             "mapper_file": (
                 "mapper.csv",
@@ -192,7 +193,7 @@ def test_get_odm_xml_with_mapper_csv(api_client):
 
 def test_get_odm_xml_pdf_version(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_type=study_event&target_uid=odm_study_event1&pdf=true&stylesheet=blank"
+        "concepts/odms/metadata/xmls/export?target_type=form&target_uids=odm_form1&pdf=true&stylesheet=blank"
     )
 
     assert_response_status_code(response, 200)
@@ -201,7 +202,7 @@ def test_get_odm_xml_pdf_version(api_client):
 
 def test_throw_exception_if_target_type_is_not_supported(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_uid=study&target_type=study",
+        "concepts/odms/metadata/xmls/export?target_uids=study&target_type=study",
     )
 
     assert_response_status_code(response, 400)
@@ -213,7 +214,7 @@ def test_throw_exception_if_target_type_is_not_supported(api_client):
 
 def test_throw_exception_if_mapper_is_non_csv(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_uid=odm_study_event1&target_type=study_event",
+        "concepts/odms/metadata/xmls/export?target_uids=odm_form1&target_type=form",
         files={
             "mapper_file": (
                 "mapper.json",
@@ -231,7 +232,7 @@ def test_throw_exception_if_mapper_is_non_csv(api_client):
 
 def test_throw_exception_if_csv_header_missing(api_client):
     response = api_client.post(
-        "concepts/odms/metadata/xmls/export?target_uid=odm_study_event1&target_type=study_event",
+        "concepts/odms/metadata/xmls/export?target_uids=odm_form1&target_type=form",
         files={
             "mapper_file": (
                 "mapper.csv",

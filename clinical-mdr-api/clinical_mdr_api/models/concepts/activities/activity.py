@@ -93,6 +93,10 @@ class ActivityGroupingHierarchySimpleModel(BaseModel):
             }
         ),
     ]
+    activity_group_version: Annotated[
+        str | None,
+        Field(json_schema_extra={"nullable": True}),
+    ] = None
     activity_subgroup_uid: Annotated[
         str,
         Field(
@@ -109,6 +113,10 @@ class ActivityGroupingHierarchySimpleModel(BaseModel):
             }
         ),
     ]
+    activity_subgroup_version: Annotated[
+        str | None,
+        Field(json_schema_extra={"nullable": True}),
+    ] = None
 
 
 class ActivityBase(Concept):
@@ -153,8 +161,9 @@ class CompactActivity(BaseModel):
         None
     )
     synonyms: Annotated[
-        list[str] | None, Field(json_schema_extra={"nullable": True})
-    ] = []
+        list[str] | None,
+        Field(json_schema_extra={"nullable": True, "remove_from_wildcard": True}),
+    ] = None
     abbreviation: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = (
         None
     )
@@ -284,9 +293,11 @@ class Activity(ActivityBase):
                 ActivityGroupingHierarchySimpleModel(
                     activity_group_uid=activity_grouping.activity_group_uid,
                     activity_group_name=activity_grouping.activity_group_name or "",
+                    activity_group_version=activity_grouping.activity_group_version,
                     activity_subgroup_uid=activity_grouping.activity_subgroup_uid,
                     activity_subgroup_name=activity_grouping.activity_subgroup_name
                     or "",
+                    activity_subgroup_version=activity_grouping.activity_subgroup_version,
                 )
             )
         activity_groupings.sort(

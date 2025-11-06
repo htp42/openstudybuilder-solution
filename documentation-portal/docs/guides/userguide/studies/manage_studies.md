@@ -1,8 +1,8 @@
 # Manage Studies
 
-This user guide explains how to manage study definitions in the StudyBuilder application. This is done on the **Studies** menu selecting **Manage Studies**.
+This user guide explains how to manage study definitions in the OpenStudyBuilder application. This is done on the **Studies** menu selecting **Manage Studies**.
 
-[![Conceptual architecture for the clinical-MDR and the StudyBuilder](~@source/images/user_guides/manage_studies_menu.png)](../../../images/user_guides/manage_studies_menu.png)
+[![Conceptual architecture for the clinical-MDR and the OpenStudyBuilder](~@source/images/user_guides/manage_studies_menu.png)](../../../images/user_guides/manage_studies_menu.png)
  - On the **Study List** sub menu you can search and select studies as well as add new study definitions.
  - On the **Study** sub menu you can maintain the core attributes for a study, study status and versioning, maintain relationship to sub-parts (for protocols holding multiple sub-studies) and maintain relationship between study versions and protocol document versions.
 
@@ -78,7 +78,7 @@ For general queries and exploration of study definitions metadata the general la
 
 Study Subparts are needed, whenever a single protocol is including multiple sub-studies. This could be the case with a single dose and multi dose included in one, single protocol.
 
-For StudyBuilder to support this need, the study subparts are available.
+For OpenStudyBuilder to support this need, the study subparts are available.
 
 Usually it has been decided at an early stage, when a study should have multiple parts and it can make sense to create all parts at when setting up the study. It is also possible to create the subparts later.
 

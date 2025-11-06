@@ -19,16 +19,16 @@
 | charset-normalizer             | 3.4.3                |
 | click                          | 8.2.1                |
 | colour                         | 0.1.5                |
-| cryptography                   | 45.0.6               |
+| cryptography                   | 45.0.7               |
 | cssselect2                     | 0.8.0                |
-| deepdiff                       | 8.0.1                |
+| deepdiff                       | 8.6.1                |
 | dict2xml                       | 1.7.7                |
 | docraptor                      | 3.1.0                |
 | et_xmlfile                     | 2.0.0                |
-| fastapi                        | 0.115.14             |
+| fastapi                        | 0.116.1              |
 | fhir_core                      | 1.1.4                |
 | fhir.resources                 | 8.1.0                |
-| fonttools                      | 4.59.1               |
+| fonttools                      | 4.59.2               |
 | google-api-core                | 2.25.1               |
 | google-auth                    | 2.40.3               |
 | googleapis-common-protos       | 1.70.0               |
@@ -45,12 +45,12 @@
 | neo4j                          | 5.28.2               |
 | neomodel                       | 5.5.0                |
 | nh3                            | 0.2.22               |
-| numpy                          | 2.3.2                |
+| numpy                          | 2.3.3                |
 | opencensus                     | 0.11.4               |
 | opencensus-context             | 0.1.3                |
 | opencensus-ext-azure           | 1.1.15               |
 | openpyxl                       | 3.1.5                |
-| orderly-set                    | 5.2.2                |
+| orderly-set                    | 5.5.0                |
 | pandas                         | 2.3.2                |
 | pillow                         | 11.3.0               |
 | pip                            | 25.2                 |
@@ -59,7 +59,7 @@
 | psutil                         | 7.0.0                |
 | pyasn1                         | 0.6.1                |
 | pyasn1_modules                 | 0.4.2                |
-| pycparser                      | 2.22                 |
+| pycparser                      | 2.23                 |
 | pydantic                       | 2.10.6               |
 | pydantic_core                  | 2.27.2               |
 | pydantic-settings              | 2.7.1                |
@@ -77,9 +77,9 @@
 | six                            | 1.17.0               |
 | sniffio                        | 1.3.1                |
 | sortedcontainers               | 2.4.0                |
-| soupsieve                      | 2.7                  |
-| starlette                      | 0.46.2               |
-| starlette-context              | 0.3.6                |
+| soupsieve                      | 2.8                  |
+| starlette                      | 0.47.3               |
+| starlette-context              | 0.4.0                |
 | stringcase                     | 1.2.0                |
 | tinycss2                       | 1.4.0                |
 | tinyhtml5                      | 2.0.0                |
@@ -1271,6 +1271,78 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+
+---
+
+### License for 3rd party library fhir_core
+
+
+BSD License
+
+Copyright (c) 2019, Md Nazrul Islam
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from this
+  software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+---
+
+### License for 3rd party library fhir.resources
+
+
+BSD License
+
+Copyright (c) 2019, Md Nazrul Islam
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from this
+  software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ---
@@ -2848,6 +2920,7 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 
 ---
 
@@ -4589,6 +4662,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+
 
 ---
 

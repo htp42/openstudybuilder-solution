@@ -10,7 +10,7 @@ from neomodel import (
 )
 
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
-    CTTermRoot,
+    CTTermContext,
 )
 from clinical_mdr_api.domain_repositories.models.generic import (
     ClinicalMdrRel,
@@ -82,10 +82,10 @@ class ActivityItemClassValue(VersionValue):
         cardinality=OneOrMore,
     )
     has_data_type = RelationshipTo(
-        CTTermRoot, "HAS_DATA_TYPE", model=ClinicalMdrRel, cardinality=One
+        CTTermContext, "HAS_DATA_TYPE", model=ClinicalMdrRel, cardinality=One
     )
     has_role = RelationshipTo(
-        CTTermRoot, "HAS_ROLE", model=ClinicalMdrRel, cardinality=One
+        CTTermContext, "HAS_ROLE", model=ClinicalMdrRel, cardinality=One
     )
 
 

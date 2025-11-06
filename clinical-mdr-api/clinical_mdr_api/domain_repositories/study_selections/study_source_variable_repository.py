@@ -3,6 +3,7 @@ import datetime
 from clinical_mdr_api.domain_repositories._utils.helpers import (
     acquire_write_lock_study_value,
 )
+from clinical_mdr_api.domain_repositories.models._utils import ListDistinct
 from clinical_mdr_api.domain_repositories.models.study import StudyRoot, StudyValue
 from clinical_mdr_api.domain_repositories.models.study_audit_trail import Create, Edit
 from clinical_mdr_api.domain_repositories.models.study_selections import (
@@ -16,6 +17,16 @@ from common import exceptions
 
 
 class StudySourceVariableRepository:
+
+    def source_variable_exists(
+        self,
+        study_uid: str,
+    ) -> bool:
+        filters = {
+            "has_study_source_variable__latest_value__uid": study_uid,
+        }
+        nodes = StudySourceVariableNeomodel.nodes.filter(**filters)
+        return len(nodes) > 0
 
     def get_study_source_variable(
         self,
@@ -36,13 +47,13 @@ class StudySourceVariableRepository:
                 "has_study_source_variable__latest_value__uid": study_uid,
             }
 
-        nodes = (
+        nodes = ListDistinct(
             StudySourceVariableNeomodel.nodes.fetch_relations(
                 "has_after__audit_trail",
             )
             .filter(**filters)
             .resolve_subgraph()
-        )
+        ).distinct()
         exceptions.BusinessLogicException.raise_if(
             len(nodes) > 1,
             msg=f"Found more than one StudySourceVariable node for Study with UID '{study_uid}'.",

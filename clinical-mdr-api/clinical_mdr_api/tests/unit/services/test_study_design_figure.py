@@ -1,7 +1,9 @@
 import datetime
 from collections import OrderedDict
 
-from clinical_mdr_api.models.controlled_terminologies.ct_term import CTTermName
+from clinical_mdr_api.models.controlled_terminologies.ct_term import (
+    SimpleCodelistTermModel,
+)
 from clinical_mdr_api.models.study_selections.study import StudySoaPreferences
 from clinical_mdr_api.models.study_selections.study_epoch import StudyEpoch
 from clinical_mdr_api.models.study_selections.study_selection import (
@@ -31,11 +33,13 @@ STUDY_ARMS = OrderedDict(
                 code="A",
                 randomization_group="A",
                 number_of_subjects=50,
-                arm_type=CTTermName(
+                arm_type=SimpleCodelistTermModel(
                     term_uid="CTTerm_000081",
                     codelist_uid="CTCodelist_000022",
-                    sponsor_preferred_name="Investigational Arm",
-                    sponsor_preferred_name_sentence_case="investigational arm",
+                    codelist_name="TODO",
+                    term_name="Investigational Arm",
+                    submission_value="investigational arm",
+                    codelist_submission_value="ARMTTP",
                     order=1,
                     start_date=datetime.datetime(2022, 7, 14, 11, 18, 29, 635044),
                 ),
@@ -55,11 +59,13 @@ STUDY_ARMS = OrderedDict(
                 code="B",
                 randomization_group="B",
                 number_of_subjects=50,
-                arm_type=CTTermName(
+                arm_type=SimpleCodelistTermModel(
                     term_uid="CTTerm_000081",
                     codelist_uid="CTCodelist_000022",
-                    sponsor_preferred_name="Investigational Arm",
-                    sponsor_preferred_name_sentence_case="investigational arm",
+                    codelist_name="TODO",
+                    term_name="Investigational Arm",
+                    submission_value="investigational arm",
+                    codelist_submission_value="ARMTTP",
                     order=1,
                     start_date=datetime.datetime(2022, 7, 14, 11, 18, 29, 635044),
                 ),
@@ -350,11 +356,13 @@ STUDY_ELEMENTS = OrderedDict(
                 planned_duration=None,
                 element_colour=None,
                 element_type=None,
-                element_subtype=CTTermName(
+                element_subtype=SimpleCodelistTermModel(
                     term_uid="CTTerm_000135",
+                    term_name="TODO",
                     codelist_uid="CTCodelist_000024",
-                    sponsor_preferred_name="Screening",
-                    sponsor_preferred_name_sentence_case="screening",
+                    codelist_name="TODO",
+                    codelist_submission_value="TODO",
+                    submission_value="TODO",
                     order=1,
                     start_date=datetime.datetime(2022, 7, 14, 11, 18, 43, 459307),
                 ),
@@ -378,11 +386,13 @@ STUDY_ELEMENTS = OrderedDict(
                 planned_duration=None,
                 element_colour=None,
                 element_type=None,
-                element_subtype=CTTermName(
+                element_subtype=SimpleCodelistTermModel(
                     term_uid="CTTerm_000131",
+                    term_name="TODO",
                     codelist_uid="CTCodelist_000024",
-                    sponsor_preferred_name="Treatment",
-                    sponsor_preferred_name_sentence_case="treatment",
+                    codelist_name="TODO",
+                    codelist_submission_value="TODO",
+                    submission_value="TODO",
                     order=3,
                     start_date=datetime.datetime(2022, 7, 14, 11, 18, 42, 889737),
                 ),
@@ -406,11 +416,13 @@ STUDY_ELEMENTS = OrderedDict(
                 planned_duration=None,
                 element_colour=None,
                 element_type=None,
-                element_subtype=CTTermName(
+                element_subtype=SimpleCodelistTermModel(
                     term_uid="CTTerm_000131",
+                    term_name="TODO",
                     codelist_uid="CTCodelist_000024",
-                    sponsor_preferred_name="Treatment",
-                    sponsor_preferred_name_sentence_case="treatment",
+                    codelist_name="TODO",
+                    codelist_submission_value="TODO",
+                    submission_value="TODO",
                     order=3,
                     start_date=datetime.datetime(2022, 7, 14, 11, 18, 42, 889737),
                 ),
@@ -434,11 +446,13 @@ STUDY_ELEMENTS = OrderedDict(
                 planned_duration=None,
                 element_colour=None,
                 element_type=None,
-                element_subtype=CTTermName(
+                element_subtype=SimpleCodelistTermModel(
                     term_uid="CTTerm_000134",
+                    term_name="TODO",
                     codelist_uid="CTCodelist_000024",
-                    sponsor_preferred_name="Follow-up",
-                    sponsor_preferred_name_sentence_case="follow-up",
+                    codelist_name="TODO",
+                    codelist_submission_value="TODO",
+                    submission_value="TODO",
                     order=5,
                     start_date=datetime.datetime(2022, 7, 14, 11, 18, 43, 264949),
                 ),

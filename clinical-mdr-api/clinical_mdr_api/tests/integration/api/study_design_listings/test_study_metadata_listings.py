@@ -48,9 +48,9 @@ def test_data():
     inject_and_clear_db("StudyListingTestAPI")
     TestUtils.create_library(name="UCUM", is_editable=True)
     global study
-    study = inject_base_data()
-    codelist = TestUtils.create_ct_codelist()
-    TestUtils.create_study_ct_data_map(codelist_uid=codelist.codelist_uid)
+    study, _ = inject_base_data()
+    TestUtils.create_ct_codelist()
+    TestUtils.create_study_ct_data_map(codelist_uid=None)
 
     global study_uid
     study_uid = study.uid
@@ -71,43 +71,84 @@ def test_data():
     )
     # Create study elements
     element_type_codelist = create_codelist(
-        "Element Type", "CTCodelist_ElementType", catalogue_name, library_name
+        "Element Type",
+        "CTCodelist_ElementType",
+        catalogue_name,
+        library_name,
+        submission_value="ELEMTP",
     )
-    element_type_term = create_ct_term(
-        element_type_codelist.codelist_uid,
+    create_ct_term(
         "Element Type",
         "ElementType_0001",
-        1,
         catalogue_name,
         library_name,
+        codelists=[
+            {
+                "uid": element_type_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "ElementType1",
+            }
+        ],
     )
-    element_type_term_2 = create_ct_term(
-        element_type_codelist.codelist_uid,
-        "Element Type",
-        "ElementType_0002",
-        2,
+
+    element_subtype_codelist = create_codelist(
+        "Element Sub Type",
+        "CTCodelist_ElementSubType",
         catalogue_name,
         library_name,
+        submission_value="ELEMSTP",
+    )
+    element_subtype_term = create_ct_term(
+        "Element Sub Type",
+        "ElementSubType_0001",
+        catalogue_name,
+        library_name,
+        codelists=[
+            {
+                "uid": element_subtype_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Element Sub Type",
+            }
+        ],
+    )
+    element_subtype_term_2 = create_ct_term(
+        "Element Sub Type 2",
+        "ElementSubType_0002",
+        catalogue_name,
+        library_name,
+        codelists=[
+            {
+                "uid": element_subtype_codelist.codelist_uid,
+                "order": 2,
+                "submission_value": "Element Sub Type 2",
+            }
+        ],
     )
     study_elements = [
-        create_study_element(element_type_term.uid, study_uid),
-        create_study_element(element_type_term_2.uid, study_uid),
+        create_study_element(element_subtype_term.uid, study_uid),
+        create_study_element(element_subtype_term_2.uid, study_uid),
     ]
 
     # Create study arms
     codelist = create_codelist(
         name="Arm Type",
-        uid="CTCodelist_00009",
+        uid="CTCodelist_00019",
         catalogue=catalogue_name,
         library=library_name,
+        submission_value="ARMTTP",
     )
     arm_type = create_ct_term(
-        codelist=codelist.codelist_uid,
         name="Arm Type",
         uid="ArmType_0001",
-        order=1,
         catalogue_name=catalogue_name,
         library_name=library_name,
+        codelists=[
+            {
+                "uid": codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Arm Type",
+            },
+        ],
     )
 
     create_study_arm(
@@ -211,12 +252,22 @@ def test_data():
         epoch1=study_epoch,
         epoch2=study_epoch2,
     )
+
+    type_codelist = TestUtils.create_ct_codelist(
+        name="Criteria Type",
+        submission_value="CRITRTP",
+        extensible=True,
+        approve=True,
+    )
+
     # Create CT Terms
     ct_term_inclusion_criteria = TestUtils.create_ct_term(
-        sponsor_preferred_name="INCLUSION CRITERIA"
+        sponsor_preferred_name="INCLUSION CRITERIA",
+        codelist_uid=type_codelist.codelist_uid,
     )
     ct_term_exclusion_criteria = TestUtils.create_ct_term(
-        sponsor_preferred_name="EXCLUSION CRITERIA"
+        sponsor_preferred_name="EXCLUSION CRITERIA",
+        codelist_uid=type_codelist.codelist_uid,
     )
 
     # Create templates

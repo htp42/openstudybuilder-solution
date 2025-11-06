@@ -75,8 +75,8 @@
               :disabled="editItem.uid !== undefined"
               :label="$t('CrfExtensions.data_type')"
               :items="dataTypes"
-              item-title="code_submission_value"
-              item-value="code_submission_value"
+              item-title="submission_value"
+              item-value="submission_value"
               density="compact"
               clearable
             />
@@ -151,7 +151,7 @@ export default {
     },
   },
   mounted() {
-    terms.getAttributesByCodelist('dataType').then((resp) => {
+    terms.getTermsByCodelist('dataType').then((resp) => {
       this.dataTypes = resp.data.items
     })
   },

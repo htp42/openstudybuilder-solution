@@ -5,6 +5,7 @@ from typing import Any, Callable, Iterable, Self
 from clinical_mdr_api.services.user_info import UserInfoService
 from clinical_mdr_api.utils import normalize_string
 from common import exceptions
+from common.utils import is_larger_than_or_equal
 
 
 @dataclass(frozen=True)
@@ -206,10 +207,8 @@ class StudySelectionObjectivesAR:
         #  then we just move it to best possible position
         selection_needs_inserting = False
         for order, selection in enumerate(self.study_objectives_selection, start=1):
-            if (
-                selection_needs_inserting
-                and selection.objective_level_order
-                >= selected_value.objective_level_order
+            if selection_needs_inserting and is_larger_than_or_equal(
+                selection.objective_level_order, selected_value.objective_level_order
             ):
                 updated_selections.append(selected_value)
                 selection_needs_inserting = False
@@ -218,9 +217,9 @@ class StudySelectionObjectivesAR:
             if order == new_order:
                 # we check if the order is being changed to lower or higher and add it to the list appropriately
                 if old_order >= new_order:
-                    if (
-                        selection.objective_level_order
-                        >= selected_value.objective_level_order
+                    if is_larger_than_or_equal(
+                        selection.objective_level_order,
+                        selected_value.objective_level_order,
                     ):
                         updated_selections.append(selected_value)
 
@@ -240,9 +239,9 @@ class StudySelectionObjectivesAR:
                         != selected_value.study_selection_uid
                     ):
                         updated_selections.append(selection)
-                    if (
-                        selection.objective_level_order
-                        >= selected_value.objective_level_order
+                    if is_larger_than_or_equal(
+                        selection.objective_level_order,
+                        selected_value.objective_level_order,
                     ):
                         updated_selections.append(selected_value)
 

@@ -36,11 +36,11 @@ from clinical_mdr_api.services.controlled_terminologies.ct_codelist_attributes i
 from clinical_mdr_api.services.controlled_terminologies.ct_term_attributes import (
     CTTermAttributesService,
 )
-from common.exceptions import BusinessLogicException
+from common.exceptions import BusinessLogicException, NotFoundException
 
 
 class OdmDataExtractor:
-    target_uid: str
+    target_uids: list[str]
     target_name: str
     status: str
 
@@ -70,7 +70,7 @@ class OdmDataExtractor:
 
     def __init__(
         self,
-        target_uid: str,
+        target_uids: list[str],
         target_type: TargetType,
         status: str,
     ):
@@ -101,27 +101,47 @@ class OdmDataExtractor:
 
         self.status = status
 
-        if target_type == TargetType.STUDY_EVENT:
-            study_event = self.study_event_service.get_by_uid(target_uid)
-            self.target_name = study_event.name
-            self.set_forms_of_target(study_event)
-        elif target_type == TargetType.FORM:
-            self.odm_forms.append(self.form_service.get_by_uid(target_uid))
+        if target_type == TargetType.FORM:
+            self.odm_forms = self.form_service.get_all_concepts(
+                filter_by={"uid": {"v": target_uids, "op": "eq"}}
+            ).items
+
+            if not self.odm_forms:
+                raise NotFoundException(
+                    msg=f"No ODM Form found for the given target UID(s): {target_uids}."
+                )
+
             self.target_name = self.odm_forms[0].name
             self.set_item_groups_of_forms(self.odm_forms)
         elif target_type == TargetType.ITEM_GROUP:
-            self.odm_item_groups.append(self.item_group_service.get_by_uid(target_uid))
+            self.odm_item_groups = self.item_group_service.get_all_concepts(
+                filter_by={"uid": {"v": target_uids, "op": "eq"}}
+            ).items
+
+            if not self.odm_item_groups:
+                raise NotFoundException(
+                    msg=f"No ODM Item Group found for the given target UID(s): {target_uids}."
+                )
+
             self.target_name = self.odm_item_groups[0].name
             self.set_items_of_item_groups(self.odm_item_groups)
         elif target_type == TargetType.ITEM:
-            self.odm_items.append(self.item_service.get_by_uid(target_uid))
+            self.odm_items = self.item_service.get_all_concepts(
+                filter_by={"uid": {"v": target_uids, "op": "eq"}}
+            ).items
+
+            if not self.odm_items:
+                raise NotFoundException(
+                    msg=f"No ODM Item found for the given target UID(s): {target_uids}."
+                )
+
             self.target_name = self.odm_items[0].name
             self.set_unit_definitions_of_items(self.odm_items)
             self.set_codelists_of_items(self.odm_items)
         else:
             raise BusinessLogicException(msg="Requested target type not supported.")
 
-        self.target_uid = target_uid
+        self.target_uids = target_uids
 
         self.set_conditions(self.odm_forms, self.odm_item_groups)
         self.set_methods(self.odm_item_groups)
@@ -212,22 +232,6 @@ class OdmDataExtractor:
             }
             for vendor_namespace in vendor_namespaces
         }
-
-    def set_forms_of_target(self, target):
-        self.odm_forms = sorted(
-            self.form_service.get_all_concepts(
-                filter_by={
-                    "uid": {
-                        "v": [form.uid for form in target.forms],
-                        "op": "eq",
-                    }
-                },
-                only_specific_status=self.status,
-            ).items,
-            key=lambda elm: elm.name,
-        )
-
-        self.set_item_groups_of_forms(self.odm_forms)
 
     def set_item_groups_of_forms(self, forms: list[OdmForm]):
         self.odm_item_groups = sorted(

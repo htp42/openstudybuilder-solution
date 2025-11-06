@@ -47,7 +47,10 @@ class StudyActivitySelectionBaseService(
 
     def __init__(self):
         self._repos = MetaRepository()
-        self.author = user().id()
+
+    @property
+    def author(self):
+        return user().id()
 
     @property
     def repository(self) -> StudySelectionActivityBaseRepository[_AggregateRootType]:

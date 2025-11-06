@@ -5,6 +5,7 @@ Feature: Studies - View Specification - USDM
     Background: User must be logged in
         Given The user is logged in
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to the Study USDM page
         Given A test study is selected
         Given The '/studies' page is opened
@@ -19,7 +20,7 @@ Feature: Studies - View Specification - USDM
     Scenario: [Online help] User must be able to read online help for the General
         Given The test study '/usdm' page is opened
         And The online help button is clicked
-        Then The online help panel shows 'General' panel with content 'This page display the JSON file generated based on the  Digital Data Flow (DDF) CDISC / TransCelerate Unified Study Definitions Model (USDM). The data available here are extracted and converted into the USDM model, based on mapping rules defined within the StudyBuilder team: Be aware about that.'
+        Then The online help panel shows 'General' panel with content 'This page display the JSON file generated based on the  Digital Data Flow (DDF) CDISC / TransCelerate Unified Study Definitions Model (USDM). The data available here are extracted and converted into the USDM model, based on mapping rules defined within the OpenStudyBuilder team: Be aware about that.'
 
     Scenario: [Online help] User must be able to read online help for the Clinical study [C15206]
         Given The test study '/usdm' page is opened

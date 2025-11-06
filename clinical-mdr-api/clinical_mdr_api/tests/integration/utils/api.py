@@ -15,18 +15,21 @@ from starlette.testclient import TestClient
 from clinical_mdr_api.tests.integration.utils.data_library import inject_base_data
 from clinical_mdr_api.tests.integration.utils.utils import TestUtils
 from clinical_mdr_api.tests.utils.checks import assert_response_status_code
+from common.database import configure_database
 
 
 def inject_and_clear_db(db_name):
     os.environ["NEO4J_DATABASE"] = db_name
 
-    from neomodel import config as neoconfig
-
     from common.config import settings
 
-    # Switch to "neo4j" database for creating a new database
-    neoconfig.DATABASE_URL = urljoin(settings.neo4j_dsn, "/neo4j")
-    db.set_connection(neoconfig.DATABASE_URL)
+    driver = configure_database(
+        urljoin(settings.neo4j_dsn, "/neo4j"),
+        max_connection_lifetime=settings.neo4j_connection_lifetime,
+        liveness_check_timeout=settings.neo4j_liveness_check_timeout,
+    )
+    db.set_connection(driver=driver)
+
     db.cypher_query("CREATE OR REPLACE DATABASE $db", {"db": db_name})
 
     try_cnt = 1
@@ -36,8 +39,12 @@ def inject_and_clear_db(db_name):
             # Database creation can take a couple of seconds
             # db.set_connection will return a ClientError if the database isn't ready
             # This allows for retrying after a small pause
-            neoconfig.DATABASE_URL = urljoin(settings.neo4j_dsn, f"/{db_name}")
-            db.set_connection(neoconfig.DATABASE_URL)
+            driver = configure_database(
+                urljoin(settings.neo4j_dsn, f"/{db_name}"),
+                max_connection_lifetime=settings.neo4j_connection_lifetime,
+                liveness_check_timeout=settings.neo4j_liveness_check_timeout,
+            )
+            db.set_connection(driver=driver)
 
             # AuraDB workaround for not supporting multiple db's:
             # Use the main db for tests and remove all nodes
@@ -69,13 +76,15 @@ def inject_and_clear_db(db_name):
 
 
 def drop_db(db_name):
-    from neomodel import config as neoconfig
-
     from common.config import settings
 
-    full_dsn = f"{settings.neo4j_dsn}"
-    neoconfig.DATABASE_URL = full_dsn
-    db.set_connection(full_dsn)
+    driver = configure_database(
+        settings.neo4j_dsn,
+        max_connection_lifetime=settings.neo4j_connection_lifetime,
+        liveness_check_timeout=settings.neo4j_liveness_check_timeout,
+    )
+    db.set_connection(driver=driver)
+
     db.cypher_query("DROP DATABASE $db IF EXISTS", {"db": db_name})
 
 

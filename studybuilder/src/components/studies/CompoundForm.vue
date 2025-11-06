@@ -24,7 +24,7 @@
               :data-cy="$t('StudyCompoundForm.type_of_treatment')"
               :label="$t('StudyCompoundForm.type_of_treatment')"
               :items="typeOfTreatments"
-              item-title="name.sponsor_preferred_name"
+              item-title="sponsor_preferred_name"
               item-value="term_uid"
               return-object
               :rules="[
@@ -465,7 +465,7 @@ export default {
     compoundsSimple.getFiltered({ filters }).then((resp) => {
       this.compounds = resp.data.items
     })
-    terms.getByCodelist('typeOfTreatment').then((resp) => {
+    terms.getTermsByCodelist('typeOfTreatment').then((resp) => {
       this.typeOfTreatments = resp.data.items
     })
   },

@@ -18,6 +18,10 @@ from clinical_mdr_api.tests.integration.utils.data_library import (
     STARTUP_ODM_VENDOR_ELEMENTS,
     STARTUP_ODM_VENDOR_NAMESPACES,
 )
+from clinical_mdr_api.tests.integration.utils.method_library import (
+    create_codelist,
+    create_ct_term,
+)
 from clinical_mdr_api.tests.utils.checks import assert_response_status_code
 
 
@@ -36,7 +40,28 @@ def test_data():
     db.cypher_query(STARTUP_ODM_VENDOR_NAMESPACES)
     db.cypher_query(STARTUP_ODM_VENDOR_ELEMENTS)
     db.cypher_query(STARTUP_ODM_VENDOR_ATTRIBUTES)
-
+    catalogue_name = "SDTM CT"
+    library_name = "Sponsor"
+    codelist = create_codelist(
+        name="SDTM Domain Abbreviation",
+        uid="C66734",
+        catalogue=catalogue_name,
+        library=library_name,
+        submission_value="DOMAIN",
+    )
+    create_ct_term(
+        name="domain",
+        uid="domain001",
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        codelists=[
+            {
+                "uid": codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "XX",
+            }
+        ],
+    )
     yield
 
     drop_db("old.json.test.odm.item.groups.negative")
@@ -55,7 +80,7 @@ def test_create_a_new_odm_item_group(api_client):
         "comment": "comment1",
         "descriptions": ["odm_description2", "odm_description3"],
         "alias_uids": ["odm_alias1"],
-        "sdtm_domain_uids": ["term1"],
+        "sdtm_domain_uids": ["domain001"],
     }
     response = api_client.post("concepts/odms/item-groups", json=data)
 
@@ -103,9 +128,16 @@ def test_create_a_new_odm_item_group(api_client):
     ]
     assert res["sdtm_domains"] == [
         {
-            "uid": "term1",
-            "code_submission_value": "code_submission_value1",
-            "preferred_term": "preferred_term1",
+            "codelist_name": "SDTM Domain Abbreviation",
+            "codelist_submission_value": "DOMAIN",
+            "codelist_uid": "C66734",
+            "date_conflict": False,
+            "order": 1,
+            "queried_effective_date": None,
+            "submission_value": "XX",
+            "preferred_term": "test",
+            "term_name": "domain",
+            "term_uid": "domain001",
         }
     ]
     assert res["activity_subgroups"] == []
@@ -285,9 +317,16 @@ def test_add_odm_vendor_element_to_an_odm_item_group(api_client):
     ]
     assert res["sdtm_domains"] == [
         {
-            "uid": "term1",
-            "code_submission_value": "code_submission_value1",
-            "preferred_term": "preferred_term1",
+            "codelist_name": "SDTM Domain Abbreviation",
+            "codelist_submission_value": "DOMAIN",
+            "codelist_uid": "C66734",
+            "date_conflict": False,
+            "order": 1,
+            "queried_effective_date": None,
+            "submission_value": "XX",
+            "preferred_term": "test",
+            "term_name": "domain",
+            "term_uid": "domain001",
         }
     ]
     assert res["activity_subgroups"] == []
@@ -351,9 +390,16 @@ def test_add_odm_vendor_element_attribute_to_an_odm_item_group(api_client):
     ]
     assert res["sdtm_domains"] == [
         {
-            "uid": "term1",
-            "code_submission_value": "code_submission_value1",
-            "preferred_term": "preferred_term1",
+            "codelist_name": "SDTM Domain Abbreviation",
+            "codelist_submission_value": "DOMAIN",
+            "codelist_uid": "C66734",
+            "date_conflict": False,
+            "order": 1,
+            "queried_effective_date": None,
+            "submission_value": "XX",
+            "preferred_term": "test",
+            "term_name": "domain",
+            "term_uid": "domain001",
         }
     ]
     assert res["activity_subgroups"] == []
@@ -388,7 +434,7 @@ def test_cannot_create_a_new_odm_item_group_with_same_properties(api_client):
         "comment": "comment1",
         "descriptions": ["odm_description2", "odm_description3"],
         "alias_uids": ["odm_alias1"],
-        "sdtm_domain_uids": ["term1"],
+        "sdtm_domain_uids": ["domain001"],
     }
     response = api_client.post("concepts/odms/item-groups", json=data)
 
@@ -399,7 +445,7 @@ def test_cannot_create_a_new_odm_item_group_with_same_properties(api_client):
     assert res["type"] == "AlreadyExistsException"
     assert (
         res["message"]
-        == "ODM Item Group already exists with UID (OdmItemGroup_000001) and data {'library_name': 'Sponsor', 'alias_uids': ['odm_alias1'], 'sdtm_domain_uids': ['term1'], 'name': 'name1', 'oid': 'oid1', 'repeating': False, 'is_reference_data': False, 'sas_dataset_name': 'sas_dataset_name1', 'origin': 'origin1', 'purpose': 'purpose1', 'comment': 'comment1'}"
+        == "ODM Item Group already exists with UID (OdmItemGroup_000001) and data {'library_name': 'Sponsor', 'alias_uids': ['odm_alias1'], 'sdtm_domain_uids': ['domain001'], 'name': 'name1', 'oid': 'oid1', 'repeating': False, 'is_reference_data': False, 'sas_dataset_name': 'sas_dataset_name1', 'origin': 'origin1', 'purpose': 'purpose1', 'comment': 'comment1'}"
     )
 
 
@@ -609,9 +655,16 @@ def test_approve_odm_item_group(api_client):
     ]
     assert res["sdtm_domains"] == [
         {
-            "uid": "term1",
-            "code_submission_value": "code_submission_value1",
-            "preferred_term": "preferred_term1",
+            "codelist_name": "SDTM Domain Abbreviation",
+            "codelist_submission_value": "DOMAIN",
+            "codelist_uid": "C66734",
+            "date_conflict": False,
+            "order": 1,
+            "queried_effective_date": None,
+            "submission_value": "XX",
+            "preferred_term": "test",
+            "term_name": "domain",
+            "term_uid": "domain001",
         }
     ]
     assert res["activity_subgroups"] == []
@@ -719,9 +772,16 @@ def test_inactivate_odm_item_group(api_client):
     ]
     assert res["sdtm_domains"] == [
         {
-            "uid": "term1",
-            "code_submission_value": "code_submission_value1",
-            "preferred_term": "preferred_term1",
+            "codelist_name": "SDTM Domain Abbreviation",
+            "codelist_submission_value": "DOMAIN",
+            "codelist_uid": "C66734",
+            "date_conflict": False,
+            "order": 1,
+            "queried_effective_date": None,
+            "submission_value": "XX",
+            "preferred_term": "test",
+            "term_name": "domain",
+            "term_uid": "domain001",
         }
     ]
     assert res["activity_subgroups"] == []

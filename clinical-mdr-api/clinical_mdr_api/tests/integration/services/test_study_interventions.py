@@ -22,7 +22,7 @@ from clinical_mdr_api.services.studies.study_compound_selection import (
 from clinical_mdr_api.services.studies.study_interventions import (
     StudyInterventionsService,
 )
-from clinical_mdr_api.tests.integration.utils.utils import TestUtils
+from clinical_mdr_api.tests.integration.utils.utils import CT_CODELIST_UIDS, TestUtils
 
 log = logging.getLogger(__name__)
 
@@ -31,16 +31,53 @@ def test_get_table(
     tst_study, study_epochs, study_arms, study_elements, study_design_cells
 ):
     # Create CT Terms
-    ct_term_dosage = TestUtils.create_ct_term(sponsor_preferred_name="dosage_form_1")
+    catalogue_name = "SDTM CT"
+    library_name = "Sponsor"
+
+    ct_term_dosage = TestUtils.create_ct_term(
+        codelist_uid=CT_CODELIST_UIDS.dosage_form,
+        submission_value="dosage_form_1",
+        sponsor_preferred_name="dosage_form_1",
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
+    )
     ct_term_delivery_device = TestUtils.create_ct_term(
-        sponsor_preferred_name="delivery_device_1"
+        codelist_uid=CT_CODELIST_UIDS.delivery_device,
+        submission_value="delivery_device_1",
+        sponsor_preferred_name="delivery_device_1",
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
     )
     ct_term_dose_frequency = TestUtils.create_ct_term(
-        sponsor_preferred_name="dose_frequency_1"
+        codelist_uid=CT_CODELIST_UIDS.frequency,
+        submission_value="dose_frequency_1",
+        sponsor_preferred_name="dose_frequency_1",
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
     )
-    ct_term_dispenser = TestUtils.create_ct_term(sponsor_preferred_name="dispenser_1")
+    ct_term_dispenser = TestUtils.create_ct_term(
+        codelist_uid=CT_CODELIST_UIDS.dispenser,
+        submission_value="dispenser_1",
+        sponsor_preferred_name="dispenser_1",
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
+    )
     ct_term_roa = TestUtils.create_ct_term(
-        sponsor_preferred_name="route_of_administration_1"
+        codelist_uid=CT_CODELIST_UIDS.roa,
+        submission_value="route_of_administration_1",
+        sponsor_preferred_name="route_of_administration_1",
+        order=1,
+        catalogue_name=catalogue_name,
+        library_name=library_name,
+        approve=True,
     )
 
     # Create Numeric values with unit

@@ -1,4 +1,4 @@
-const ctTermUrl = (codelistName) => `ct/terms?page_size=100&sort_by={"name.sponsor_preferred_name":true}&codelist_name=${codelistName}`
+const ctTermUrl = (codelistName) => `/ct/codelists/terms?page_size=100&codelist_submission_value=${codelistName}`
 const studyEpochsUrl = (study_uid) =>  `/studies/${study_uid}/study-epochs`
 const studyVisitsUrl = (study_uid) =>  `/studies/${study_uid}/study-visits`
 const studyVisitsTotalCountUrl = (study_uid) =>  `/studies/${study_uid}/study-visits?total_count=true`
@@ -13,14 +13,14 @@ let studyVisitUids = []
 Cypress.Commands.add('cleanStudyVisitsUidArray', () => studyVisitUids = [])
 
 Cypress.Commands.add('getContactModeTermUid', (contactMode) => {
-    cy.getSpondorData(ctTermUrl('Visit+Contact+Mode'), contactMode).then(uid => contactModeTermUid = uid)
+    cy.getSpondorData(ctTermUrl('VISCNTMD'), contactMode).then(uid => contactModeTermUid = uid)
 })
 
 Cypress.Commands.add('getTimeReferenceUid', (timeReferenceName) => {
-    cy.getSpondorData(ctTermUrl('Time+Point+Reference'), timeReferenceName).then(uid => timeReferenceUid = uid)
+    cy.getSpondorData(ctTermUrl('TIMEREF'), timeReferenceName).then(uid => timeReferenceUid = uid)
 })
 Cypress.Commands.add('getEpochAllocationUid', () => {
-    cy.getSpondorData(ctTermUrl('Epoch+Allocation'), 'Current Visit').then(uid => epochAllocationUid = uid)
+    cy.getSpondorData(ctTermUrl('EPCHALLC'), 'Current Visit').then(uid => epochAllocationUid = uid)
 })
 
 Cypress.Commands.add('getVisitTypeUid', (visitTypeName) => {
@@ -56,7 +56,7 @@ Cypress.Commands.add('createVisitsGroup', (study_uid, groupformat) => {
 
 Cypress.Commands.add('getSpondorData', (url, filterBy) => {
     cy.sendGetRequest(url).then((response) => {
-          return response.body.items.find(term => term.name.sponsor_preferred_name == filterBy).term_uid
+          return response.body.items.find(term => term.sponsor_preferred_name == filterBy).term_uid
     })
 })
 

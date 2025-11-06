@@ -17,6 +17,7 @@ from clinical_mdr_api.models.biomedical_concepts.activity_instance_class import 
 from clinical_mdr_api.models.biomedical_concepts.activity_item_class import (
     ActivityItemClass,
 )
+from clinical_mdr_api.models.controlled_terminologies.ct_codelist import CTCodelist
 from clinical_mdr_api.models.controlled_terminologies.ct_term import CTTerm
 from clinical_mdr_api.models.standard_data_models.data_model_ig import DataModelIG
 from clinical_mdr_api.models.standard_data_models.dataset import Dataset
@@ -50,6 +51,8 @@ role_term: CTTerm
 data_type_term: CTTerm
 dataset_class: DatasetClass
 variable_class: VariableClass
+data_type_codelist: CTCodelist
+role_codelist: CTCodelist
 dataset: Dataset
 dataset_variable: DatasetVariable
 data_model_catalogue_name: str
@@ -72,7 +75,9 @@ def test_data():
     global activity_item_classes_all
     global activity_instance_class
     global activity_instance_class2
+    global data_type_codelist
     global data_type_term
+    global role_codelist
     global role_term
     global variable_class
     global dataset_class
@@ -87,8 +92,19 @@ def test_data():
     activity_instance_class2 = TestUtils.create_activity_instance_class(
         name="Activity Instance Class name2"
     )
-    data_type_term = TestUtils.create_ct_term(sponsor_preferred_name="Data type")
-    role_term = TestUtils.create_ct_term(sponsor_preferred_name="Role")
+
+    data_type_codelist = TestUtils.create_ct_codelist(
+        name="DATATYPE", submission_value="DATATYPE", extensible=True, approve=True
+    )
+    data_type_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Data type", codelist_uid=data_type_codelist.codelist_uid
+    )
+    role_codelist = TestUtils.create_ct_codelist(
+        name="ROLE", submission_value="ROLE", extensible=True, approve=True
+    )
+    role_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Role", codelist_uid=role_codelist.codelist_uid
+    )
     data_model = TestUtils.create_data_model()
     data_model_catalogue_name = TestUtils.create_data_model_catalogue()
     dataset_class = TestUtils.create_dataset_class(
@@ -737,7 +753,7 @@ def test_activity_item_class_versioning(api_client):
     assert_response_status_code(response, 204)
 
 
-def test_get_activity_item_class_terms(api_client):
+def test_get_activity_item_class_codelists(api_client):
     # Map an ActivityItemClass to a VariableClass
     # This VariableClass will have Variables belonging to the target Dataset
     api_client.patch(
@@ -751,95 +767,15 @@ def test_get_activity_item_class_terms(api_client):
     # Will return those Variables
     # Which will in turn map a Codelist, whose Terms should be returned
     response = api_client.get(
-        f"/activity-item-classes/{activity_item_classes_all[0].uid}/datasets/{dataset.uid}/terms"
+        f"/activity-item-classes/{activity_item_classes_all[0].uid}/datasets/{dataset.uid}/codelists"
     )
     assert_response_status_code(response, 200)
     res = response.json()
-    expected_items = [
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C123631_PDPSTINDname",
-            "name_submission_value": None,
-            "term_uid": "C123631_PDPSTIND",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C123632_PDSTINDname",
-            "name_submission_value": None,
-            "term_uid": "C123632_PDSTIND",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C126069_PIPINDname",
-            "name_submission_value": None,
-            "term_uid": "C126069_PIPIND",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C126070_RDINDname",
-            "name_submission_value": None,
-            "term_uid": "C126070_RDIND",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C139274_EXTTINDname",
-            "name_submission_value": None,
-            "term_uid": "C139274_EXTTIND",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C139275_PASSINDname",
-            "name_submission_value": None,
-            "term_uid": "C139275_PASSIND",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C146995_ADAPTname",
-            "name_submission_value": None,
-            "term_uid": "C146995_ADAPT",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C25196_RANDOMname",
-            "name_submission_value": None,
-            "term_uid": "C25196_RANDOM",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C49703_ADDONname",
-            "name_submission_value": None,
-            "term_uid": "C49703_ADDON",
-        },
-        {
-            "code_submission_value": None,
-            "codelist_submission_value": "C66737 SUMBVAL",
-            "codelist_uid": "C66737",
-            "name": "C98737_HLTSUBJIname",
-            "name_submission_value": None,
-            "term_uid": "C98737_HLTSUBJI",
-        },
-    ]
-    assert sorted(expected_items, key=lambda x: x["term_uid"]) == sorted(
-        res["items"], key=lambda x: x["term_uid"]
-    )
+    assert res["items"][0]["codelist_uid"] == "C66737"
+    assert len(res["items"]) == 1
+
+    # term uids should be None, indicating that all terms of the codelist are available
+    assert res["items"][0]["term_uids"] is None
 
     # Now, test that sponsor models are properly used
     sponsor_model = TestUtils.create_sponsor_model(
@@ -863,24 +799,24 @@ def test_get_activity_item_class_terms(api_client):
         implemented_variable_class=variable_class.uid,
         implemented_parent_dataset_class=dataset_class.uid,
         references_codelists=[CT_CODELIST_UIDS.default],
-        references_terms=["C123631_PDPSTIND"],
+        references_terms=["C123631"],
     )
 
-    # Fetch terms using sponsor model
+    # Fetch codelists using sponsor model
     # Should be filtered down to a single term
     response = api_client.get(
-        f"/activity-item-classes/{activity_item_classes_all[0].uid}/datasets/{dataset.uid}/terms?use_sponsor_model=True"
+        f"/activity-item-classes/{activity_item_classes_all[0].uid}/datasets/{dataset.uid}/codelists?use_sponsor_model=True"
     )
     res = response.json()
     assert len(res["items"]) == 1
-    assert res["items"][0]["term_uid"] == "C123631_PDPSTIND"
+    assert res["items"][0]["term_uids"] == ["C123631"]
 
-    # Fetch terms without using sponsor model
-    # Should return all terms
+    # Fetch codelists without using sponsor model
+    # Should return all terms, i.e. None
     response = api_client.get(
-        f"/activity-item-classes/{activity_item_classes_all[0].uid}/datasets/{dataset.uid}/terms?use_sponsor_model=False"
+        f"/activity-item-classes/{activity_item_classes_all[0].uid}/datasets/{dataset.uid}/codelists?use_sponsor_model=False"
     )
     res = response.json()
-    assert sorted(expected_items, key=lambda x: x["term_uid"]) == sorted(
-        res["items"], key=lambda x: x["term_uid"]
-    )
+    # term uids should be None, indicating that all terms of the codelist are available
+    assert len(res["items"]) == 1
+    assert res["items"][0]["term_uids"] is None

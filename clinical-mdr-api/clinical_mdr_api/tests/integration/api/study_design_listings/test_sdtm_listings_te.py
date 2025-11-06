@@ -61,7 +61,8 @@ def test_data():
     study = generate_study_root()
     # Create an epoch
     create_study_epoch_codelists_ret_cat_and_lib()
-    catalogue_name, library_name = get_catalogue_name_library_name()
+    _catalogue_name, library_name = get_catalogue_name_library_name()
+    catalogue_name = "SDTM CT"
     create_study_epoch("EpochSubType_0001")
     create_study_epoch("EpochSubType_0001")
 
@@ -72,6 +73,7 @@ def test_data():
             codelist_name="Element Type",
             codelist_uid="ElementTypeCodelistUid",
             term_uid=element_type_term_uid1,
+            codelist_submval="ELEMTP",
         )
     )
 
@@ -82,6 +84,7 @@ def test_data():
             codelist_name="Element Sub Type",
             codelist_uid="ElementSubTypeCodelistUid",
             term_uid=element_subtype_term_uid1,
+            codelist_submval="ELEMSTP",
         )
     )
     add_parent_ct_term(element_subtype_term_uid1, element_type_term_uid1)
@@ -93,6 +96,7 @@ def test_data():
             codelist_name="Element Sub Type",
             codelist_uid="ElementSubTypeCodelistUid",
             term_uid=element_subtype_term_uid2,
+            codelist_submval="ELEMSTP",
         )
     )
     add_parent_ct_term(element_subtype_term_uid2, element_type_term_uid1)
@@ -102,29 +106,41 @@ def test_data():
         uid="C66781",
         catalogue=catalogue_name,
         library=library_name,
+        submission_value="UNIT",
     )
     ct_term_uid = "hours001"
     hour_term = create_ct_term(
-        codelist=codelist.codelist_uid,
         name="hours",
         uid=ct_term_uid,
-        order=1,
         catalogue_name=catalogue_name,
         library_name=library_name,
+        codelists=[
+            {
+                "uid": codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "hours",
+            },
+        ],
     )
     subset_codelist = create_codelist(
         name="Unit Subset",
         uid="UnitSubsetCuid",
         catalogue=catalogue_name,
         library=library_name,
+        submission_value="UNITSUBS",
     )
     study_time_subset = create_ct_term(
-        codelist=subset_codelist.codelist_uid,
         name="Study Time",
         uid="StudyTimeSuid",
-        order=1,
         catalogue_name=catalogue_name,
         library_name=library_name,
+        codelists=[
+            {
+                "uid": subset_codelist.codelist_uid,
+                "order": 1,
+                "submission_value": "Study Time",
+            },
+        ],
     )
     unit_def = TestUtils.create_unit_definition(
         name="hours",
@@ -133,10 +149,10 @@ def test_data():
         unit_subsets=[study_time_subset.uid],
     )
     create_study_element_with_planned_duration(
-        element_type_term_uid1, study.uid, unit_definition_uid=unit_def.uid
+        element_subtype_term_uid1, study.uid, unit_definition_uid=unit_def.uid
     )
     create_study_element_with_planned_duration(
-        element_type_term_uid1, study.uid, unit_definition_uid=unit_def.uid
+        element_subtype_term_uid1, study.uid, unit_definition_uid=unit_def.uid
     )
     TestUtils.create_study_fields_configuration()
     # Creating library and catalogue for study standard version

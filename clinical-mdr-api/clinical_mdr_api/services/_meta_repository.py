@@ -139,6 +139,9 @@ from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_term_attri
 from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_term_name_repository import (
     CTTermNameRepository,
 )
+from clinical_mdr_api.domain_repositories.data_suppliers.data_supplier_repository import (
+    DataSupplierRepository,
+)
 from clinical_mdr_api.domain_repositories.dictionaries.dictionary_codelist_repository import (
     DictionaryCodelistGenericRepository,
 )
@@ -367,6 +370,10 @@ class MetaRepository:
     @property
     def activity_instance_class_repository(self) -> ActivityInstanceClassRepository:
         return ActivityInstanceClassRepository()
+
+    @property
+    def data_supplier_repository(self) -> DataSupplierRepository:
+        return DataSupplierRepository()
 
     @property
     def data_model_ig_repository(self) -> DataModelIGRepository:

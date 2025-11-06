@@ -1,4 +1,5 @@
 import { activityName } from "./library_activities_steps";
+import { activity_uid, subgroup_uid, group_uid } from "../../support/api_requests/library_activities";
 import { getCurrentStudyId } from "./../../support/helper_functions";
 const { Given, When, Then } = require("@badeball/cypress-cucumber-preprocessor");
 
@@ -150,6 +151,10 @@ Then('The activity request is removed from the study', () => {
 Then('[API] All Activities are deleted from study', () => {
     cy.getExistingStudyActivities(Cypress.env('TEST_STUDY_UID')).then(uids => uids.forEach(uid => cy.deleteActivityFromStudy(Cypress.env('TEST_STUDY_UID'), uid)))
 })
+
+Then('[API] Get SoA Group {string} id', (name) => cy.getSoaGroupUid(name))
+
+Then('[API] Activity is added to the study', () => cy.addActivityToStudy(Cypress.env('TEST_STUDY_UID'), activity_uid, group_uid, subgroup_uid))
 
 function getActivityData(rowIndex, getSoAGroupValue) {
     cy.getCellValueInPopUp(rowIndex, 'Library').then((text) => activity_library = text)

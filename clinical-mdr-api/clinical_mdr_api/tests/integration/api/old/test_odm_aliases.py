@@ -286,7 +286,6 @@ def test_create_a_new_odm_form_with_relation_to_odm_alias(api_client):
         "oid": "oid1",
         "sdtm_version": "0.1",
         "repeating": "No",
-        "scope_uid": None,
         "descriptions": [],
         "alias_uids": ["OdmAlias_000001"],
     }
@@ -307,7 +306,6 @@ def test_create_a_new_odm_form_with_relation_to_odm_alias(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == []
     assert res["aliases"] == [
         {

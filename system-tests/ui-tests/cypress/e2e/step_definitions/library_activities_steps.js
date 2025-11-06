@@ -10,8 +10,6 @@ Then('Activity is searched for and not found', () => cy.searchAndCheckPresence(a
 
 Then('Activity is searched for and found', () => cy.searchAndCheckPresence(activityName, true))
 
-Then('Activity is created and confirmation message is shown', () => waitForActivityToBeCreated())
-
 Then('The activity form is filled with only mandatory data', () => fillNewActivityData())
 
 Then('The activity form is filled in using group and subgroup created through API', () => fillNewActivityData(false, apiGroupName))
@@ -37,7 +35,7 @@ Then('The user is not able to save activity with already existing synonym and er
     cy.get('.v-snackbar__content').should('be.visible').should('contain.text', 'Following Activities already have the provided synonyms'); 
 })
 
-Then('The newly added activity is added in the table', () => {  
+Then('The newly added activity is visible in the table', () => {  
     cy.checkRowByIndex(0, 'Activity name', activityName)
     cy.checkRowByIndex(0, 'Sentence case name', activityName.toLowerCase())
     cy.checkRowByIndex(0, 'Synonyms', synonym)
@@ -84,6 +82,10 @@ When('The user define a value for Sentence case name and it is not identical to 
 })
 
 When('The activity edition form is filled with data', () => editActivity())
+
+Then('Message confiriming activity creation is displayed', () => cy.checkSnackbarMessage('Activity created'))
+
+Then('User waits for activity filter request to finish', () => cy.wait('@getData', {timeout: 20000}))
 
 When('[API] Activity in status Final with Final group and subgroub exists', () => {
     if (!activityName) createActivityViaApi(true)
@@ -139,12 +141,11 @@ Then('The version history displays correct data for activity subgroup', () => {
         cy.getCellValue(0, 'Status', data.status)
         cy.getCellValue(0, 'Version', data.version)
         cy.getCellValue(0, 'User', data.author_username)
-
     })
 })
 
 function fillNewActivityData(fillOptionalData = false, customGroup = '') {
-    cy.intercept('/api/concepts/activities/activities?page_number=1&page_size=0&total_count=true&sort_by=%7B%22name%22:true%7D&filters=%7B%7D').as('getData')
+    cy.intercept('POST', '/api/concepts/activities/activities').as('getData')
     activityName = `Activity${Date.now()}`
     if (customGroup) cy.get('[data-cy="activityform-activity-group-dropdown"] input').type(customGroup)
     cy.selectFirstVSelect('activityform-activity-group-dropdown')
@@ -157,12 +158,6 @@ function fillNewActivityData(fillOptionalData = false, customGroup = '') {
         cy.fillInput('activityform-abbreviation-field', abbreviation)
         cy.fillInput('activityform-definition-field', definition)
     }
-}
-
-function waitForActivityToBeCreated() {
-    cy.checkSnackbarMessage('Activity created')
-    cy.wait('@getData', {timeout: 20000})
-    cy.get('.dialog-title').should('not.exist')
 }
 
 function editActivity() {

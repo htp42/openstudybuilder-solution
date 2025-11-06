@@ -81,6 +81,7 @@ class TestStudyVisitManagement(unittest.TestCase):
             approve=True,
             catalogue_name="catalogue",
             library_name="Sponsor",
+            submission_value="FLWCRTGRP",
         )
         self.flowchart_group = TestUtils.create_ct_term(
             sponsor_preferred_name="Subject Information",

@@ -333,7 +333,7 @@ class StudyCohortSelectionService(StudySelectionMixin):
             study_uid=study_uid,
             selection=new_selection,
             order=order,
-            find_simple_term_arm_type_by_term_uid=self._find_by_uid_or_raise_not_found,
+            find_codelist_term_arm_type=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
             terms_at_specific_datetime=terms_at_specific_datetime,
         )
 

@@ -8,6 +8,9 @@ from clinical_mdr_api import utils
 from clinical_mdr_api.domain_repositories._utils.helpers import (
     acquire_write_lock_study_value,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.generic_repository import (
     manage_previous_connected_study_selection_relationships,
 )
@@ -30,6 +33,7 @@ from clinical_mdr_api.domains.study_selections.study_selection_objective import 
     StudySelectionObjectivesAR,
     StudySelectionObjectiveVO,
 )
+from common.config import settings
 from common.exceptions import BusinessLogicException
 from common.utils import convert_to_datetime
 
@@ -117,8 +121,8 @@ class StudySelectionObjectiveRepository:
                 LIMIT 1
             }
             WITH DISTINCT sr, so, obj, ver, is_instance
-            OPTIONAL MATCH (so)-[:HAS_OBJECTIVE_LEVEL]->(olr:CTTermRoot)<-[has_term:HAS_TERM]-(:CTCodelistRoot)
-            -[:HAS_NAME_ROOT]->(:CTCodelistNameRoot)-[:LATEST_FINAL]->(:CTCodelistNameValue {name: "Objective Level"})
+            OPTIONAL MATCH (so)-[:HAS_OBJECTIVE_LEVEL]->(level_term_context:CTTermContext)-[:HAS_SELECTED_TERM]->(olr:CTTermRoot)
+            OPTIONAL MATCH (level_term_context)-[:HAS_SELECTED_CODELIST]->(:CTCodelistRoot)-[has_term:HAS_TERM WHERE has_term.end_date IS NULL]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->(olr)
             WITH sr, so, obj, ver, olr, has_term, is_instance
             ORDER BY has_term.order, so.order ASC
             MATCH (so)<-[:AFTER]-(sa:StudyAction)
@@ -393,7 +397,16 @@ class StudySelectionObjectiveRepository:
         # Set objective level if exists
         if selection.objective_level_uid:
             ct_term_root = CTTermRoot.nodes.get(uid=selection.objective_level_uid)
-            study_objective_selection_node.has_objective_level.connect(ct_term_root)
+            selected_objective_level_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    ct_term_root,
+                    codelist_submission_value=settings.study_objective_level_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
+            )
+            study_objective_selection_node.has_objective_level.connect(
+                selected_objective_level_node
+            )
 
         if last_study_selection_node:
             manage_previous_connected_study_selection_relationships(
@@ -451,7 +464,7 @@ class StudySelectionObjectiveRepository:
             }
 
             WITH DISTINCT all_so, or, ver
-            OPTIONAL MATCH (all_so)-[:HAS_OBJECTIVE_LEVEL]->(olr:CTTermRoot)
+            OPTIONAL MATCH (all_so)-[:HAS_OBJECTIVE_LEVEL]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(olr:CTTermRoot)
             WITH DISTINCT all_so, or, olr, ver
             MATCH (all_so)<-[:AFTER]-(asa:StudyAction)
             OPTIONAL MATCH (all_so)<-[:BEFORE]-(bsa:StudyAction)

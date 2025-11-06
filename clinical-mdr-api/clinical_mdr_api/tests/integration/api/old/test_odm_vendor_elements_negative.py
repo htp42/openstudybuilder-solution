@@ -197,7 +197,6 @@ def test_create_an_odm_form(api_client):
     assert res["version"] == "0.1"
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
-    assert res["scope"] is None
     assert res["descriptions"] == []
     assert res["aliases"] == []
     assert res["activity_groups"] == []
@@ -229,7 +228,6 @@ def test_add_odm_vendor_element_to_the_odm_form(api_client):
     assert res["change_description"] == "Initial version"
     assert res["author_username"] == "unknown-user@example.com"
     assert res["sdtm_version"] == "0.1"
-    assert res["scope"] is None
     assert res["descriptions"] == []
     assert res["aliases"] == []
     assert res["activity_groups"] == []

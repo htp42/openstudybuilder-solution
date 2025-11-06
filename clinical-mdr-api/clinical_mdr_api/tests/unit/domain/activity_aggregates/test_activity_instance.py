@@ -16,7 +16,7 @@ from clinical_mdr_api.domains.concepts.activities.activity_instance import (
 )
 from clinical_mdr_api.domains.concepts.activities.activity_item import (
     ActivityItemVO,
-    LibraryItem,
+    CTTermItem,
 )
 from clinical_mdr_api.domains.versioned_object_aggregate import (
     LibraryItemMetadataVO,
@@ -76,7 +76,11 @@ def create_random_activity_instance_vo() -> ActivityInstanceVO:
             ActivityItemVO.from_repository_values(
                 activity_item_class_uid=random_str(),
                 activity_item_class_name=random_str(),
-                ct_terms=[LibraryItem(uid=random_str(), name=random_str())],
+                ct_terms=[
+                    CTTermItem(
+                        uid=random_str(), name=random_str(), codelist_uid=random_str()
+                    )
+                ],
                 unit_definitions=[
                     CompactUnitDefinition(
                         uid=random_str(), name=random_str(), dimension_name=random_str()
@@ -102,7 +106,11 @@ def create_random_activity_instance_vo() -> ActivityInstanceVO:
             ActivityItemVO.from_repository_values(
                 activity_item_class_uid=random_str(),
                 activity_item_class_name=random_str(),
-                ct_terms=[LibraryItem(uid=random_str(), name=random_str())],
+                ct_terms=[
+                    CTTermItem(
+                        uid=random_str(), name=random_str(), codelist_uid=random_str()
+                    )
+                ],
                 unit_definitions=[
                     CompactUnitDefinition(
                         uid=random_str(), name=random_str(), dimension_name=random_str()
@@ -181,10 +189,8 @@ def _get_activity_item_class_mock():
             nci_concept_id=None,
             order=1,
             activity_instance_classes=[],
-            data_type_uid="xyz",
-            data_type_name="xyz",
-            role_uid="xyz",
-            role_name="xyz",
+            data_type={"uid": "xyz", "codelist_uid": "xyz"},
+            role={"uid": "xyz", "codelist_uid": "xyz"},
             variable_class_uids=[],
         ),
     )

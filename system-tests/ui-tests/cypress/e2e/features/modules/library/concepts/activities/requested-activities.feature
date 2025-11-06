@@ -6,6 +6,7 @@ Feature: Library - Concepts - Activities - Requested Activities
     Background: User must be logged in
         Given The user is logged in
 
+    @smoke_test
     Scenario: [Navigation] User must be able to navigate to the Requested Activities page
         Given The '/library' page is opened
         When The 'Activities' submenu is clicked in the 'Concepts' section
@@ -24,6 +25,7 @@ Feature: Library - Concepts - Activities - Requested Activities
             | Add select boxes to table to allow selection of rows for export |
             | search-field                                                    |
 
+    @smoke_test
     Scenario: [Table][Columns][Names] User must be able to see the columns list on the main page as below
         Given The '/library/activities/requested-activities' page is opened
         And A table is visible with following headers
@@ -45,6 +47,7 @@ Feature: Library - Concepts - Activities - Requested Activities
         When The first column is selected from Select Columns option for table with actions
         Then The table contain only selected column and actions column
 
+    @smoke_test
     Scenario: [Create][Positive case] User must be able to add a new activity request
         Given The '/library/activities/requested-activities' page is opened
         When The activity request container is filled with data and saved
@@ -214,6 +217,7 @@ Feature: Library - Concepts - Activities - Requested Activities
         And The item actions button is clicked
         Then 'Handle placeholder request' action is available
 
+    @smoke_test
     Scenario: [Table][Search][Postive case] User must be able to search created activity request
         Given The '/library/activities/requested-activities' page is opened
         When [API] First requested activity for search test is created

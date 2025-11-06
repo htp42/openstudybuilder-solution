@@ -284,7 +284,7 @@ def test_data(api_client):
     """Initialize test data"""
     db_name = "consumer-api-v1-studies"
     set_db(db_name)
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
     create_study_visit_codelists(create_unit_definitions=False, use_test_utils=True)
     global rand
     global studies
@@ -318,7 +318,7 @@ def test_data(api_client):
 
     codelist = TestUtils.create_ct_codelist(
         name="Flowchart Group",
-        submission_value="Flowchart Group",
+        submission_value="FLWCRTGRP",
         sponsor_preferred_name="Flowchart Group",
         nci_preferred_name="Flowchart Group",
         extensible=True,
@@ -326,8 +326,30 @@ def test_data(api_client):
     )
     soa_group_term = TestUtils.create_ct_term(
         sponsor_preferred_name="EFFICACY",
-        name_submission_value="EFFICACY",
+        submission_value="EFFICACY",
         codelist_uid=codelist.codelist_uid,
+    )
+
+    yesno_codelist = TestUtils.create_ct_codelist(
+        codelist_uid="C66742",
+        name="No Yes Response",
+        submission_value="NY",
+        sponsor_preferred_name="No Yes Response",
+        nci_preferred_name="No Yes Response",
+        extensible=True,
+        approve=True,
+    )
+    _yes_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Yes",
+        submission_value="Y",
+        codelist_uid=yesno_codelist.codelist_uid,
+        term_uid="C49488",
+    )
+    _no_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="No",
+        submission_value="N",
+        codelist_uid=yesno_codelist.codelist_uid,
+        term_uid="C49487",
     )
 
     activity_group_uid = TestUtils.create_activity_group("Activity Group").uid
@@ -468,7 +490,7 @@ def test_get_studies_pagination_sorting(api_client):
 
 
 @pytest.mark.parametrize("page_size", [8, 20, 100])
-def test_get_all_studies(api_client, page_size):
+def test_get_studies_all(api_client, page_size):
     all_fetched_studies = []
 
     response = api_client.get(f"{BASE_URL}/studies?page_size={page_size}")
@@ -624,7 +646,7 @@ def test_get_study_visits_pagination_sorting(api_client):
 
 
 @pytest.mark.parametrize("page_size", [8, 20, 100])
-def test_get_all_study_visits(api_client, page_size):
+def test_get_study_visits_all(api_client, page_size):
     all_fetched_study_visits = []
 
     response = api_client.get(
@@ -717,7 +739,7 @@ def test_get_study_activities_pagination_sorting(api_client):
 
 
 @pytest.mark.parametrize("page_size", [8, 20, 100])
-def test_get_all_study_activities(api_client, page_size):
+def test_get_study_activities_all(api_client, page_size):
     all_fetched_study_activities = []
 
     response = api_client.get(
@@ -834,7 +856,7 @@ def test_get_study_activity_instances_pagination_sorting(api_client):
 
 
 @pytest.mark.parametrize("page_size", [8, 20, 100])
-def test_get_all_study_activity_instances(api_client, page_size):
+def test_get_study_activity_instances_all(api_client, page_size):
     all_fetched_study_activity_instances = []
 
     response = api_client.get(
@@ -927,7 +949,7 @@ def test_get_study_detailed_soa_pagination_sorting(api_client):
 
 
 @pytest.mark.parametrize("page_size", [8, 20, 100])
-def test_get_all_study_detailed_soa(api_client, page_size):
+def test_get_study_detailed_soa_all(api_client, page_size):
     all_fetched_study_detailed_soas = []
 
     response = api_client.get(
@@ -1023,7 +1045,7 @@ def test_get_study_operational_soa_pagination_sorting(api_client):
 
 
 @pytest.mark.parametrize("page_size", [8, 20, 100])
-def test_get_all_study_operational_soa(api_client, page_size):
+def test_get_study_operational_soa_all(api_client, page_size):
     all_fetched_study_operational_soas = []
 
     response = api_client.get(

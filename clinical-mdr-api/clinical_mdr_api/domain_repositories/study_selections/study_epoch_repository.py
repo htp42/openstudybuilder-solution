@@ -7,6 +7,9 @@ from neomodel import db
 from clinical_mdr_api.domain_repositories._utils.helpers import (
     acquire_write_lock_study_value,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.generic_repository import (
     manage_previous_connected_study_selection_relationships,
 )
@@ -47,9 +50,10 @@ def get_ctlist_terms_by_name(
             WHERE codelist_name_value.name IN $codelist_names AND 
                 (hv.start_date<= datetime($effective_date) < datetime(hv.end_date)) OR (hv.end_date IS NULL AND (hv.start_date <= datetime($effective_date)))
         """
+    # TODO use effective date on HAS_TERM relationship as well
     cypher_query = f"""
         MATCH (codelist_name_value:CTCodelistNameValue)<-[:LATEST_FINAL]-(:CTCodelistNameRoot)<-[:HAS_NAME_ROOT]-
-        (:CTCodelistRoot)-[:HAS_TERM]->
+        (:CTCodelistRoot)-[ht:HAS_TERM WHERE ht.end_date IS NULL]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->
         (tr:CTTermRoot)-[:HAS_NAME_ROOT]->
         {ctterm_name_match}
         WITH tr.uid as term_uid, collect(codelist_name_value.name) as codelist_names
@@ -92,7 +96,7 @@ class StudyEpochRepository:
 
         cypher_query = f"""
             MATCH (:CTCodelistNameValue {{name: $code_list_name}})<-[:LATEST_FINAL]-(:CTCodelistNameRoot)<-[:HAS_NAME_ROOT]
-            -(:CTCodelistRoot)-[:HAS_TERM]->(term_subtype_root:CTTermRoot)-[:HAS_NAME_ROOT]->(term_subtype_name_root:CTTermNameRoot)
+            -(:CTCodelistRoot)-[:HAS_TERM]->(:CTCodelistTerm)-[:HAS_TERM_ROOT]->(term_subtype_root:CTTermRoot)-[:HAS_NAME_ROOT]->(term_subtype_name_root:CTTermNameRoot)
             {subtype_name_value_match}
             MATCH (term_subtype_root)-[:HAS_PARENT_TYPE]->(term_type_root:CTTermRoot)-
             [:HAS_NAME_ROOT]->(term_type_name_root)
@@ -115,7 +119,7 @@ class StudyEpochRepository:
 
     def get_basic_epoch(self, study_uid: str) -> str | None:
         cypher_query = """
-        MATCH (study_root:StudyRoot {uid:$study_uid})-[:LATEST]->(:StudyValue)-[:HAS_STUDY_EPOCH]->(study_epoch:StudyEpoch)-[:HAS_EPOCH_SUB_TYPE]->(:CTTermRoot)-
+        MATCH (study_root:StudyRoot {uid:$study_uid})-[:LATEST]->(:StudyValue)-[:HAS_STUDY_EPOCH]->(study_epoch:StudyEpoch)-[:HAS_EPOCH_SUB_TYPE]->(CTTermContext)-[:HAS_SELECTED_TERM]->(:CTTermRoot)-
         [:HAS_NAME_ROOT]->(:CTTermNameRoot)-[:HAS_VERSION]->(:CTTermNameValue {name:$basic_epoch_name})
         WHERE NOT exists((:Delete)-[:BEFORE]->(study_epoch))
         return study_epoch.uid
@@ -243,9 +247,9 @@ class StudyEpochRepository:
         query.append(
             dedent(
                 """
-            MATCH (study_epoch)-[:HAS_EPOCH]->(epoch_ct_term_root:CTTermRoot)
-            MATCH (study_epoch)-[:HAS_EPOCH_SUB_TYPE]->(epoch_subtype_ct_term_root:CTTermRoot)
-            MATCH (study_epoch)-[:HAS_EPOCH_TYPE]->(epoch_type_ct_term_root:CTTermRoot)
+            MATCH (study_epoch)-[:HAS_EPOCH]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(epoch_ct_term_root:CTTermRoot)
+            MATCH (study_epoch)-[:HAS_EPOCH_SUB_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(epoch_subtype_ct_term_root:CTTermRoot)
+            MATCH (study_epoch)-[:HAS_EPOCH_TYPE]->(:CTTermContext)-[:HAS_SELECTED_TERM]->(epoch_type_ct_term_root:CTTermRoot)
         """
             )
         )
@@ -433,6 +437,9 @@ class StudyEpochRepository:
         )
         if not create:
             previous_item = study_value.has_study_epoch.get(uid=item.uid)
+
+        allow_removed_terms = not create
+
         new_study_epoch = StudyEpoch(
             uid=item.uid,
             accepted_version=item.accepted_version,
@@ -450,12 +457,43 @@ class StudyEpochRepository:
         new_study_epoch.save()
         if item.uid is None:
             item.uid = new_study_epoch.uid
+
+        # connect to epoch subtype
         ct_epoch_subtype = CTTermRoot.nodes.get(uid=item.subtype.term_uid)
-        new_study_epoch.has_epoch_subtype.connect(ct_epoch_subtype)
+        selected_epoch_subtype_node = (
+            CTCodelistAttributesRepository().get_or_create_selected_term(
+                ct_epoch_subtype,
+                codelist_submission_value=settings.study_epoch_subtype_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+                allow_removed_terms=allow_removed_terms,
+            )
+        )
+        new_study_epoch.has_epoch_subtype.connect(selected_epoch_subtype_node)
+
+        # connect to epoch type
         ct_epoch_type = CTTermRoot.nodes.get(uid=item.epoch_type.term_uid)
-        new_study_epoch.has_epoch_type.connect(ct_epoch_type)
+        selected_epoch_type_node = (
+            CTCodelistAttributesRepository().get_or_create_selected_term(
+                ct_epoch_type,
+                codelist_submission_value=settings.study_epoch_type_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+                allow_removed_terms=allow_removed_terms,
+            )
+        )
+        new_study_epoch.has_epoch_type.connect(selected_epoch_type_node)
+
+        # connect to epoch
         ct_epoch = CTTermRoot.nodes.get(uid=item.epoch.term_uid)
-        new_study_epoch.has_epoch.connect(ct_epoch)
+        selected_epoch_node = (
+            CTCodelistAttributesRepository().get_or_create_selected_term(
+                ct_epoch,
+                codelist_submission_value=settings.study_epoch_cl_submval,
+                catalogue_name=settings.sdtm_ct_catalogue_name,
+                allow_removed_terms=allow_removed_terms,
+            )
+        )
+        new_study_epoch.has_epoch.connect(selected_epoch_node)
+
         if create:
             new_study_epoch.study_value.connect(study_value)
             self.manage_versioning_create(

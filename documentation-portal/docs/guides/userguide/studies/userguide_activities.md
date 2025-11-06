@@ -2,7 +2,7 @@
 
 ## Introduction
 
-One of the main foundations in StudyBuilder is to define the Schedule of Activities (SoA). A Study Activity is the definition of an assessment or procedure performed on a subject.
+One of the main foundations in OpenStudyBuilder is to define the Schedule of Activities (SoA). A Study Activity is the definition of an assessment or procedure performed on a subject.
 
 Defining the SoA consists of several parts and is used for multiple purposes in connected systems and documents, e.g. for the Protocol, CRF specification and SDTM generation. First you select the activities and its grouping for the study, then you select what is to be displayed in the protocol overview of the Schedule of Activity (SoA). You can then define and attach footnotes to the SoA, control the SoA header row and preview the SoA at multiple levels.
 
@@ -11,7 +11,7 @@ The Study Activities menu consists of:
 - **Study Activities** Select the activities to be used in the study (to be further reused in data specifications, data collection specifications, data processing and data analysis). The activities can be selected from the library, from other studies or activity placeholders can be created for requesting new activities.
 - **Schedule of Activities:** 
 1. **Detailed SoA** Define scheduling of activities by visits, control the level of details to be displayed in the protocol SoA overview table and add footnotes to activities, epochs, visits and collection schedules (the X’s). You also have the option to expand and collapse the view to support navigation as well as downloads in various file formats.
-1. **Protocol SoA** Here you can preview the Protocol SoA that can be later exported to protocol template (section 1.2) using StudyBuilder Word ribbon. 
+1. **Protocol SoA** Here you can preview the Protocol SoA that can be later exported to protocol template (section 1.2) using OpenStudyBuilder Word ribbon. 
 1. **Operational SoA** It summarizes all study activities and activity instances and their linkage with visits, displaying corresponding Topic Codes and ADaM Param Codes.
 
 ## SoA Settings
@@ -162,7 +162,7 @@ On the Protocol SoA page you can preview the SoA at multiple levels, the high-le
 
 **Operational SoA**
 - The data specification to support data collection specification.
-- Correspond to Activity Instances being the Biomedical Concept definition in StudyBuilder as well as our legacy Topic Codes.
+- Correspond to Activity Instances being the Biomedical Concept definition in OpenStudyBuilder as well as our legacy Topic Codes.
 - Will also related to specific ADaM PARAM/PARAMCD.
 
 [![Protocol SoA](~@source/images/user_guides/guide_activities_operational_soa.png)](../../../images/user_guides/guide_activities_operational_soa.png)

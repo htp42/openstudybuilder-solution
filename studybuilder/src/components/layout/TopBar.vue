@@ -387,12 +387,12 @@ const availableApps = computed(() => {
     return true
   })
 })
-const currentStudyStatus = () => {
+const currentStudyStatus = computed(() => {
   if (!selectedStudy.value) {
     return null
   }
   return selectedStudy.value.current_metadata.version_metadata.study_status
-}
+})
 
 function navigateToRoot() {
   emit('backToRoot')

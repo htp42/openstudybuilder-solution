@@ -109,8 +109,13 @@ from clinical_mdr_api.models.controlled_terminologies.ct_codelist import (
 from clinical_mdr_api.models.controlled_terminologies.ct_package import CTPackage
 from clinical_mdr_api.models.controlled_terminologies.ct_term import (
     CTTerm,
+    CTTermCodelistInput,
     CTTermCreateInput,
     CTTermNameAndAttributes,
+)
+from clinical_mdr_api.models.data_suppliers.data_supplier import (
+    DataSupplier,
+    DataSupplierInput,
 )
 from clinical_mdr_api.models.dictionaries.dictionary_codelist import (
     DictionaryCodelist,
@@ -372,6 +377,7 @@ from clinical_mdr_api.services.controlled_terminologies.ct_term_attributes impor
 from clinical_mdr_api.services.controlled_terminologies.ct_term_name import (
     CTTermNameService,
 )
+from clinical_mdr_api.services.data_suppliers.data_supplier import DataSupplierService
 from clinical_mdr_api.services.dictionaries.dictionary_codelist_generic_service import (
     DictionaryCodelistGenericService as DictionaryCodelistService,
 )
@@ -501,6 +507,7 @@ from clinical_mdr_api.services.syntax_templates.timeframe_templates import (
     TimeframeTemplateService,
 )
 from clinical_mdr_api.tests.unit.domain.study_definition_aggregate.test_study_metadata import (
+    initialize_ct_codelist_map,
     initialize_ct_data_map,
 )
 from clinical_mdr_api.tests.utils.checks import (
@@ -522,6 +529,7 @@ class CTCodelistConfig:
     dispenser: str
     roa: str
     adverse_events: str
+    domain: str
 
     def __init__(self, **kwargs: str):
         for key, value in kwargs.items():
@@ -542,6 +550,7 @@ CT_CODELIST_UIDS: CTCodelistConfig = CTCodelistConfig(
     dispenser="CDISP123",
     roa="C66729",
     adverse_events="C66734",
+    domain="C66734",
 )
 CT_CODELIST_NAMES = CTCodelistConfig(
     default="CT Codelist",
@@ -551,6 +560,17 @@ CT_CODELIST_NAMES = CTCodelistConfig(
     dispenser="Compound Dispensed In",
     roa="Route of Administration",
     adverse_events="SDTM Domain Abbreviation",
+    domain="SDTM Domain Abbreviation",
+)
+CT_CODELIST_SUBMVALS = CTCodelistConfig(
+    default="CT Codelist",
+    dosage_form=settings.dosage_form_cl_submval,
+    delivery_device=settings.delivery_device_cl_submval,
+    frequency=settings.dose_frequency_cl_submval,
+    dispenser=settings.compound_dispensed_in_cl_submval,
+    roa=settings.route_of_administration_cl_submval,
+    adverse_events=settings.stdm_domain_cl_submval,
+    domain=settings.stdm_domain_cl_submval,
 )
 
 CT_CODELIST_LIBRARY = "CDISC"
@@ -811,6 +831,34 @@ class TestUtils:
         return result
 
     @classmethod
+    def create_data_supplier(
+        cls,
+        name: str | None,
+        supplier_type_uid: str,
+        order: int = 999999,
+        description: str | None = None,
+        supplier_api_base_url: str | None = None,
+        supplier_ui_base_url: str | None = None,
+        supplier_origin_source_uid: str | None = None,
+        supplier_origin_type_uid: str | None = None,
+        library_name: str = LIBRARY_NAME,
+    ) -> DataSupplier:
+        service: DataSupplierService = DataSupplierService()
+        payload: DataSupplierInput = DataSupplierInput(
+            name=cls.random_if_none(name, prefix="name-"),
+            order=order,
+            description=description,
+            supplier_api_base_url=supplier_api_base_url,
+            supplier_ui_base_url=supplier_ui_base_url,
+            supplier_type_uid=supplier_type_uid,
+            supplier_origin_source_uid=supplier_origin_source_uid,
+            supplier_origin_type_uid=supplier_origin_type_uid,
+            library_name=library_name,
+        )
+
+        return service.create_approve(payload)
+
+    @classmethod
     def create_objective_template(
         cls,
         name: str | None = None,
@@ -1025,12 +1073,21 @@ class TestUtils:
         approve: bool = True,
     ) -> Footnote:
         if not footnote_template_uid:
+            # find the footnote type codelist
+            codelist_uid = db.cypher_query(
+                """
+                MATCH (clr:CTCodelistRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTCodelistAttributesRoot)-[:LATEST]->(:CTCodelistAttributesValue {submission_value: 'FTNTTP'})
+                RETURN clr.uid
+                """
+            )[0][0][0]
+
             footnote_template_uid = cls.create_footnote_template(
                 name="test name",
                 study_uid=None,
                 library_name="Sponsor",
                 type_uid=cls.create_ct_term(
-                    sponsor_preferred_name="INCLUSION FOOTNOTE"
+                    sponsor_preferred_name="INCLUSION FOOTNOTE",
+                    codelist_uid=codelist_uid,
                 ).term_uid,
                 indication_uids=[],
                 activity_uids=[],
@@ -1551,6 +1608,8 @@ class TestUtils:
         activity_instance_class_uid: str,
         name: str | None = None,
         name_sentence_case: str | None = None,
+        definition: str | None = None,
+        abbreviation: str | None = None,
         nci_concept_name: str | None = None,
         nci_concept_id: str | None = None,
         topic_code: str | None = None,
@@ -1589,12 +1648,15 @@ class TestUtils:
                 activity_group_uid=activity_group_uid,
             )
             groupings.append(activity_grouping)
+
         activity_instance_input: ActivityInstanceCreateInput = (
             ActivityInstanceCreateInput(
                 nci_concept_id=nci_concept_id,
                 nci_concept_name=nci_concept_name,
                 name=name,
                 name_sentence_case=name_sentence_case,
+                definition=definition,
+                abbreviation=abbreviation,
                 topic_code=topic_code,
                 molecular_weight=molecular_weight,
                 is_research_lab=is_research_lab,
@@ -1647,7 +1709,7 @@ class TestUtils:
         result: ActivityInstanceClass = service.create(
             item_input=activity_instance_class_input
         )
-        if approve:
+        if approve and result.uid is not None:
             service.approve(result.uid)
         return result
 
@@ -1678,7 +1740,7 @@ class TestUtils:
             )
         )
         result: ActivityItemClass = service.create(item_input=activity_item_class_input)  # type: ignore[assignment]
-        if approve:
+        if approve and result.uid is not None:
             service.approve(result.uid)
         return result
 
@@ -2213,7 +2275,6 @@ class TestUtils:
         oid=None,
         repeating="Yes",
         sdtm_version=None,
-        scope_uid=None,
         descriptions=None,
         alias_uids=None,
         approve: bool = True,
@@ -2231,7 +2292,6 @@ class TestUtils:
             oid=cls.random_if_none(oid),
             repeating=repeating,
             sdtm_version=cls.random_if_none(sdtm_version),
-            scope_uid=scope_uid,
             descriptions=descriptions,
             alias_uids=alias_uids,
         )
@@ -2426,8 +2486,7 @@ class TestUtils:
         cls,
         catalogue_name: str = CT_CATALOGUE_NAME,
         codelist_uid: str = CT_CODELIST_UIDS.default,
-        code_submission_value: str | None = None,
-        name_submission_value: str | None = None,
+        submission_value: str | None = None,
         nci_preferred_name: str | None = None,
         definition: str | None = None,
         sponsor_preferred_name: str | None = None,
@@ -2436,17 +2495,21 @@ class TestUtils:
         library_name: str = CT_CODELIST_LIBRARY_SPONSOR,
         approve: bool = True,
         effective_date: datetime | None = None,
+        term_uid: str | None = None,
     ) -> CTTerm:
         service: CTTermService = CTTermService()
+        if submission_value is None:
+            submission_value = cls.random_str(length=6, prefix="submission_value-")
+        codelists = [
+            CTTermCodelistInput(
+                codelist_uid=codelist_uid,
+                submission_value=submission_value,
+                order=order,
+            )
+        ]
         payload = CTTermCreateInput(
-            catalogue_name=catalogue_name,
-            codelist_uid=codelist_uid,
-            code_submission_value=cls.random_if_none(
-                code_submission_value, prefix="code_submission_value-"
-            ),
-            name_submission_value=cls.random_if_none(
-                name_submission_value, prefix="name_submission_value-"
-            ),
+            catalogue_names=[catalogue_name],
+            codelists=codelists,
             nci_preferred_name=cls.random_if_none(
                 nci_preferred_name, prefix="nci_name-"
             ),
@@ -2458,13 +2521,35 @@ class TestUtils:
                 sponsor_preferred_name_sentence_case,
                 prefix="name_sent_case-",
             ),
-            order=order,
             library_name=library_name,
         )
         ct_term: CTTerm = service.create(payload, start_date=effective_date)
         if approve:
             CTTermAttributesService().approve(term_uid=ct_term.term_uid)
             CTTermNameService().approve(term_uid=ct_term.term_uid)
+        # Override the auto-generated term uid with the provided one
+        if term_uid:
+            existing_uid = ct_term.term_uid
+            db.cypher_query(
+                """
+                MATCH (t:CTTermRoot {uid: $existing_uid})
+                SET t.uid = $term_uid
+                """,
+                params={"existing_uid": existing_uid, "term_uid": term_uid},
+            )
+            ct_term.term_uid = term_uid
+        if effective_date:
+            db.cypher_query(
+                """
+                MATCH (:CTTermRoot {uid: $term_uid})<-[:HAS_TERM_ROOT]-(:CTCodelistTerm)<-[ht:HAS_TERM]-(:CTCodelistRoot {uid: $codelist_uid})
+                SET ht.start_date = datetime($start_date)
+                """,
+                params={
+                    "term_uid": term_uid if term_uid else ct_term.term_uid,
+                    "codelist_uid": codelist_uid,
+                    "start_date": effective_date,
+                },
+            )
         return ct_term
 
     @classmethod
@@ -2480,6 +2565,18 @@ class TestUtils:
             term_uid=term.term_uid,
             parent_uid=parent_uid if parent_uid else parent.term_uid,
             relationship_type=relationship_type,
+        )
+
+    @classmethod
+    def remove_term_from_codelist(
+        cls,
+        term_uid: str,
+        codelist_uid: str,
+    ):
+        service: CTCodelistService = CTCodelistService()
+        service.remove_term(
+            term_uid=term_uid,
+            codelist_uid=codelist_uid,
         )
 
     @classmethod
@@ -2521,7 +2618,15 @@ class TestUtils:
                 library_name=library_name,
                 approve=approve_elements,
                 effective_date=effective_date,
-                terms=[CTCodelistTermInput(term_uid=terms[i].term_uid)],
+                terms=[
+                    CTCodelistTermInput(
+                        term_uid=terms[i].term_uid,
+                        submission_value=cls.random_str(
+                            length=6, prefix="submission_value-"
+                        ),
+                        order=i + 1,
+                    )
+                ],
             )
             for i in range(number_of_codelists)
         ]
@@ -2572,33 +2677,39 @@ class TestUtils:
 
     @classmethod
     def create_ct_codelists_using_cypher(cls):
+        res = db.cypher_query("MATCH (n:CTCodelistRoot) RETURN COLLECT(n.uid) as uids")
+        existing_codelist_uids = res[0][0][0]
         for attribute, value in CT_CODELIST_NAMES.__dict__.items():
-            db.cypher_query(
+            if getattr(CT_CODELIST_UIDS, attribute, None) not in existing_codelist_uids:
+                db.cypher_query(
+                    """
+                MATCH (library:Library {name:$library})
+                MATCH (catalogue:CTCatalogue {name:$catalogue})
+                MERGE (library)-[:CONTAINS_CODELIST]->(codelist_root:CTCodelistRoot {uid: $uid})-[:HAS_NAME_ROOT]->
+                (codelist_ver_root:CTCodelistNameRoot)-[:LATEST]->(codelist_ver_value:CTCodelistNameValue {
+                name: $name,
+                name_sentence_case: $uid + 'name'})
+                MERGE (codelist_root)-[:HAS_ATTRIBUTES_ROOT]->(codelist_a_root:CTCodelistAttributesRoot)
+                -[:LATEST]->(codelist_a_value:CTCodelistAttributesValue {definition:$uid + ' DEF',
+                name:$uid + ' NAME', preferred_term:$uid + ' PREF', submission_value:$submission_value, extensible:true, ordinal:false})
+                MERGE (catalogue)-[:HAS_CODELIST]->(codelist_root)
+                MERGE (codelist_ver_root)-[name_final:LATEST_FINAL]->(codelist_ver_value)
+                MERGE (codelist_ver_root)-[name_hasver:HAS_VERSION]->(codelist_ver_value)
+                MERGE (codelist_a_root)-[attributes_final:LATEST_FINAL]->(codelist_a_value)
+                MERGE (codelist_a_root)-[attributes_hasver:HAS_VERSION]->(codelist_a_value)
                 """
-            MATCH (library:Library {name:$library})
-            MATCH (catalogue:CTCatalogue {name:$catalogue})
-            MERGE (library)-[:CONTAINS_CODELIST]->(codelist_root:CTCodelistRoot {uid: $uid})-[:HAS_NAME_ROOT]->
-            (codelist_ver_root:CTCodelistNameRoot)-[:LATEST]->(codelist_ver_value:CTCodelistNameValue {
-            name: $name,
-            name_sentence_case: $uid + 'name'})
-            MERGE (codelist_root)-[:HAS_ATTRIBUTES_ROOT]->(codelist_a_root:CTCodelistAttributesRoot)
-            -[:LATEST]->(codelist_a_value:CTCodelistAttributesValue {definition:$uid + ' DEF',
-            name:$uid + ' NAME', preferred_term:$uid + ' PREF', submission_value:$uid + ' SUMBVAL', extensible:true})
-            MERGE (catalogue)-[:HAS_CODELIST]->(codelist_root)
-            MERGE (codelist_ver_root)-[name_final:LATEST_FINAL]->(codelist_ver_value)
-            MERGE (codelist_ver_root)-[name_hasver:HAS_VERSION]->(codelist_ver_value)
-            MERGE (codelist_a_root)-[attributes_final:LATEST_FINAL]->(codelist_a_value)
-            MERGE (codelist_a_root)-[attributes_hasver:HAS_VERSION]->(codelist_a_value)
-            """
-                + cls.set_final_props("name_hasver")
-                + cls.set_final_props("attributes_hasver"),
-                {
-                    "uid": getattr(CT_CODELIST_UIDS, attribute, None),
-                    "name": value,
-                    "library": LIBRARY_NAME,
-                    "catalogue": CT_CATALOGUE_NAME,
-                },
-            )
+                    + cls.set_final_props("name_hasver")
+                    + cls.set_final_props("attributes_hasver"),
+                    {
+                        "uid": getattr(CT_CODELIST_UIDS, attribute, None),
+                        "name": value,
+                        "library": LIBRARY_NAME,
+                        "catalogue": CT_CATALOGUE_NAME,
+                        "submission_value": getattr(
+                            CT_CODELIST_SUBMVALS, attribute, None
+                        ),
+                    },
+                )
 
     @classmethod
     def create_ct_codelist(
@@ -2616,13 +2727,15 @@ class TestUtils:
         library_name: str = LIBRARY_NAME,
         approve: bool = False,
         effective_date: datetime | None = None,
+        codelist_uid: str | None = None,
+        paired_codes_codelist_uid: str | None = None,
     ) -> CTCodelist:
         if terms is None:
             terms = []
 
         service: CTCodelistService = CTCodelistService()
         payload = CTCodelistCreateInput(
-            catalogue_name=catalogue_name,
+            catalogue_names=[catalogue_name],
             name=cls.random_if_none(name, prefix="name-"),
             submission_value=cls.random_if_none(
                 submission_value, prefix="submission_value-"
@@ -2632,6 +2745,7 @@ class TestUtils:
             ),
             definition=cls.random_if_none(definition, prefix="definition-"),
             extensible=extensible,
+            ordinal=False,
             sponsor_preferred_name=cls.random_if_none(
                 sponsor_preferred_name, prefix="name-"
             ),
@@ -2644,6 +2758,28 @@ class TestUtils:
         if approve:
             CTCodelistNameService().approve(codelist_uid=result.codelist_uid)
             CTCodelistAttributesService().approve(codelist_uid=result.codelist_uid)
+        # Override auto-generated codelist uid with the provided one
+        if codelist_uid:
+            db.cypher_query(
+                """
+                MATCH (c:CTCodelistRoot {uid: $codelist_uid})
+                SET c.uid = $new_uid
+                """,
+                params={"codelist_uid": result.codelist_uid, "new_uid": codelist_uid},
+            )
+            result.codelist_uid = codelist_uid
+        if paired_codes_codelist_uid:
+            db.cypher_query(
+                """
+                MATCH (c:CTCodelistRoot {uid: $codelist_uid}), (cc:CTCodelistRoot {uid: $paired_codes_codelist_uid})
+                MERGE (c)-[:PAIRED_CODE_CODELIST]->(cc)
+                """,
+                params={
+                    "codelist_uid": result.codelist_uid,
+                    "paired_codes_codelist_uid": paired_codes_codelist_uid,
+                },
+            )
+            result.paired_codes_codelist_uid = paired_codes_codelist_uid
         return result
 
     @classmethod
@@ -2906,28 +3042,39 @@ class TestUtils:
     @classmethod
     def create_study_ct_data_map(
         cls,
-        codelist_uid: str,
+        codelist_uid: str | None,
+        # pylint: disable=dangerous-default-value
         ct_data_map: dict[Any, Any] | None = None,
+        ct_codelist_map: dict[Any, Any] | None = None,
         library_name: str = LIBRARY_NAME,
     ):
         if ct_data_map is None:
             ct_data_map = initialize_ct_data_map
+        if ct_codelist_map is None:
+            ct_codelist_map = initialize_ct_codelist_map
 
         dictionary_codelist = cls.create_dictionary_codelist()
         # used cypher below to manually assign uids related to CDISC concept_ids
-        create_ct_term_with_custom_uid_query = """
+        create_ct_term_with_custom_uid_query = (
+            """
             MATCH (codelist_root:CTCodelistRoot {uid:$codelist_uid})
             WITH codelist_root
-            MERGE (term_root:CTTermRoot {uid: $uid})-[:HAS_NAME_ROOT]->(term_ver_root:CTTermNameRoot)-
-                [:LATEST]->(term_ver_value:CTTermNameValue {name: $name, name_sentence_case: toLower($name)})
-            MERGE (term_ver_root)-[final:LATEST_FINAL]->(term_ver_value)
-            MERGE (term_ver_root)-[hasver:HAS_VERSION]->(term_ver_value)
-            MERGE (codelist_root)-[:HAS_TERM]->(term_root)
-            WITH term_root, final, hasver
+            MERGE (term_root:CTTermRoot {uid: $uid})
+            MERGE (codelist_root)-[:HAS_TERM]->(:CTCodelistTerm {submission_value:$submission_value, start_date: dateTime("2020-12-10")})-[:HAS_TERM_ROOT]->(term_root)
+            MERGE (term_root)-[:HAS_NAME_ROOT]->(term_name_root:CTTermNameRoot)-
+                [:LATEST]->(term_name_value:CTTermNameValue {name: $name, name_sentence_case: toLower($name)})
+            MERGE (term_name_root)-[:LATEST_FINAL]->(term_name_value)
+            MERGE (term_name_root)-[hasnamever:HAS_VERSION {start_date: dateTime("2020-12-10")}]->(term_name_value)
+            MERGE (term_root)-[:HAS_ATTRIBUTES_ROOT]->(term_attr_root:CTTermAttributesRoot)-
+                [:LATEST]->(term_attr_value:CTTermAttributesValue {definition: $name, name: $name, preferred_term: $name})
+            MERGE (term_attr_root)-[:LATEST_FINAL]->(term_attr_value)
+            MERGE (term_attr_root)-[hasattrver:HAS_VERSION {start_date: dateTime("2020-12-10")}]->(term_attr_value)
+            WITH term_root, hasnamever, hasattrver
             MATCH (library:Library {name:$library_name})
-            WITH library, term_root, final, hasver
-            MERGE (library)-[:CONTAINS_TERM]->(term_root)""" + cls.set_final_props(
-            "hasver"
+            WITH library, term_root, hasnamever, hasattrver
+            MERGE (library)-[:CONTAINS_TERM]->(term_root)"""
+            + cls.set_final_props("hasnamever")
+            + cls.set_final_props("hasattrver")
         )
         create_dictionary_term_with_custom_uid_query = """
             MATCH (dictionary_codelist_root:DictionaryCodelistRoot {uid:$dictionary_codelist_uid})
@@ -2954,15 +3101,26 @@ class TestUtils:
             else:
                 query = create_ct_term_with_custom_uid_query
 
+            cl_uid = codelist_uid
+            if codelist_uid is None:
+                if field_name in ct_codelist_map:
+                    cl_uid, codelist_name, codelist_submval = ct_codelist_map[
+                        field_name
+                    ]
+                    cl_uid = cls.get_or_create_codelist(
+                        cl_uid, codelist_name, codelist_submval
+                    )
+
             if isinstance(value, list):
                 for uid, name in value:
                     db.cypher_query(
                         query,
                         {
-                            "codelist_uid": codelist_uid,
+                            "codelist_uid": cl_uid,
                             "dictionary_codelist_uid": dictionary_codelist.codelist_uid,
                             "uid": uid,
                             "name": name,
+                            "submission_value": name,
                             "library_name": library_name,
                         },
                     )
@@ -2970,13 +3128,43 @@ class TestUtils:
                 db.cypher_query(
                     query,
                     {
-                        "codelist_uid": codelist_uid,
+                        "codelist_uid": cl_uid,
                         "dictionary_codelist_uid": dictionary_codelist.codelist_uid,
                         "uid": value[0],
                         "name": value[1],
+                        "submission_value": value[1],
                         "library_name": library_name,
                     },
                 )
+
+    @classmethod
+    def get_or_create_codelist(cls, codelist_uid, codelist_name, codelist_submval):
+        if codelist_uid is not None:
+            query = """
+                MATCH (codelist_root:CTCodelistRoot {uid: $codelist_uid})
+                RETURN codelist_root.uid
+                """
+        else:
+            query = """
+                MATCH (codelist_root:CTCodelistRoot)-[:HAS_ATTRIBUTES_ROOT]->(:CTCodelistAttributesRoot)-[:LATEST]->(:CTCodelistAttributesValue {submission_value: $submission_value})
+                RETURN codelist_root.uid
+                """
+        res = db.cypher_query(
+            query, {"codelist_uid": codelist_uid, "submission_value": codelist_submval}
+        )
+
+        if len(res[0]) > 0:
+            return res[0][0][0]
+
+        codelist = cls.create_ct_codelist(
+            name=codelist_name,
+            submission_value=codelist_submval,
+            approve=True,
+            extensible=True,
+            codelist_uid=codelist_uid,
+        )
+        codelist_uid = codelist.codelist_uid
+        return codelist_uid
 
     @classmethod
     def create_study_fields_configuration(cls):
@@ -3021,6 +3209,7 @@ class TestUtils:
                             "catalogue": CT_CATALOGUE_NAME,
                         },
                     )
+                    existing_codelist_uids.append(line.get("configured_codelist_uid"))
                 elif line.get("configured_term_uid") != "":
                     db.cypher_query(
                         """
@@ -3034,8 +3223,9 @@ class TestUtils:
                     SET term_ver_value.name_sentence_case=$uid + 'name'
                     MERGE (term_root)-[:HAS_ATTRIBUTES_ROOT]->(term_a_root:CTTermAttributesRoot)
                     -[:LATEST]->(term_a_value:CTTermAttributesValue {
-                    preferred_term: $uid + 'nci', definition: $uid + 'def', name:$uid + ' NAME', submission_value:$uid + 'submval'})
-                    MERGE (codelist_root)-[:HAS_TERM]->(term_root)
+                    preferred_term: $uid + 'nci', definition: $uid + 'def', name:$uid + ' NAME'})
+                    MERGE (codelist_root)-[:HAS_TERM {start_date: dateTime("2020-12-10")}]->(codelist_term:CTCodelistTerm {submission_value:$uid + 'submval'})
+                    MERGE (codelist_term)-[:HAS_TERM_ROOT]->(term_root)
                     MERGE (catalogue)-[:HAS_CODELIST]->(codelist_root)
                     MERGE (term_ver_root)-[name_final:LATEST_FINAL]->(term_ver_value)
                     MERGE (term_ver_root)-[name_hasver:HAS_VERSION]->(term_ver_value)

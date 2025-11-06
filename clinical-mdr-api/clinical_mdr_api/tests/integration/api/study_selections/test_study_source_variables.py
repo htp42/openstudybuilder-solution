@@ -14,7 +14,7 @@ import logging
 import pytest
 from fastapi.testclient import TestClient
 
-from clinical_mdr_api.domains.enums import StudySourceVariableEnum
+from clinical_mdr_api.domains.enums import StudyDesignClassEnum, StudySourceVariableEnum
 from clinical_mdr_api.main import app
 from clinical_mdr_api.models.projects.project import Project
 from clinical_mdr_api.models.study_selections.study import Study
@@ -48,7 +48,7 @@ def test_data():
     inject_and_clear_db(db_name)
 
     global study
-    study = inject_base_data()
+    study, _test_data_dict = inject_base_data()
     global study_source_variable
     study_source_variable = TestUtils.create_study_source_variable(
         study_uid=study.uid,
@@ -156,3 +156,42 @@ def test_study_source_variable_edit(api_client):
     assert res["source_variable"] == new_value
     assert res["source_variable_description"] == new_description
     assert res["study_uid"] == new_study.uid
+
+
+def test_clear_study_source_variable_when_changing_design_class(api_client):
+    new_study = TestUtils.create_study(project_number=project.project_number)
+    source_variable = StudySourceVariableEnum.COHORT.value
+    source_variable_description = "source variable description"
+    response = api_client.post(
+        f"/studies/{new_study.uid}/study-source-variables",
+        json={
+            "source_variable": source_variable,
+            "source_variable_description": source_variable_description,
+        },
+    )
+    assert_response_status_code(response, 201)
+    res = response.json()
+    assert res["source_variable"] == source_variable
+    assert res["source_variable_description"] == source_variable_description
+
+    response = api_client.post(
+        f"/studies/{new_study.uid}/study-design-classes",
+        json={
+            "value": StudyDesignClassEnum.STUDY_WITH_COHORTS_BRANCHES_AND_SUBPOPULATIONS.value
+        },
+    )
+    assert_response_status_code(response, 201)
+
+    response = api_client.put(
+        f"/studies/{new_study.uid}/study-design-classes",
+        json={"value": StudyDesignClassEnum.MANUAL.value},
+    )
+    assert_response_status_code(response, 200)
+
+    response = api_client.get(
+        f"/studies/{new_study.uid}/study-source-variables",
+    )
+    assert_response_status_code(response, 200)
+    res = response.json()
+    assert res["source_variable"] is None
+    assert res["source_variable_description"] is None

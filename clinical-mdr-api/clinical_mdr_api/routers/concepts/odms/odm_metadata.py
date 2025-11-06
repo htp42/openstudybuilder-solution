@@ -61,7 +61,7 @@ If `parent` is empty or `*` is given then the mapping will apply to all occurren
     response_class=Response,
 )
 def get_odm_document(
-    target_uid: str,
+    target_uids: Annotated[list[str], Query()],
     target_type: TargetType,
     allowed_namespaces: Annotated[
         list[str] | None,
@@ -81,7 +81,7 @@ def get_odm_document(
     if allowed_namespaces is None:
         allowed_namespaces = []
     odm_xml_export_service = OdmXmlExporterService(
-        target_uid,
+        target_uids,
         target_type,
         status,
         allowed_namespaces,

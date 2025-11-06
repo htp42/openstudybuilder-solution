@@ -1,12 +1,12 @@
 # System Workflows
 
-This document describes dependencies in activities when using the StudyBuilder system. This is done in a series of activity diagrams followed by a short description of each activity.
+This document describes dependencies in activities when using the OpenStudyBuilder system. This is done in a series of activity diagrams followed by a short description of each activity.
 
 This is a break down from the overall system data flows described (add link). When applicable links will be provided to the system user guides.
 
 ## Overall system activities
 
-The StudyBuilder system covers the following overall activities:
+The OpenStudyBuilder system covers the following overall activities:
 
 [![StudyBuilder System Workflows](~@source/images/documentation/0-studybuilder-system-workflows.svg)](../../images/documentation/0-studybuilder-system-workflows.svg)
 

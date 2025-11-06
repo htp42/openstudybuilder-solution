@@ -1,9 +1,17 @@
 """Application main file."""
 
 # Placed at the top to ensure logging is configured before anything else is loaded
+from common.config import settings
+from common.database import configure_database
 from common.logger import default_logging_config, log_exception
 
 default_logging_config()
+
+configure_database(
+    settings.neo4j_dsn,
+    max_connection_lifetime=settings.neo4j_connection_lifetime,
+    liveness_check_timeout=settings.neo4j_liveness_check_timeout,
+)
 
 # pylint: disable=wrong-import-position,wrong-import-order,ungrouped-imports
 import logging
@@ -27,7 +35,6 @@ from starlette_context.middleware import RawContextMiddleware
 from clinical_mdr_api.utils.api_version import get_api_version
 from common.auth.dependencies import security
 from common.auth.discovery import reconfigure_with_openid_discovery
-from common.config import settings
 from common.exceptions import MDRApiBaseException
 from common.models.error import ErrorResponse
 from common.telemetry.request_metrics import patch_neomodel_database
@@ -550,6 +557,9 @@ app.include_router(
     tags=["MS Graph API integrations"],
 )
 app.include_router(routers.ddf_router, prefix="/usdm/v3", tags=["USDM endpoints"])
+app.include_router(
+    routers.data_suppliers_router, prefix="/data-suppliers", tags=["Data Suppliers"]
+)
 
 
 def custom_openapi():

@@ -38,7 +38,7 @@ max-module-lines = 6500
 good-names = '_,c,e,i,j,k,l,r,v,x,y,z,ar,ex,rs,_AggregateRootType,db'
 
 [tool.pylint.'DESIGN']
-max-args = 35
+max-args = 50
 max-attributes = 85
 max-branches = 50
 max-locals = 50

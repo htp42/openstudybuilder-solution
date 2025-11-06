@@ -235,6 +235,8 @@ class RegistryIdentifiersJsonModel(BaseModel):
             if code is not None
         ]
 
+        terms: dict[str, SimpleCTTermNameWithConflictFlag]
+
         if ct_term_generic_repository.__name__ == find_term_by_uids.__module__:
             terms = {
                 term.term_uid: term
@@ -1618,6 +1620,14 @@ class StudyMinimal(BaseModel):
 
 
 class StudySimple(StudyMinimal):
+    class VersionInfo(BaseModel):
+        version_number: Annotated[
+            str | None, Field(json_schema_extra={"nullable": True})
+        ] = None
+        change_description: Annotated[
+            str | None, Field(json_schema_extra={"nullable": True})
+        ] = None
+
     number: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = None
     title: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = None
     subpart_id: Annotated[str | None, Field(json_schema_extra={"nullable": True})] = (
@@ -1635,11 +1645,18 @@ class StudySimple(StudyMinimal):
     version_number: Annotated[
         str | None, Field(json_schema_extra={"nullable": True})
     ] = None
+    latest_locked_version: Annotated[
+        VersionInfo | None, Field(json_schema_extra={"nullable": True})
+    ] = None
+    latest_released_version: Annotated[
+        VersionInfo | None, Field(json_schema_extra={"nullable": True})
+    ] = None
 
     @classmethod
     def from_input(
         cls,
         val: dict[str, Any],
+        deleted: bool = False,
     ) -> Self:
         return cls(
             uid=val["uid"],
@@ -1653,9 +1670,21 @@ class StudySimple(StudyMinimal):
             project_number=val["project_number"],
             project_name=val["project_name"],
             version_author=val["version_author"],
-            version_status=StudyStatus(val["version_status"]),
+            version_status=(
+                StudyStatus.DELETED if deleted else StudyStatus(val["version_status"])
+            ),
             version_start_date=val["version_start_date"],
             version_number=val["version_number"],
+            latest_locked_version=(
+                cls.VersionInfo(**val["latest_locked_version"])
+                if val.get("latest_locked_version") is not None
+                else None
+            ),
+            latest_released_version=(
+                cls.VersionInfo(**val["latest_released_version"])
+                if val.get("latest_released_version") is not None
+                else None
+            ),
         )
 
 

@@ -50,6 +50,15 @@
           </v-row>
           <v-row>
             <v-col>
+              <v-switch
+                v-model="form.ordinal"
+                color="primary"
+                :label="$t('CodelistAttributesForm.ordinal')"
+              />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
               <v-textarea
                 v-model="form.definition"
                 :label="$t('CodelistAttributesForm.definition')"
@@ -121,6 +130,7 @@ export default {
         'CodelistAttributesForm.subm_value',
         'CodelistAttributesForm.nci_pref_name',
         'CodelistAttributesForm.extensible',
+        'CodelistAttributesForm.ordinal',
         'CodelistAttributesForm.definition',
       ],
       working: false,

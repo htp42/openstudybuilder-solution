@@ -143,8 +143,8 @@ class CTPackageRepository:
         self, catalogue_name: str, package_date: date
     ) -> CTPackageAR | None:
         query = """
-            MATCH (:CTCatalogue {name: $catalogue_name})-[:CONTAINS_PACKAGE]->
-            (package:CTPackage {effective_date:date($date)})
+            MATCH (:CTCatalogue {name: $catalogue_name})-[:CONTAINS_PACKAGE]->(package:CTPackage)
+            WHERE date(package.effective_date) = date($date)
 
             CALL {
                 WITH package

@@ -79,7 +79,7 @@ def test_data():
     """Initialize test data"""
     db_name = "activities.api"
     inject_and_clear_db(db_name)
-    inject_base_data()
+    inject_base_data(inject_unit_dimension=True)
 
     global activity_group
     activity_group = TestUtils.create_activity_group(name="activity_group")
@@ -112,12 +112,20 @@ def test_data():
         TestUtils.create_activity(
             name="name-AAA",
             synonyms=["name1", "AAA"],
+            definition="def-AAA",
+            abbreviation="abbr-AAA",
+            nci_concept_id="nci-id-AAA",
+            nci_concept_name="nci-name-AAA",
             activity_subgroups=[activity_subgroup.uid],
             activity_groups=[activity_group.uid],
         ),
         TestUtils.create_activity(
             name="name-BBB",
             synonyms=["name2", "BBB"],
+            definition="def-BBB",
+            abbreviation="abbr-BBB",
+            nci_concept_id="nci-id-BBB",
+            nci_concept_name="nci-name-BBB",
             activity_subgroups=[activity_subgroup.uid],
             activity_groups=[activity_group.uid],
         ),
@@ -126,6 +134,11 @@ def test_data():
             synonyms=["name3", "CCC"],
             activity_subgroups=[activity_subgroup.uid],
             activity_groups=[activity_group.uid],
+            definition="def-CCC",
+            abbreviation="abbr-CCC",
+            nci_concept_id="nci-id-CCC",
+            nci_concept_name="nci-name-CCC",
+            is_data_collected=True,
         ),
         activity_with_multiple_groupings,
     ]
@@ -149,10 +162,20 @@ def test_data():
     global activity_item_classes
     global data_type_term
     global role_term
-    data_type_term = TestUtils.create_ct_term(
-        nci_preferred_name="Data type", sponsor_preferred_name="Data type"
+    data_type_codelist = TestUtils.create_ct_codelist(
+        name="DATATYPE", submission_value="DATATYPE", extensible=True, approve=True
     )
-    role_term = TestUtils.create_ct_term(sponsor_preferred_name="Role")
+    data_type_term = TestUtils.create_ct_term(
+        nci_preferred_name="Data type",
+        sponsor_preferred_name="Data type",
+        codelist_uid=data_type_codelist.codelist_uid,
+    )
+    role_codelist = TestUtils.create_ct_codelist(
+        name="ROLE", submission_value="ROLE", extensible=True, approve=True
+    )
+    role_term = TestUtils.create_ct_term(
+        sponsor_preferred_name="Role", codelist_uid=role_codelist.codelist_uid
+    )
     activity_item_classes = [
         TestUtils.create_activity_item_class(
             name="Activity Item Class name1",
@@ -211,7 +234,12 @@ def test_data():
     activity_items = [
         {
             "activity_item_class_uid": activity_item_classes[0].uid,
-            "ct_term_uids": [ct_terms[0].term_uid],
+            "ct_terms": [
+                {
+                    "term_uid": ct_terms[0].term_uid,
+                    "codelist_uid": codelist.codelist_uid,
+                }
+            ],
             "unit_definition_uids": [],
             "is_adam_param_specific": False,
             "odm_form_uids": [],
@@ -220,7 +248,12 @@ def test_data():
         },
         {
             "activity_item_class_uid": activity_item_classes[1].uid,
-            "ct_term_uids": [ct_terms[1].term_uid],
+            "ct_terms": [
+                {
+                    "term_uid": ct_terms[1].term_uid,
+                    "codelist_uid": codelist.codelist_uid,
+                }
+            ],
             "unit_definition_uids": [],
             "is_adam_param_specific": False,
             "odm_form_uids": [],
@@ -229,7 +262,16 @@ def test_data():
         },
         {
             "activity_item_class_uid": activity_item_classes[2].uid,
-            "ct_term_uids": [ct_terms[0].term_uid, ct_terms[1].term_uid],
+            "ct_terms": [
+                {
+                    "term_uid": ct_terms[0].term_uid,
+                    "codelist_uid": codelist.codelist_uid,
+                },
+                {
+                    "term_uid": ct_terms[1].term_uid,
+                    "codelist_uid": codelist.codelist_uid,
+                },
+            ],
             "unit_definition_uids": [],
             "is_adam_param_specific": False,
             "odm_form_uids": [],
@@ -428,7 +470,8 @@ def test_get_activity(api_client):
     assert res["activity_instances"][4]["name"] == activity_instances_all[2].name
 
     assert res["library_name"] == "Sponsor"
-    assert res["definition"] is None
+    assert res["definition"] == "def-AAA"
+    assert res["abbreviation"] == "abbr-AAA"
     assert res["is_multiple_selection_allowed"] is True
     assert res["is_finalized"] is False
     assert res["version"] == "1.0"
@@ -1136,3 +1179,38 @@ def test_cannot_update_activity_with_non_unique_synonyms(api_client):
         res["message"]
         == f"Following Activities already have the provided synonyms: {{'{new_activity1.uid}': ['non_unique1'], '{new_activity2.uid}': ['non_unique2']}}"
     )
+
+
+@pytest.mark.parametrize(
+    "field_name, search_string",
+    [
+        ("name", "name-CCC"),
+        ("name_sentence_case", "name-CCC"),
+        # ("synonyms", "CCC"),
+        ("library_name", "Sponsor"),
+        ("definition", "def"),
+        ("abbreviation", "ab"),
+        ("nci_concept_id", "nci"),
+        ("nci_concept_name", "nci"),
+        ("is_data_collected", "t"),
+        ("is_used_by_legacy_instances", "f"),
+        ("start_date", "20"),
+        ("version", "1.0"),
+        ("status", "Final"),
+        ("author_username", "unknown-user"),
+    ],
+)
+def test_get_activities_headers(api_client, field_name, search_string):
+    for lite in [True, False]:
+        query_params = {
+            "field_name": field_name,
+            "search_string": search_string,
+            "lite": lite,
+        }
+        response = api_client.get(
+            "/concepts/activities/activities/headers", params=query_params
+        )
+        assert_response_status_code(response, 200)
+        assert len(response.json()) >= 1
+        for res in response.json():
+            assert str(search_string).lower() in str(res).lower()

@@ -23,19 +23,19 @@ class CTCodelistNameVO:
     """
 
     name: str | None
-    catalogue_name: str
+    catalogue_names: list[str]
     is_template_parameter: bool
 
     @classmethod
     def from_repository_values(
         cls,
         name: str | None,
-        catalogue_name: str,
+        catalogue_names: list[str],
         is_template_parameter: bool,
     ) -> Self:
         ct_codelist_name_vo = cls(
             name=name,
-            catalogue_name=catalogue_name,
+            catalogue_names=catalogue_names,
             is_template_parameter=is_template_parameter,
         )
 
@@ -45,15 +45,16 @@ class CTCodelistNameVO:
     def from_input_values(
         cls,
         name: str | None,
-        catalogue_name: str,
+        catalogue_names: list[str],
         is_template_parameter: bool,
         catalogue_exists_callback: Callable[[str], bool],
         codelist_exists_by_name_callback: Callable[[str], bool] = lambda _: False,
     ) -> Self:
-        ValidationException.raise_if_not(
-            catalogue_exists_callback(catalogue_name),
-            msg=f"Catalogue with Name '{catalogue_name}' doesn't exist.",
-        )
+        for catalogue_name in catalogue_names:
+            ValidationException.raise_if_not(
+                catalogue_exists_callback(catalogue_name),
+                msg=f"Catalogue with Name '{catalogue_name}' doesn't exist.",
+            )
         AlreadyExistsException.raise_if(
             name and codelist_exists_by_name_callback(name),
             "CT Codelist Name",
@@ -63,7 +64,7 @@ class CTCodelistNameVO:
 
         ct_codelist_name_vo = cls(
             name=name,
-            catalogue_name=catalogue_name,
+            catalogue_names=catalogue_names,
             is_template_parameter=is_template_parameter,
         )
 

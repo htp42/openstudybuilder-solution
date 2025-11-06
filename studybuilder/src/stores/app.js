@@ -77,6 +77,10 @@ export const useAppStore = defineStore('app', {
                 title: i18n.t('Sidebar.library.sponsor_ct_packages'),
                 url: { name: 'SponsorCtPackages' },
               },
+              {
+                title: i18n.t('Sidebar.library.terms'),
+                url: { name: 'TermsPage' },
+              },
             ],
           },
           {
@@ -126,8 +130,12 @@ export const useAppStore = defineStore('app', {
                 url: { name: 'Units' },
               },
               {
-                title: i18n.t('Sidebar.library.crfs'),
-                url: { name: 'Crfs' },
+                title: i18n.t('Sidebar.library.crf_viewer'),
+                url: { name: 'CrfViewer' },
+              },
+              {
+                title: i18n.t('Sidebar.library.crf_builder'),
+                url: { name: 'CrfBuilder' },
               },
               // Temporarily removed
               // {
@@ -271,6 +279,12 @@ export const useAppStore = defineStore('app', {
                 icon: 'mdi-clipboard-outline',
                 url: { name: 'Projects' },
                 description: i18n.t('Library.projects'),
+              },
+              {
+                id: 'data_suppliers',
+                title: i18n.t('Sidebar.library.data_suppliers'),
+                icon: 'mdi-archive-outline',
+                url: { name: 'DataSuppliers' },
               },
             ],
           },

@@ -31,8 +31,10 @@ INDEXES = [
     ("OrderedStudySelectionDiseaseMilestone", "uid"),
     ("TemplateParameterTermValue", "name"),
     ("CTCodelistAttributesValue", "name"),
+    ("CTCodelistAttributesValue", "submission_value"),
     ("CTCodelistNameValue", "name"),
     ("CTTermNameValue", "name"),
+    ("CTCodelistTerm", "submission_value"),
     ("DictionaryCodelistValue", "name"),
     ("SnomedTermValue", "name"),
     ("DictionaryTermValue", "name"),
@@ -79,8 +81,6 @@ INDEXES = [
     ("TimePointValue", "name"),
     ("CriteriaValue", "name"),
     ("ActivityInstructionTemplateValue", "name"),
-    ("CTTermAttributesValue", "code_submission_value"),
-    ("CTTermAttributesValue", "name_submission_value"),
     ("StudyField", "field_name"),
     ("DataModelVersion", "uid"),
     ("ActivityGrouping", "uid"),
@@ -107,8 +107,13 @@ INDEXES = [
     ("TemplateParameterValue", "name"),
     ("TextValue", "name"),
     ("WeekInStudyValue", "name"),
-    ("DatasetScenario", "uid"),
     ("StudyStandardVersion", "uid"),
+    ("StudyVisitGroup", "uid"),
+    ("StudyDesignClass", "uid"),
+    ("ActivityInstructionValue", "name"),
+    ("FootnotePreInstanceValue", "name"),
+    ("OdmVendorElementValue", "name"),
+    ("StudySourceVariable", "uid"),
 ]
 
 # array of text indexes to create [label, property]
@@ -121,6 +126,7 @@ TEXT_INDEXES = [
     ("Project", "name"),
     ("Brand", "name"),
     ("DatasetScenarioInstance", "label"),
+    ("Notification", "title"),
 ]
 
 # array of relation indexes to create [type, property]
@@ -208,6 +214,7 @@ CONSTRAINTS = [
     ("DatasetClass", "uid", CONSTRAINT_TYPE_NODE_KEY),
     ("Dataset", "uid", CONSTRAINT_TYPE_NODE_KEY),
     ("VariableClass", "uid", CONSTRAINT_TYPE_NODE_KEY),
+    ("DatasetScenario", "uid", CONSTRAINT_TYPE_NODE_KEY),
     ("DatasetVariable", "uid", CONSTRAINT_TYPE_NODE_KEY),
     ("CommentTopic", "uid", CONSTRAINT_TYPE_NODE_KEY),
     ("CommentTopic", "topic_path", CONSTRAINT_TYPE_NODE_KEY),
@@ -221,6 +228,8 @@ CONSTRAINTS = [
     ("TextValueRoot", "uid", CONSTRAINT_TYPE_NODE_KEY),
     ("User", "user_id", CONSTRAINT_TYPE_NODE_KEY),
     ("WeekInStudyRoot", "uid", CONSTRAINT_TYPE_NODE_KEY),
+    ("FootnotePreInstanceRoot", "uid", CONSTRAINT_TYPE_NODE_KEY),
+    ("OdmVendorElementRoot", "uid", CONSTRAINT_TYPE_NODE_KEY),
 ]
 
 

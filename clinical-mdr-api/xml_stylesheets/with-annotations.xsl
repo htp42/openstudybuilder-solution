@@ -546,25 +546,25 @@
                       </xsl:choose>
                     </div>
                     <div
-                      class="col-sm-2 {$labelColor} border text-center">
-                      <xsl:call-template name="splitter">
-                        <xsl:with-param name="aliasContext" select="'Sdtm'" />
-                        <xsl:with-param name="remaining-string" select="@SDSVarName" />
-                        <xsl:with-param name="pattern" select="'|'" />
-                        <xsl:with-param name="domainbgcolor" select="$domainBckg" />
-                      </xsl:call-template>
-                      <xsl:for-each select="./Alias[@Context = 'Cdash']">
+                      class="col-sm-2 {$labelColor} border align-items-center text-center">
+                        <xsl:call-template name="splitter">
+                          <xsl:with-param name="aliasContext" select="'Sdtm'" />
+                          <xsl:with-param name="remaining-string" select="./@SDSVarName" />
+                          <xsl:with-param name="pattern" select="'|'" />
+                          <xsl:with-param name="domainbgcolor" select="$domainBckg" />
+                        </xsl:call-template>
+                      <xsl:for-each select="../Alias[@Context = 'Cdash']">
                         <xsl:call-template name="splitter">
                           <xsl:with-param name="aliasContext" select="@Context" />
-                          <xsl:with-param name="remaining-string" select="./@Name" />
+                          <xsl:with-param name="remaining-string" select="@Name" />
                           <xsl:with-param name="pattern" select="'|'" />
                           <xsl:with-param name="domainbgcolor" select="$domainBckg" />
                         </xsl:call-template>
                       </xsl:for-each>
-                      <xsl:for-each select="./Alias[@Context = 'Sdtm']">
+                      <xsl:for-each select="../Alias[@Context = 'Sdtm']">
                         <xsl:call-template name="splitter">
                           <xsl:with-param name="aliasContext" select="@Context" />
-                          <xsl:with-param name="remaining-string" select="./@Name" />
+                          <xsl:with-param name="remaining-string" select="@Name" />
                           <xsl:with-param name="pattern" select="'|'" />
                           <xsl:with-param name="domainbgcolor" select="$domainBckg" />
                         </xsl:call-template>
@@ -631,7 +631,7 @@
                     class="col-sm-2 {$labelColor} border align-items-center text-center">
                     <xsl:call-template name="splitter">
                       <xsl:with-param name="aliasContext" select="'Sdtm'" />
-                      <xsl:with-param name="remaining-string" select="@SDSVarName" />
+                      <xsl:with-param name="remaining-string" select="./@SDSVarName" />
                       <xsl:with-param name="pattern" select="'|'" />
                       <xsl:with-param name="domainbgcolor" select="$domainBckg" />
                     </xsl:call-template>
@@ -758,14 +758,15 @@
         </div>
         <div class="col-sm-2 border align-items-center text-center">
           <xsl:if test="./@Domain">
-            <h4>
-              <xsl:call-template name="IGsplitter">
-                <xsl:with-param name="remaining-string" select="./@Domain" />
-                <xsl:with-param name="pattern" select="'|'" />
-                <xsl:with-param name="domainbgcolor" select="$domainBg" />
-              </xsl:call-template>
-            </h4>
-          </xsl:if>
+          <h4>
+            <xsl:call-template name="IGsplitter">
+              <xsl:with-param name="aliasContext" select="'Sdtm'" />
+              <xsl:with-param name="remaining-string" select="./@Domain" />
+              <xsl:with-param name="pattern" select="'|'" />
+              <xsl:with-param name="domainbgcolor" select="$domainBg" />
+            </xsl:call-template>
+          </h4>
+        </xsl:if>
           <xsl:if test="./Alias/@Context = 'Sdtm'">
             <h4>
               <xsl:for-each select="./Alias[@Context = 'Sdtm']">

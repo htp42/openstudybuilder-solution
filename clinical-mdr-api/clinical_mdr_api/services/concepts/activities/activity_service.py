@@ -427,10 +427,8 @@ class ActivityService(ConceptGenericService[ActivityAR]):
         instance_service = ActivityInstanceService()
 
         for instance in linked_instances.get("activity_instances", []):
-            if instance["version"]["status"] not in (
-                LibraryItemStatus.DRAFT.value,
-                LibraryItemStatus.FINAL.value,
-            ):
+            # Only process FINAL status instances - skip DRAFT instances entirely
+            if instance["version"]["status"] != LibraryItemStatus.FINAL.value:
                 continue
 
             instance_groupings = []
@@ -447,10 +445,9 @@ class ActivityService(ConceptGenericService[ActivityAR]):
                 # No matching groupings found, skip this instance
                 continue
 
-            if instance["version"]["status"] == LibraryItemStatus.FINAL.value:
-                instance_service.non_transactional_create_new_version(instance["uid"])
+            # For FINAL instances: create new version, edit, and approve
+            instance_service.non_transactional_create_new_version(instance["uid"])
 
-            # Edit all instances (both DRAFT and FINAL) to update their groupings
             edit_input = ActivityInstanceEditInput(
                 change_description="Cascade edit",
                 activity_groupings=instance_groupings,
@@ -461,9 +458,7 @@ class ActivityService(ConceptGenericService[ActivityAR]):
                 uid=instance["uid"], concept_edit_input=edit_input, patch_mode=False
             )
 
-            # Only approve instances that are in FINAL status
-            if instance["version"]["status"] == LibraryItemStatus.FINAL.value:
-                instance_service.non_transactional_approve(instance["uid"])
+            instance_service.non_transactional_approve(instance["uid"])
 
     def get_specific_activity_version_groupings(
         self,

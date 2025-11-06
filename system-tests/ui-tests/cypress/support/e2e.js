@@ -42,4 +42,6 @@ before(function() {
     cy.prepareAuthTokens()
     cy.createAndSetMainTestStudy('9876')
     cy.createTestStudy('9877', 'Study structure testing')
+    cy.createTestStudy('9878', 'Manual structure testing')
+
 });

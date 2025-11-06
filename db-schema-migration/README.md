@@ -55,7 +55,7 @@ API_AUTH_TOKEN
 CREATE_DB
 ```
 
-Crete an `.env` file in project root locally, for example:
+Crete an `.env` file in project root locally, for example (see also `.env.example` file):
 ```
 DATABASE_URL=bolt://neo4j:test1234@localhost:7687
 DATABASE_NAME=schema.migration.test
@@ -67,6 +67,7 @@ MDR_MIGRATION_ACTIVE_SUBSTANCES=migration_data/datafiles/compounds/active_substa
 MDR_MIGRATION_PHARMACEUTICAL_PRODUCTS=migration_data/datafiles/compounds/pharmaceutical_products.json
 MDR_MIGRATION_MEDICINAL_PRODUCTS=migration_data/datafiles/compounds/medicinal_products.json
 MDR_MIGRATION_COMPOUNDS=migration_data/datafiles/compounds/compounds.json
+MDR_MIGRATION_ODM_ITEMS=migration_data/datafiles/libraries/concepts/crfs/odm_items.csv
 ```
 
 

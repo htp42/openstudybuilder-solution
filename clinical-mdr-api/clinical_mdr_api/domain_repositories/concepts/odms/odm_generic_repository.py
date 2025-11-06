@@ -15,9 +15,6 @@ from clinical_mdr_api.domain_repositories.models.activities import (
     ActivitySubGroupRoot,
 )
 from clinical_mdr_api.domain_repositories.models.concepts import UnitDefinitionRoot
-from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
-    CTTermRoot,
-)
 from clinical_mdr_api.domain_repositories.models.odm import (
     OdmFormRoot,
     OdmItemGroupRoot,
@@ -124,7 +121,6 @@ class OdmGenericRepository(ConceptGenericRepository[_AggregateRootType], ABC):
             RelationType.ITEM_GROUP: (OdmItemGroupRoot, "item_group_ref"),
             RelationType.ITEM: (OdmItemRoot, "item_ref"),
             RelationType.FORM: (OdmFormRoot, "form_ref"),
-            RelationType.TERM: (CTTermRoot, "has_codelist_term"),
             RelationType.UNIT_DEFINITION: (UnitDefinitionRoot, "has_unit_definition"),
             RelationType.VENDOR_ELEMENT: (OdmVendorElementRoot, "has_vendor_element"),
             RelationType.VENDOR_ATTRIBUTE: (
@@ -273,7 +269,6 @@ class OdmGenericRepository(ConceptGenericRepository[_AggregateRootType], ABC):
         term_uids: list[str] | None = None,
         unit_definition_uids: list[str] | None = None,
         formal_expression_uids: list[str] | None = None,
-        scope_uid: str | None = None,
         codelist_uid: str | None = None,
         **value_attributes,
     ):
@@ -289,7 +284,6 @@ class OdmGenericRepository(ConceptGenericRepository[_AggregateRootType], ABC):
             term_uids (list[str] | None): List of UIDs for terms to match in CT Codelist Terms.
             unit_definition_uids (list[str] | None): List of UIDs for Unit Definitions to match.
             formal_expression_uids (list[str] | None): List of UIDs for ODM Formal Expressions to match.
-            scope_uid (str | None): UID for a specific scope to match.
             codelist_uid (str | None): UID for a CT Codelist to match.
             library_name (str | None): Name of the library to match.
             **value_attributes: Arbitrary key-value pairs to match against properties of the ODM object.
@@ -330,12 +324,8 @@ class OdmGenericRepository(ConceptGenericRepository[_AggregateRootType], ABC):
             query += " MATCH (alias_root:OdmAliasRoot)<-[:HAS_ALIAS]-(root) "
             params["alias_uids"] = alias_uids
 
-        if scope_uid:
-            query += " MATCH (:CTTermRoot {uid: $scope_uid})<-[:HAS_SCOPE]-(root) "
-            params["scope_uid"] = scope_uid
-
         if sdtm_domain_uids:
-            query += " MATCH (ct_term_root:CTTermRoot)<-[:HAS_SDTM_DOMAIN]-(root) "
+            query += " MATCH (ct_term_root:CTTermRoot)<-[:HAS_SELECTED_TERM]-(:CTTermContext)<-[:HAS_SDTM_DOMAIN]-(root) "
             params["sdtm_domain_uids"] = sdtm_domain_uids
 
         if codelist_uid:
@@ -346,7 +336,7 @@ class OdmGenericRepository(ConceptGenericRepository[_AggregateRootType], ABC):
 
         if term_uids:
             params["term_uids"] = term_uids
-            query += " MATCH (ct_term_root:CTTermRoot)<-[:HAS_CODELIST_TERM]-(root) "
+            query += " MATCH (ct_term_root:CTTermRoot)<-[:HAS_SELECTED_TERM]-(:CTTermContext)<-[:HAS_CODELIST_TERM]-(root) "
 
         if unit_definition_uids:
             params["unit_definition_uids"] = unit_definition_uids

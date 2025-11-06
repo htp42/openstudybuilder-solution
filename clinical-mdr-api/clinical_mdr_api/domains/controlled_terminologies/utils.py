@@ -8,3 +8,4 @@ class TermParentType(Enum):
 
     PARENT_TYPE = "type"
     PARENT_SUB_TYPE = "subtype"
+    PREDECESSOR = "predecessor"

@@ -46,7 +46,6 @@ from clinical_mdr_api.tests.integration.utils.method_library import (
 )
 from clinical_mdr_api.tests.integration.utils.utils import TestUtils
 from clinical_mdr_api.tests.utils.checks import assert_response_status_code
-from common.config import settings
 from common.utils import VisitClass
 
 # Global variables shared between fixtures and tests
@@ -113,7 +112,7 @@ def test_data():
     global initial_ct_term_study_standard_test
     initial_ct_term_study_standard_test = TestUtils.create_ct_term(
         codelist_uid="CTCodelist_00004",
-        name_submission_value=ct_term_name,
+        submission_value=ct_term_name,
         sponsor_preferred_name=ct_term_name,
         order=1,
         catalogue_name=catalogue_name,
@@ -1006,42 +1005,43 @@ def test_study_visit_timings(api_client):
     assert visits[0]["study_day_number"] == -14
     assert visits[0]["study_duration_days_label"] == "-14 days"
     assert visits[0]["study_week_number"] == -2
+    assert visits[0]["study_duration_weeks"] == -2
     assert visits[0]["study_duration_weeks_label"] == "-2 weeks"
     assert visits[0]["week_in_study_label"] == "Week -2"
     # timing -1
     assert visits[1]["study_day_number"] == -1
     assert visits[1]["study_duration_days_label"] == "-1 days"
     assert visits[1]["study_week_number"] == -1
+    assert visits[1]["study_duration_weeks"] == 0
     assert visits[1]["study_duration_weeks_label"] == "0 weeks"
     assert visits[1]["week_in_study_label"] == "Week 0"
     # timing 0
     assert visits[2]["study_day_number"] == 1
     assert visits[2]["study_duration_days_label"] == "0 days"
     assert visits[2]["study_week_number"] == 1
+    assert visits[2]["study_duration_weeks"] == 0
     assert visits[2]["study_duration_weeks_label"] == "0 weeks"
     assert visits[2]["week_in_study_label"] == "Week 0"
     # timing 1
     assert visits[3]["study_day_number"] == 2
     assert visits[3]["study_duration_days_label"] == "1 days"
     assert visits[3]["study_week_number"] == 1
+    assert visits[3]["study_duration_weeks"] == 0
     assert visits[3]["study_duration_weeks_label"] == "0 weeks"
     assert visits[3]["week_in_study_label"] == "Week 0"
     # timing 14
     assert visits[4]["study_day_number"] == 15
     assert visits[4]["study_duration_days_label"] == "14 days"
     assert visits[4]["study_week_number"] == 3
+    assert visits[4]["study_duration_weeks"] == 2
     assert visits[4]["study_duration_weeks_label"] == "2 weeks"
     assert visits[4]["week_in_study_label"] == "Week 2"
 
 
 def test_create_repeating_visit(api_client):
-    _codelist = TestUtils.create_ct_codelist(
-        name=settings.study_visit_repeating_frequency,
-        sponsor_preferred_name=settings.study_visit_repeating_frequency,
-        extensible=True,
-        approve=True,
+    _term = TestUtils.create_ct_term(
+        codelist_uid="CTCodelist_Repeating_Visit_Frequency"
     )
-    _term = TestUtils.create_ct_term(codelist_uid=_codelist.codelist_uid)
     _study = TestUtils.create_study()
     _study_epoch = create_study_epoch("EpochSubType_0001", study_uid=_study.uid)
 
@@ -1065,7 +1065,7 @@ def test_create_repeating_visit(api_client):
     )
     res = response.json()
     assert_response_status_code(response, 201)
-    assert res["repeating_frequency_uid"] == _term.term_uid
+    assert res["repeating_frequency"]["term_uid"] == _term.term_uid
     assert (
         res["repeating_frequency"]["sponsor_preferred_name"]
         == _term.sponsor_preferred_name
@@ -1078,7 +1078,7 @@ def test_create_repeating_visit(api_client):
     response = api_client.get(f"/studies/{_study.uid}/study-visits/{res['uid']}")
     res = response.json()
     assert_response_status_code(response, 200)
-    assert res["repeating_frequency_uid"] == _term.term_uid
+    assert res["repeating_frequency"]["term_uid"] == _term.term_uid
     assert (
         res["repeating_frequency"]["sponsor_preferred_name"]
         == _term.sponsor_preferred_name

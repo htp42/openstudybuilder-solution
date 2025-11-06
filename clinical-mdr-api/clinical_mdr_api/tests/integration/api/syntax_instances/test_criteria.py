@@ -19,6 +19,7 @@ from fastapi.testclient import TestClient
 
 from clinical_mdr_api.main import app
 from clinical_mdr_api.models.concepts.concept import TextValue
+from clinical_mdr_api.models.controlled_terminologies.ct_codelist import CTCodelist
 from clinical_mdr_api.models.controlled_terminologies.ct_term import CTTerm
 from clinical_mdr_api.models.dictionaries.dictionary_codelist import DictionaryCodelist
 from clinical_mdr_api.models.dictionaries.dictionary_term import DictionaryTerm
@@ -48,6 +49,9 @@ criteria: list[Criteria]
 criteria_template: CriteriaTemplate
 ct_term_inclusion: CTTerm
 dictionary_term_indication: DictionaryTerm
+category_codelist: CTCodelist
+sub_category_codelist: CTCodelist
+type_codelist: CTCodelist
 ct_term_category: CTTerm
 ct_term_subcategory: CTTerm
 indications_codelist: DictionaryCodelist
@@ -75,6 +79,9 @@ def test_data():
     global criteria_template
     global ct_term_inclusion
     global dictionary_term_indication
+    global category_codelist
+    global sub_category_codelist
+    global type_codelist
     global ct_term_category
     global ct_term_subcategory
     global indications_codelist
@@ -88,9 +95,29 @@ def test_data():
     text_value_1 = TestUtils.create_text_value()
     text_value_2 = TestUtils.create_text_value()
 
+    category_codelist = TestUtils.create_ct_codelist(
+        name="Criteria Category",
+        submission_value="CRITCAT",
+        extensible=True,
+        approve=True,
+    )
+    sub_category_codelist = TestUtils.create_ct_codelist(
+        name="Criteria Sub Category",
+        submission_value="CRITSCAT",
+        extensible=True,
+        approve=True,
+    )
+    type_codelist = TestUtils.create_ct_codelist(
+        name="Criteria Type",
+        submission_value="CRITRTP",
+        extensible=True,
+        approve=True,
+    )
+
     # Create Dictionary/CT Terms
     ct_term_inclusion = TestUtils.create_ct_term(
-        sponsor_preferred_name="INCLUSION CRITERIA"
+        sponsor_preferred_name="INCLUSION CRITERIA",
+        codelist_uid=type_codelist.codelist_uid,
     )
     indications_library_name = "SNOMED"
     indications_codelist = TestUtils.create_dictionary_codelist(
@@ -100,8 +127,12 @@ def test_data():
         codelist_uid=indications_codelist.codelist_uid,
         library_name=indications_library_name,
     )
-    ct_term_category = TestUtils.create_ct_term()
-    ct_term_subcategory = TestUtils.create_ct_term()
+    ct_term_category = TestUtils.create_ct_term(
+        codelist_uid=category_codelist.codelist_uid
+    )
+    ct_term_subcategory = TestUtils.create_ct_term(
+        codelist_uid=sub_category_codelist.codelist_uid
+    )
 
     def generate_parameter_terms():
         text_value = TestUtils.create_text_value()

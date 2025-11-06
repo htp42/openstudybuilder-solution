@@ -559,8 +559,18 @@ class CypherQueryBuilder:
         self.build_count_query()
 
     def _handle_nested_base_model_filtering(
-        self, _predicates, _alias, _parsed_operator, _query_param_name, elm
+        self,
+        _predicates: list[str],
+        _alias: str,
+        _parsed_operator: str,
+        _query_param_name: str,
+        elm: Any,
     ):
+        if elm is not None:
+            if isinstance(elm, str):
+                elm = elm.lower()
+            self.parameters[f"{_query_param_name}"] = elm
+
         if "." in _alias:
             nested_path = _alias.split(".")
             attr_desc = self.return_model.model_fields.get(nested_path[0])
@@ -575,8 +585,6 @@ class CypherQueryBuilder:
                 path = traversal
 
             if get_sub_fields(attr_desc) is None:
-                # if field is just SimpleTermModel compare wildcard filter
-                # with name property of SimpleTermModel
                 _predicates.append(
                     f"toLower({path}.{_alias}){_parsed_operator}${_query_param_name}"
                 )
@@ -584,37 +592,36 @@ class CypherQueryBuilder:
                 # Special handling for activity_groupings fields that map to nested structure
                 # activity_group_name -> activity_group.name
                 # activity_subgroup_name -> activity_subgroup.name
-                if path == "activity_groupings" and _alias == "activity_group_name":
+                if elm is None:
+                    _predicates.append(f"size({path}) = 0 ")
+                elif path == "activity_groupings" and _alias == "activity_group_name":
                     _predicates.append(
-                        f"any(attr in {path} WHERE toLower(attr.activity_group.name) CONTAINS ${_query_param_name})"
+                        f"any(attr in {path} WHERE toLower(attr.activity_group.name) {_parsed_operator} ${_query_param_name})"
                     )
                 elif (
                     path == "activity_groupings" and _alias == "activity_subgroup_name"
                 ):
                     _predicates.append(
-                        f"any(attr in {path} WHERE toLower(attr.activity_subgroup.name) CONTAINS ${_query_param_name})"
+                        f"any(attr in {path} WHERE toLower(attr.activity_subgroup.name) {_parsed_operator} ${_query_param_name})"
                     )
                 else:
                     # Default behavior for other array fields
                     _predicates.append(
-                        f"any(attr in {path} WHERE toLower(attr.{_alias}) CONTAINS ${_query_param_name})"
+                        f"any(attr in {path} WHERE toLower(attr.{_alias}) {_parsed_operator} ${_query_param_name})"
                     )
-            self.parameters[f"{_query_param_name}"] = elm.lower()
         else:
             attr_desc = self.return_model.model_fields.get(_alias)
-            # name=$name_0 with name_0 defined in parameter objects
             if get_sub_fields(attr_desc) is None:
-                # if field is just SimpleTermModel compare wildcard filter
-                # with name property of SimpleTermModel
                 _predicates.append(
                     f"toLower({_alias}.name){_parsed_operator}${_query_param_name}"
                 )
             else:
-                # if field is an array of SimpleTermModels
-                _predicates.append(
-                    f"any(attr in {_alias} WHERE toLower(attr.name) CONTAINS ${_query_param_name})"
-                )
-            self.parameters[f"{_query_param_name}"] = elm.lower()
+                if elm is None:
+                    _predicates.append(f"size({_alias}) = 0 ")
+                else:
+                    _predicates.append(
+                        f"any(attr in {_alias} WHERE toLower(attr.name) {_parsed_operator} ${_query_param_name})"
+                    )
 
     # pylint: disable=too-many-statements
     def build_filter_clause(self) -> None:
@@ -1029,22 +1036,25 @@ class CypherQueryBuilder:
             paths = split[1:-1]
             if self.return_model:
                 attr_desc = self.return_model.model_fields.get(first_property)
-                attr_desc_name = first_property
-                for path in paths:
-                    attr_desc = get_field_type(attr_desc.annotation).model_fields.get(
-                        path
-                    )
-                    attr_desc_name = path
+                if attr_desc is not None:
+                    attr_desc_name = first_property
+                    for path in paths:
+                        attr_desc = get_field_type(
+                            attr_desc.annotation
+                        ).model_fields.get(path)
+                        attr_desc_name = path
 
-                ValidationException.raise_if_not(
-                    attr_desc, msg=f"Invalid field name: {header_alias}"
-                )
+                        ValidationException.raise_if_not(
+                            attr_desc, msg=f"Invalid field name: {header_alias}"
+                        )
 
-                if get_sub_fields(attr_desc) is not None:
-                    if self.format_filter_sort_keys:
-                        last_property = self.format_filter_sort_keys(last_property)
+                    if get_sub_fields(attr_desc) is not None:
+                        if self.format_filter_sort_keys:
+                            last_property = self.format_filter_sort_keys(last_property)
 
-                    alias_clause = f"[attr in {attr_desc_name} | attr.{last_property}]"
+                        alias_clause = (
+                            f"[attr in {attr_desc_name} | attr.{last_property}]"
+                        )
 
         if not alias_clause:
             alias_clause = header_alias

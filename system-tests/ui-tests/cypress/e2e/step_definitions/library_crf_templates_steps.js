@@ -1,6 +1,6 @@
 const { Given, When, Then } = require("@badeball/cypress-cucumber-preprocessor");
 
-let crfTemplateName, crfTemplateOid, effectiveDate, retiredDate
+let crfTemplateName, crfTemplateOid, effectiveDate = 10, retiredDate = 15
 
 When('Created CRF Template is found', () => cy.searchAndCheckPresence(crfTemplateName, true))
 
@@ -15,12 +15,8 @@ When('The CRF Template definition container is filled with data and saved', () =
     crfTemplateName = `CrfItem${Date.now()}`
     crfTemplateOid = `Oid${Date.now()}`
     fillNameAndOid()
-    cy.fixture('crfTemplate.js').then((template) => {
-        effectiveDate = template.effective_date
-        retiredDate = template.retired_date
-        cy.selectDatePicker('crf-template-effective-date', effectiveDate)
-        cy.selectDatePicker('crf-template-retired-date', retiredDate)
-    })
+    cy.selectDatePicker('crf-template-effective-date', effectiveDate)
+    cy.selectDatePicker('crf-template-retired-date', retiredDate)
     saveCrfTemplate('created')
 })
 

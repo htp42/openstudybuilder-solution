@@ -231,19 +231,59 @@ def get_all(
         404: _generic_descriptions.ERROR_404,
     },
 )
+@decorators.allow_exports(
+    {
+        "defaults": [
+            "uid",
+            "id",
+            "acronym",
+            "number",
+            "title",
+            "subpart_id",
+            "subpart_acronym",
+            "clinical_programme=clinical_programme_name",
+            "project_number",
+            "project_name",
+            "status=version_status",
+            "modified=version_start_date",
+            "modified_by=version_author",
+            "latest_version_number=version_number",
+            "latest_locked_version_number=latest_locked_version.version_number",
+            "latest_locked_version_description=latest_locked_version.change_description",
+            "latest_released_version_number=latest_released_version.version_number",
+            "latest_released_version_description=latest_released_version.change_description",
+        ],
+        "formats": [
+            "text/csv",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "text/xml",
+            "application/json",
+        ],
+    }
+)
+# pylint: disable=unused-argument
 def get_studies_list(
+    request: Request,  # request is actually required by the allow_exports decorator
     minimal_response: Annotated[
         bool,
         Query(
             description="Indicates whether to return minimal response with only `uid`, `id` and `acronym`."
         ),
-    ] = True
+    ] = True,
+    deleted: Annotated[
+        bool,
+        Query(
+            description="Indicates whether to return 'Active' Studies or 'Deleted' ones.",
+        ),
+    ] = False,
 ) -> list[StudySimple | StudyMinimal]:
     """
     Returns a list of studies
     """
     study_service = StudyService()
-    return study_service.get_studies_list(minimal_response=minimal_response)
+    return study_service.get_studies_list(
+        minimal_response=minimal_response, deleted=deleted
+    )
 
 
 @router.get(

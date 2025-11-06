@@ -189,7 +189,7 @@ class StudyVisitService(StudySelectionMixin):
         global_anchor_visit = (
             StudyVisitNeoModel.nodes.fetch_relations(
                 "has_visit_name__has_latest_value",
-                "has_visit_type__has_name_root__has_latest_value",
+                "has_visit_type__has_selected_term__has_name_root__has_latest_value",
             )
             .filter(
                 has_study_visit__latest_value__uid=study_uid,
@@ -211,7 +211,7 @@ class StudyVisitService(StudySelectionMixin):
         anchor_visits_in_a_group_of_subv = (
             StudyVisitNeoModel.nodes.fetch_relations(
                 "has_visit_name__has_latest_value",
-                "has_visit_type__has_name_root__has_latest_value",
+                "has_visit_type__has_selected_term__has_name_root__has_latest_value",
             )
             .filter(
                 has_study_visit__latest_value__uid=study_uid,
@@ -230,7 +230,7 @@ class StudyVisitService(StudySelectionMixin):
         anchor_visits_for_special_visit = (
             StudyVisitNeoModel.nodes.fetch_relations(
                 "has_visit_name__has_latest_value",
-                "has_visit_type__has_name_root__has_latest_value",
+                "has_visit_type__has_selected_term__has_name_root__has_latest_value",
             )
             .filter(
                 Q(visit_subclass=VisitSubclass.SINGLE_VISIT.name)
@@ -1058,31 +1058,37 @@ class StudyVisitService(StudySelectionMixin):
             VisitClass.UNSCHEDULED_VISIT,
             VisitClass.SPECIAL_VISIT,
         ]:
-            if value := study_visit_vo.derive_study_day_number():
+            if (value := study_visit_vo.derive_study_day_number()) is not None:
                 study_visit_vo.study_day = self._create_numeric_value_simple_concept(
                     value=value,
                     numeric_value_type=NumericValueType.STUDY_DAY,
                 )
-            if value := study_visit_vo.derive_study_duration_days_number():
+            if (
+                value := study_visit_vo.derive_study_duration_days_number()
+            ) is not None:
                 study_visit_vo.study_duration_days = (
                     self._create_numeric_value_simple_concept(
                         value=value,
                         numeric_value_type=NumericValueType.STUDY_DURATION_DAYS,
                     )
                 )
-            if value := study_visit_vo.derive_study_week_number():
+            if (value := study_visit_vo.derive_study_week_number()) is not None:
                 study_visit_vo.study_week = self._create_numeric_value_simple_concept(
                     value=value,
                     numeric_value_type=NumericValueType.STUDY_WEEK,
                 )
-            if value := study_visit_vo.derive_study_duration_weeks_number():
+            if (
+                value := study_visit_vo.derive_study_duration_weeks_number()
+            ) is not None:
                 study_visit_vo.study_duration_weeks = (
                     self._create_numeric_value_simple_concept(
                         value=value,
                         numeric_value_type=NumericValueType.STUDY_DURATION_WEEKS,
                     )
                 )
-            if value := study_visit_vo.derive_study_duration_weeks_number():
+            if (
+                value := study_visit_vo.derive_study_duration_weeks_number()
+            ) is not None:
                 study_visit_vo.week_in_study = (
                     self._create_numeric_value_simple_concept(
                         value=value,

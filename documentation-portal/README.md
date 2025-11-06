@@ -1,4 +1,4 @@
-# StudyBuilder documentation portal
+# OpenStudyBuilder documentation portal
 
 ## Windows prerequisites to follow the project setup below
 - Make sure nodejs and yarn have been installed, this might require administrative privileges.

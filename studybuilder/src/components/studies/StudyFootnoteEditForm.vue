@@ -142,11 +142,10 @@ export default {
     },
   },
   mounted() {
-    terms.getByCodelist('footnoteTypes').then((resp) => {
+    terms.getTermsByCodelist('footnoteTypes').then((resp) => {
       for (const type of resp.data.items) {
         if (
-          type.name.sponsor_preferred_name ===
-          footnoteConstants.FOOTNOTE_TYPE_SOA
+          type.sponsor_preferred_name === footnoteConstants.FOOTNOTE_TYPE_SOA
         ) {
           this.footnoteType = type
           break

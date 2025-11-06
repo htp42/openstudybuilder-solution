@@ -13,9 +13,13 @@ from clinical_mdr_api import utils
 from clinical_mdr_api.domain_repositories._utils.helpers import (
     acquire_write_lock_study_value,
 )
+from clinical_mdr_api.domain_repositories.controlled_terminologies.ct_codelist_attributes_repository import (
+    CTCodelistAttributesRepository,
+)
 from clinical_mdr_api.domain_repositories.generic_repository import RepositoryImpl
 from clinical_mdr_api.domain_repositories.models.concepts import UnitDefinitionRoot
 from clinical_mdr_api.domain_repositories.models.controlled_terminology import (
+    CTTermContext,
     CTTermRoot,
 )
 from clinical_mdr_api.domain_repositories.models.dictionary import DictionaryTermRoot
@@ -1090,7 +1094,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
         study_root: StudyRoot,
         study_field_name: str,
         study_field_value: Any,
-        term_root_node: CTTermRoot | DictionaryTermRoot | None,
+        term_node: CTTermContext | DictionaryTermRoot | None,
         null_value_code: str | None = None,
         to_delete: bool = False,
     ):
@@ -1107,12 +1111,20 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                     "field_name": study_field_name,
                 }
             )[0]
-        if term_root_node:
-            study_field_node.has_type.connect(term_root_node)
+        if term_node:
+            study_field_node.has_type.connect(term_node)
         if null_value_code:
+            # TODO This doesn't do much, just gets the node with the given uid
             null_value_reason_node = self._get_associated_ct_term_root_node(
                 term_uid=null_value_code,
                 study_field_name="Null Flavour",
+            )
+            null_value_reason_node = (
+                CTCodelistAttributesRepository().get_or_create_selected_term(
+                    null_value_reason_node,
+                    codelist_submission_value=settings.null_flavor_cl_submval,
+                    catalogue_name=settings.sdtm_ct_catalogue_name,
+                )
             )
 
             study_field_node.has_reason_for_null_value.connect(null_value_reason_node)
@@ -1190,7 +1202,9 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                     or study_field_null_value_code is not None
                 ):
                     node_uid = None
+                    configured_codelist_uid = None
                     if config_item.configured_codelist_uid:
+                        configured_codelist_uid = config_item.configured_codelist_uid
                         node_uid = study_field_value
                     elif config_item.study_field_data_type == StudyFieldType.BOOL:
                         node_uid = (
@@ -1198,6 +1212,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                             if study_field_value
                             else settings.ct_uid_boolean_no
                         )
+                        configured_codelist_uid = settings.ct_uid_boolean_codelist
                     elif config_item.configured_term_uid:
                         node_uid = config_item.configured_term_uid
                     if node_uid:
@@ -1206,6 +1221,12 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                             study_field_name=study_field_name,
                             is_dictionary_term=config_item.is_dictionary_term,
                         )
+                        if not config_item.is_dictionary_term:
+                            ct_term_root_node = CTCodelistAttributesRepository().get_or_create_selected_term(
+                                ct_term_root_node,
+                                codelist_uid=configured_codelist_uid,
+                                catalogue_name=settings.sdtm_ct_catalogue_name,
+                            )
                     else:
                         ct_term_root_node = None
 
@@ -1216,7 +1237,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                 study_root=study_root,
                                 study_field_name=study_field_name,
                                 study_field_value=study_field_value,
-                                term_root_node=ct_term_root_node,
+                                term_node=ct_term_root_node,
                                 to_delete=to_delete,
                             )
                             if not to_delete:
@@ -1229,7 +1250,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                 study_root=study_root,
                                 study_field_name=study_field_name,
                                 study_field_value=study_field_value,
-                                term_root_node=ct_term_root_node,
+                                term_node=ct_term_root_node,
                                 to_delete=to_delete,
                             )
                             if not to_delete:
@@ -1242,7 +1263,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                 study_root=study_root,
                                 study_field_name=study_field_name,
                                 study_field_value=study_field_value,
-                                term_root_node=ct_term_root_node,
+                                term_node=ct_term_root_node,
                                 to_delete=to_delete,
                             )
                             if not to_delete:
@@ -1255,7 +1276,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                 study_root=study_root,
                                 study_field_name=study_field_name,
                                 study_field_value=study_field_value,
-                                term_root_node=ct_term_root_node,
+                                term_node=ct_term_root_node,
                                 to_delete=to_delete,
                             )
                             if not to_delete:
@@ -1270,7 +1291,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                 study_root=study_root,
                                 study_field_name=study_field_name,
                                 study_field_value=study_field_value,
-                                term_root_node=ct_term_root_node,
+                                term_node=ct_term_root_node,
                                 null_value_code=study_field_null_value_code,
                                 to_delete=to_delete,
                             )
@@ -1284,7 +1305,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                 study_root=study_root,
                                 study_field_name=study_field_name,
                                 study_field_value=study_field_value,
-                                term_root_node=ct_term_root_node,
+                                term_node=ct_term_root_node,
                                 null_value_code=study_field_null_value_code,
                                 to_delete=to_delete,
                             )
@@ -1298,7 +1319,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                 study_root=study_root,
                                 study_field_name=study_field_name,
                                 study_field_value=study_field_value,
-                                term_root_node=ct_term_root_node,
+                                term_node=ct_term_root_node,
                                 null_value_code=study_field_null_value_code,
                                 to_delete=to_delete,
                             )
@@ -1312,7 +1333,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                 study_root=study_root,
                                 study_field_name=study_field_name,
                                 study_field_value=study_field_value,
-                                term_root_node=ct_term_root_node,
+                                term_node=ct_term_root_node,
                                 null_value_code=study_field_null_value_code,
                                 to_delete=to_delete,
                             )
@@ -1445,6 +1466,12 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                                     study_field_name=study_array_field_name,
                                     is_dictionary_term=config_item.is_dictionary_term,
                                 )
+                                if not config_item.is_dictionary_term:
+                                    ct_term_root_node = CTCodelistAttributesRepository().get_or_create_selected_term(
+                                        ct_term_root_node,
+                                        codelist_uid=config_item.configured_codelist_uid,
+                                        catalogue_name=settings.sdtm_ct_catalogue_name,
+                                    )
                                 ct_term_root_nodes.append(ct_term_root_node)
                     if study_array_field_value:
                         # If the value is set, create a StudyTextField node and (optionally) link it to matching CT term.
@@ -1495,6 +1522,12 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                             term_uid=study_array_field_null_value_code,
                             study_field_name="Null Flavor",
                         )
+                        null_value_reason_node = CTCodelistAttributesRepository().get_or_create_selected_term(
+                            null_value_reason_node,
+                            codelist_submission_value=settings.null_flavor_cl_submval,
+                            catalogue_name=settings.sdtm_ct_catalogue_name,
+                        )
+
                         study_array_field_node.has_reason_for_null_value.connect(
                             null_value_reason_node
                         )
@@ -1604,7 +1637,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                             study_root=study_root,
                             study_field_name=study_registry_id_name,
                             study_field_value=study_registry_id_value,
-                            term_root_node=None,
+                            term_node=None,
                             to_delete=to_delete,
                         )
                     )
@@ -1620,7 +1653,7 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
                             study_root=study_root,
                             study_field_name=study_registry_id_name,
                             study_field_value=study_registry_id_value,
-                            term_root_node=None,
+                            term_node=None,
                             null_value_code=study_registry_null_value_code,
                             to_delete=to_delete,
                         )
@@ -1669,20 +1702,24 @@ class StudyDefinitionRepositoryImpl(StudyDefinitionRepository, RepositoryImpl):
         )
         retrieved_data[study_field_node_name] = study_field_node_value
         if null_value_code is not None:
-            retrieved_data[null_value_field_name] = null_value_code.uid
+            retrieved_data[null_value_field_name] = (
+                null_value_code.has_selected_term.single().uid
+            )
         else:
             retrieved_data[null_value_field_name] = None
 
     @classmethod
     def _get_text_field_value(cls, text_field_node) -> str:
-        if type_node := text_field_node.has_type.get_or_none():
-            return type_node.uid
+        if type_context_node := text_field_node.has_type.get_or_none():
+            return type_context_node.has_selected_term.get_or_none().uid
         return text_field_node.value
 
     @classmethod
     def _get_array_field_values(cls, array_field_node) -> list[str]:
         if type_nodes := array_field_node.has_type.all():
-            return sorted(node.uid for node in type_nodes)
+            return sorted(
+                node.has_selected_term.get_or_none().uid for node in type_nodes
+            )
         return array_field_node.value
 
     @classmethod
@@ -3004,7 +3041,7 @@ MATCH (sr:StudyRoot)-[:LATEST]->(sv)
         study_root = StudyRoot.nodes.get(uid=study_uid)
         latest_study_value = study_root.latest_value.single()
 
-        for name, value in soa_preferences.dict(by_alias=True).items():
+        for name, value in soa_preferences.model_dump(by_alias=True).items():
             field_sf = StudyBooleanField.create({"field_name": name, "value": value})[0]
             latest_study_value.has_boolean_field.connect(field_sf)
 
@@ -3027,7 +3064,7 @@ MATCH (sr:StudyRoot)-[:LATEST]->(sv)
         """Replaces StudyBooleanField nodes of SoA preferences for the supplied show_* parameters only"""
 
         # exclude_unset skips properties that were not provided on init, also won't use defaults
-        prefs = soa_preferences.dict(by_alias=True, exclude_unset=True)
+        prefs = soa_preferences.model_dump(by_alias=True, exclude_unset=True)
 
         study_root = StudyRoot.nodes.get(uid=study_uid)
         latest_study_value = study_root.latest_value.single()

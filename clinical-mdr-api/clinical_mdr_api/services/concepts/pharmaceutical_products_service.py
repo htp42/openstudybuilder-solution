@@ -38,6 +38,7 @@ class PharmaceuticalProductService(ConceptGenericService[PharmaceuticalProductAR
             find_active_substance_by_uid=self._repos.active_substance_repository.find_by_uid_2,
             find_dictionary_term_by_uid=self._repos.dictionary_term_generic_repository.find_by_uid_2,
             find_substance_term_by_uid=self._repos.dictionary_term_substance_repository.find_by_uid_2,
+            find_codelist_term_by_uid_and_submission_value=self._repos.ct_codelist_name_repository.get_codelist_term_by_uid_and_submval,
         )
 
     def _create_aggregate_root(
