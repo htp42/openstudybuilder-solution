@@ -1,0 +1,1985 @@
+{
+    "_links":
+    {
+        "self":
+        {
+            "href": "/mdr/ct/packages/tmfct-2024-09-27",
+            "title": "TMF Controlled Terminology Package 58 Effective 2024-09-27",
+            "type": "Terminology"
+        }
+    },
+    "codelists":
+    [
+        {
+            "conceptId": "C208283",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Central and Local Testing Zone.",
+            "name": "Central and Local Testing Zone",
+            "preferredTerm": "CDISC TMF-RM Central and Local Testing Zone Terminology",
+            "submissionValue": "Central and Local Testing Zone",
+            "synonyms":
+            [
+                "Central and Local Testing Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C207194",
+                    "definition": "Documentation verifying the competence of a testing facility by an accrediting body.",
+                    "preferredTerm": "Testing Facility Certification or Accreditation Documentation",
+                    "submissionValue": "Certification or Accreditation"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C207199",
+                    "definition": "Documentation detailing the education, qualification and work experience of the head of the testing facility participating in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Head of Facility Curriculum Vitae Documentation",
+                    "submissionValue": "Head of Facility Curriculum Vitae"
+                },
+                {
+                    "conceptId": "C207196",
+                    "definition": "Documentation of laboratory results for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Laboratory Results Documentation",
+                    "submissionValue": "Laboratory Results Documentation"
+                },
+                {
+                    "conceptId": "C207195",
+                    "definition": "Documentation verifying the ability of a laboratory to produce consistent and reliable results for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Laboratory Validation Documentation",
+                    "submissionValue": "Laboratory Validation Documentation"
+                },
+                {
+                    "conceptId": "C207197",
+                    "definition": "Documentation describing the procedures for collection, handling, and shipping of specimens for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Testing Facility Manual Documentation",
+                    "submissionValue": "Manual"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C71474",
+                    "definition": "Documentation defining the acceptable limits for a measurement assessed for the clinical trial.",
+                    "preferredTerm": "Reference Range",
+                    "submissionValue": "Normal Ranges"
+                },
+                {
+                    "conceptId": "C115570",
+                    "definition": "Documentation pertaining to the identification and location of retained specimens for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Record of Retained Biological Samples Documentation",
+                    "submissionValue": "Record of Retained Samples"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C115635",
+                    "definition": "Documentation pertaining to the importation or exportation of specimens for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Biological Sample Import or Export Documentation",
+                    "submissionValue": "Sample Import or Export Documentation"
+                },
+                {
+                    "conceptId": "C115535",
+                    "definition": "Documentation detailing the monitoring and tracking of the specimens storage conditions for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Biological Sample Storage Condition Log Documentation",
+                    "submissionValue": "Sample Storage Condition Log"
+                },
+                {
+                    "conceptId": "C207200",
+                    "definition": "Documentation detailing the shipment of specimens for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Specimen Shipment Records Documentation",
+                    "submissionValue": "Shipment Records"
+                },
+                {
+                    "conceptId": "C115528",
+                    "definition": "Documentation detailing the identification and collection of a specimen for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Specimen Label Documentation",
+                    "submissionValue": "Specimen Label"
+                },
+                {
+                    "conceptId": "C115653",
+                    "definition": "Documentation confirming the ability of two or more testing facilities to achieve consistent results when performing the same test or procedure for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Interfacility Standardization Methods Documentation",
+                    "submissionValue": "Standardization Methods"
+                },
+                {
+                    "conceptId": "C207198",
+                    "definition": "Documentation pertaining to the importation of testing facility supplies for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Supply Import Documentation",
+                    "submissionValue": "Supply Import Documentation"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208277",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Central Trial Documents Zone.",
+            "name": "Central Trial Documents Zone",
+            "preferredTerm": "CDISC TMF-RM Central Trial Documents Zone Terminology",
+            "submissionValue": "Central Trial Documents Zone",
+            "synonyms":
+            [
+                "Central Trial Documents Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115462",
+                    "definition": "Template documentation used in the clinical trial recruitment campaigns.",
+                    "preferredTerm": "Clinical Trial Subject Recruitment Advertisement Documentation",
+                    "submissionValue": "Advertisements for Subject Recruitment"
+                },
+                {
+                    "conceptId": "C115573",
+                    "definition": "Documentation describing final or interim results of the bioanalytical aspects of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Bioanalytical Report Documentation",
+                    "submissionValue": "Bioanalytical Report"
+                },
+                {
+                    "conceptId": "C79176",
+                    "definition": "Documentation describing final or interim results and interpretation of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Reports and Related Information Documentation",
+                    "submissionValue": "Clinical Study Report"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C207179",
+                    "definition": "Documentation summarizing the financial interests and arrangements of the investigator(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigators Financial Disclosure Form Summary Documentation",
+                    "submissionValue": "Financial Disclosure Summary"
+                },
+                {
+                    "conceptId": "C208325",
+                    "definition": "Template documentation used to explain that the appropriate information has been given to subjects regarding the clinical trial to support their ability to give fully informed consent and to document their consent to trial participation in writing.",
+                    "preferredTerm": "Template Informed Consent Form Documentation",
+                    "submissionValue": "Informed Consent Form"
+                },
+                {
+                    "conceptId": "C115651",
+                    "definition": "Documentation confirming appropriate insurance coverage is available for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Insurance Documentation",
+                    "submissionValue": "Insurance"
+                },
+                {
+                    "conceptId": "C115526",
+                    "definition": "Documentation providing relevant and current clinical and non-clinical data on the investigational product(s) that is related to the study of the product(s) in human subjects.",
+                    "preferredTerm": "Clinical Trial Investigator Brochure Documentation",
+                    "submissionValue": "Investigator's Brochure"
+                },
+                {
+                    "conceptId": "C207180",
+                    "definition": "Documentation of materials found in the legal pharmacologic description of the clinical trial investigational product(s).",
+                    "preferredTerm": "Marketed Clinical Trial Investigational Product Material Legal Documentation",
+                    "submissionValue": "Marketed Product Material"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C115518",
+                    "definition": "Template documentation provided to the subject to further assist with understanding the clinical trial requirements or concepts.",
+                    "preferredTerm": "Clinical Trial Subject Miscellaneous Form Documentation",
+                    "submissionValue": "Other Information Given to Subjects"
+                },
+                {
+                    "conceptId": "C207178",
+                    "definition": "Documentation describing the subsequent versions of the original clinical study protocol as well as supporting documents that may include description of change(s) to or formal clarification of the protocol.",
+                    "preferredTerm": "Clinical Study Protocol Amendment Documentation",
+                    "submissionValue": "Protocol Amendment"
+                },
+                {
+                    "conceptId": "C115628",
+                    "definition": "Documentation summarizing the key points of the clinical study protocol.",
+                    "preferredTerm": "Clinical Study Protocol Synopsis Documentation",
+                    "submissionValue": "Protocol Synopsis"
+                },
+                {
+                    "conceptId": "C25320",
+                    "definition": "Documentation describing the objective(s), design, methodology, statistical considerations and organization (and optionally, background and rationale) of the clinical trial.",
+                    "preferredTerm": "Clinical Study Protocol",
+                    "submissionValue": "Protocol"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C125431",
+                    "definition": "Documentation reporting all prior clinical, animal, and laboratory testing of a medical device.",
+                    "preferredTerm": "Medical Device Report of Prior Investigations Documentation",
+                    "submissionValue": "Report of Prior Investigations"
+                },
+                {
+                    "conceptId": "C40988",
+                    "definition": "Template documentation used to capture the data points of the clinical study protocol.",
+                    "preferredTerm": "Case Report Form",
+                    "submissionValue": "Sample Case Report Form"
+                },
+                {
+                    "conceptId": "C115589",
+                    "definition": "Template documentation used to capture data recorded by the subject.",
+                    "preferredTerm": "Subject Diary Documentation",
+                    "submissionValue": "Subject Diary"
+                },
+                {
+                    "conceptId": "C115517",
+                    "definition": "Template documentation used to provide information to the subjects to support their decision about whether or not to participate in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Subject Information Form Documentation",
+                    "submissionValue": "Subject Information Sheet"
+                },
+                {
+                    "conceptId": "C115519",
+                    "definition": "Template documentation provided to the subject to carry to document clinical trial participation.",
+                    "preferredTerm": "Clinical Trial Subject Participation Form Documentation",
+                    "submissionValue": "Subject Participation Card"
+                },
+                {
+                    "conceptId": "C115559",
+                    "definition": "Template documentation used to capture specific subject related information through a series of questions.",
+                    "preferredTerm": "Clinical Trial Subject Questionnaire Documentation",
+                    "submissionValue": "Subject Questionnaire"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208285",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Data Management Zone.",
+            "name": "Data Management Zone",
+            "preferredTerm": "CDISC TMF-RM Data Management Zone Terminology",
+            "submissionValue": "Data Management Zone",
+            "synonyms":
+            [
+                "Data Management Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115749",
+                    "definition": "Documentation describing the process to map and assign subject information collected on the case report form into the proper structure of a dataset for the clinical trial.",
+                    "preferredTerm": "Case Report Form Annotation Guideline Documentation",
+                    "submissionValue": "Annotated CRF"
+                },
+                {
+                    "conceptId": "C207207",
+                    "definition": "Documentation verifying the completion of all requirements for the clinical trial database activation specification.",
+                    "preferredTerm": "Clinical Trial Approval for Database Activation Documentation",
+                    "submissionValue": "Approval for Database Activation"
+                },
+                {
+                    "conceptId": "C115750",
+                    "definition": "Documentation providing the instruction for completing the case report form for the clinical trial.",
+                    "preferredTerm": "Case Report Form Guideline Documentation",
+                    "submissionValue": "CRF Completion Requirements"
+                },
+                {
+                    "conceptId": "C207209",
+                    "definition": "Documentation describing the proper entry of data from a paper document to the clinical trial database.",
+                    "preferredTerm": "Clinical Trial Data Entry Guidelines From Paper Forms Documentation",
+                    "submissionValue": "Data Entry Guidelines (Paper)"
+                },
+                {
+                    "conceptId": "C115756",
+                    "definition": "Documentation describing the overall data management process for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Data Management Plan Documentation",
+                    "submissionValue": "Data Management Plan"
+                },
+                {
+                    "conceptId": "C207210",
+                    "definition": "Documentation pertaining to the creation and implementation of, and the output from the Quality Control Plan or Data Review Plan for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Data Review Documentation",
+                    "submissionValue": "Data Review Documentation"
+                },
+                {
+                    "conceptId": "C125438",
+                    "definition": "Documentation detailing the changes made to the clinical trial database.",
+                    "preferredTerm": "Clinical Trial Database Change Control Documentation",
+                    "submissionValue": "Database Change Control"
+                },
+                {
+                    "conceptId": "C207211",
+                    "definition": "Documentation confirming the completion and satisfaction of all the requirements for a database lock and unlock for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Database Lock and Unlock Approval Documentation",
+                    "submissionValue": "Database Lock and Unlock Approval"
+                },
+                {
+                    "conceptId": "C207203",
+                    "definition": "Documentation describing the framework and process required to build the clinical trial database for paper and electronic data capture.",
+                    "preferredTerm": "Clinical Trial Database Requirements Documentation",
+                    "submissionValue": "Database Requirements"
+                },
+                {
+                    "conceptId": "C115714",
+                    "definition": "Documentation describing the process and tools used in the medical coding for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Medical Dictionary Coding Documentation",
+                    "submissionValue": "Dictionary Coding"
+                },
+                {
+                    "conceptId": "C115521",
+                    "definition": "Documentation used to query database discrepancies and record approved corrections to the clinical trial database.",
+                    "preferredTerm": "Clinical Trial Corrections to Entered Data Documentation",
+                    "submissionValue": "Documentation of Corrections to Entered Data"
+                },
+                {
+                    "conceptId": "C207204",
+                    "definition": "Documentation describing the process of edit checks and database validation for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Database Validation Plan Documentation",
+                    "submissionValue": "Edit Check Plan"
+                },
+                {
+                    "conceptId": "C207205",
+                    "definition": "Documentation about the programs that satisfy the edit check specification details and rules specified by the Database Validation Plan for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Edit Check Programming Documentation",
+                    "submissionValue": "Edit Check Programming"
+                },
+                {
+                    "conceptId": "C207206",
+                    "definition": "Documentation verifying the correct implementation of data edit checks and validation rules for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Data Validation Testing Documentation",
+                    "submissionValue": "Edit Check Testing"
+                },
+                {
+                    "conceptId": "C207208",
+                    "definition": "Documentation specifying the import, export and transfer of the external data for the clinical trial.",
+                    "preferredTerm": "Clinical Trial External Data Transfer Specification Documentation",
+                    "submissionValue": "External Data Transfer Specifications"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C207202",
+                    "definition": "Documentation pertaining to the final subject data for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Final Subject Data Documentation",
+                    "submissionValue": "Final Subject Data"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C115725",
+                    "definition": "Documentation verifying that the safety database is consistent with the clinical trial database.",
+                    "preferredTerm": "Clinical Trial Safety and Clinical Database Reconciliation Documentation",
+                    "submissionValue": "SAE Reconciliation"
+                },
+                {
+                    "conceptId": "C115687",
+                    "definition": "Documentation providing the account management details for users who require access to a system for the clinical trial.",
+                    "preferredTerm": "Clinical Trial System Account Management Documentation",
+                    "submissionValue": "System Account Management"
+                },
+                {
+                    "conceptId": "C207212",
+                    "definition": "Documentation pertaining to the design elements required to build and test the electronic data capture system used for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Electronic Data Capture System Technical Design Documentation",
+                    "submissionValue": "Technical Design Document"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                },
+                {
+                    "conceptId": "C207213",
+                    "definition": "Documentation pertaining to the validation of the electronic data capture system used for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Electronic Data Capture System Validation Documentation",
+                    "submissionValue": "Validation Documentation"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208281",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the IP and Trial Supplies Zone.",
+            "name": "IP and Trial Supplies Zone",
+            "preferredTerm": "CDISC TMF-RM IP and Trial Supplies Zone Terminology",
+            "submissionValue": "IP and Trial Supplies Zone",
+            "synonyms":
+            [
+                "IP and Trial Supplies Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115473",
+                    "definition": "Documentation confirming the investigational product(s) are the correct identity, purity and strength for use in the intended clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Certificate of Analysis Documentation",
+                    "submissionValue": "Certificate of Analysis"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C115564",
+                    "definition": "Documentation detailing the dispensing and return of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Accountability Documentation",
+                    "submissionValue": "IP Accountability Documentation"
+                },
+                {
+                    "conceptId": "C115472",
+                    "definition": "Documentation describing and certifying the destruction of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Certificate of Destruction Documentation",
+                    "submissionValue": "IP Certificate of Destruction"
+                },
+                {
+                    "conceptId": "C115525",
+                    "definition": "Documentation describing the safe handling, storage, distribution, and return of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Handling Instruction Documentation",
+                    "submissionValue": "IP Instructions for Handling"
+                },
+                {
+                    "conceptId": "C115522",
+                    "definition": "Documentation of the complaint directed against the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Quality Complaint Documentation",
+                    "submissionValue": "IP Quality Complaint Form"
+                },
+                {
+                    "conceptId": "C115759",
+                    "definition": "Documentation detailing the re-labeling of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Relabeling Documentation",
+                    "submissionValue": "IP Re-labeling Documentation"
+                },
+                {
+                    "conceptId": "C115758",
+                    "definition": "Documentation detailing the recall of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Recall Documentation",
+                    "submissionValue": "IP Recall Documentation"
+                },
+                {
+                    "conceptId": "C115708",
+                    "definition": "Documentation detailing the regulatory release of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Regulatory Release Documentation",
+                    "submissionValue": "IP Regulatory Release Documentation"
+                },
+                {
+                    "conceptId": "C125435",
+                    "definition": "Documentation describing the batch retesting of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Retest and Expiry Documentation",
+                    "submissionValue": "IP Retest and Expiry Documentation"
+                },
+                {
+                    "conceptId": "C115566",
+                    "definition": "Documentation providing information regarding the return of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Return Documentation",
+                    "submissionValue": "IP Return Documentation"
+                },
+                {
+                    "conceptId": "C115527",
+                    "definition": "A sample of each investigational product label used in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Sample Label",
+                    "submissionValue": "IP Sample Label"
+                },
+                {
+                    "conceptId": "C115567",
+                    "definition": "Documentation providing information regarding the shipment of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Shipment Documentation",
+                    "submissionValue": "IP Shipment Documentation"
+                },
+                {
+                    "conceptId": "C207189",
+                    "definition": "Documentation pertaining to the storage conditions of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Storage Condition Documentation",
+                    "submissionValue": "IP Storage Condition Documentation"
+                },
+                {
+                    "conceptId": "C207190",
+                    "definition": "Documentation describing any excursions from a required storage condition for the investigational product(s) of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Storage Condition Excursion Documentation",
+                    "submissionValue": "IP Storage Condition Excursion Documentation"
+                },
+                {
+                    "conceptId": "C115760",
+                    "definition": "Documentation describing the supply management of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Supply Plan Documentation",
+                    "submissionValue": "IP Supply Plan"
+                },
+                {
+                    "conceptId": "C115568",
+                    "definition": "Documentation detailing the transfer of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Transfer Documentation",
+                    "submissionValue": "IP Transfer Documentation"
+                },
+                {
+                    "conceptId": "C207188",
+                    "definition": "Documentation describing the treatment allocation of the investigational product(s) to subjects in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Treatment Allocation Documentation",
+                    "submissionValue": "IP Treatment Allocation Documentation"
+                },
+                {
+                    "conceptId": "C115572",
+                    "definition": "Documentation describing the actions taken after breaking the blind for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Treatment Decoding Documentation",
+                    "submissionValue": "IP Treatment Decoding Documentation"
+                },
+                {
+                    "conceptId": "C116349",
+                    "definition": "Documentation describing the processes and procedures for breaking the blind for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Unblinding Plan Documentation",
+                    "submissionValue": "IP Unblinding Plan"
+                },
+                {
+                    "conceptId": "C207187",
+                    "definition": "Documentation required to verify the quality, source, manufacture, ingredients or other aspects of the investigational product(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigational Product Verification Statements Documentation",
+                    "submissionValue": "IP Verification Statements"
+                },
+                {
+                    "conceptId": "C115470",
+                    "definition": "Documentation pertaining to the user acceptance testing performed on the interactive response technology.",
+                    "preferredTerm": "Interactive Response Technology User Acceptance Testing Certification Documentation",
+                    "submissionValue": "IRT User Acceptance Testing (UAT) Certification"
+                },
+                {
+                    "conceptId": "C207193",
+                    "definition": "Documentation pertaining to the user account management of the interactive response technology system.",
+                    "preferredTerm": "Interactive Response Technology User Account Management Documentation",
+                    "submissionValue": "IRT User Account Management"
+                },
+                {
+                    "conceptId": "C115540",
+                    "definition": "Documentation providing operational instructions for the interactive response technology.",
+                    "preferredTerm": "Interactive Response Technology User Manual Documentation",
+                    "submissionValue": "IRT User Manual"
+                },
+                {
+                    "conceptId": "C115592",
+                    "definition": "Documentation describing the end user requirements of the interactive response technology.",
+                    "preferredTerm": "Interactive Response Technology User Specification Documentation",
+                    "submissionValue": "IRT User Requirement Specification"
+                },
+                {
+                    "conceptId": "C115471",
+                    "definition": "Documentation confirming the validation of the interactive response technology.",
+                    "preferredTerm": "Interactive Response Technology Validation Certification Documentation",
+                    "submissionValue": "IRT Validation Certification"
+                },
+                {
+                    "conceptId": "C207191",
+                    "definition": "Documentation pertaining to the assessment of the quality and condition, and maintenance of the investigational product(s)(IP), non-IP(s) and other supplies used in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Maintenance Logs Documentation",
+                    "submissionValue": "Maintenance Logs"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C115661",
+                    "definition": "Documentation providing information regarding the return of the non-investigational product(s) and supplies for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Non-Investigational Product Supplies Documentation of Return",
+                    "submissionValue": "Non-IP Return Documentation"
+                },
+                {
+                    "conceptId": "C115563",
+                    "definition": "Documentation providing information regarding the shipment of the non-investigational product(s) and other supplies for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Non-Investigational Product Supplies Shipment Documentation",
+                    "submissionValue": "Non-IP Shipment Documentation"
+                },
+                {
+                    "conceptId": "C207192",
+                    "definition": "Documentation pertaining to the storage conditions of the non-investigational product(s) and supplies used for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Non-Investigational Product Supplies Storage Documentation",
+                    "submissionValue": "Non-IP Storage Documentation"
+                },
+                {
+                    "conceptId": "C115754",
+                    "definition": "Documentation describing the supply management of the non-investigational product(s) and other supplies for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Non-Investigational Product Supplies Plan Documentation",
+                    "submissionValue": "Non-IP Supply Plan"
+                },
+                {
+                    "conceptId": "C115720",
+                    "definition": "Documentation from a Qualified Person confirming that the investigational product(s) for the clinical trial have been manufactured according to Good Manufacturing Processes.",
+                    "preferredTerm": "Clinical Trial Qualified Person Investigational Product Certification Documentation",
+                    "submissionValue": "QP (Qualified Person) Certification"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208279",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the IRB or IEC and Other Approvals Zone.",
+            "name": "IRB or IEC and Other Approvals Zone",
+            "preferredTerm": "CDISC TMF-RM IRB or IEC and Other Approvals Zone Terminology",
+            "submissionValue": "IRB or IEC and Other Approvals Zone",
+            "synonyms":
+            [
+                "IRB or IEC and Other Approvals Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C115594",
+                    "definition": "Documentation confirming the Institutional Review Board or Independent Ethics Committee is in compliance with written operating procedures, Good Clinical Practices, and applicable regulatory requirements.",
+                    "preferredTerm": "Institutional Review Board Independent Ethics Committee Compliance Documentation",
+                    "submissionValue": "IRB or IEC Compliance Documentation"
+                },
+                {
+                    "conceptId": "C115694",
+                    "definition": "Documentation pertaining to the membership of the Institutional Review Board or Independent Ethics Committee regarding their qualifications and experience to review and evaluate the science, medical aspects, and ethics of the clinical trial.",
+                    "preferredTerm": "Institutional Review Board Independent Ethics Committee Composition Documentation",
+                    "submissionValue": "IRB or IEC Composition"
+                },
+                {
+                    "conceptId": "C207182",
+                    "definition": "Documentation detailing the decisions made by the Institutional Review Board or Independent Ethics Committee of the clinical trial.",
+                    "preferredTerm": "Institutional Review Board Independent Ethics Committee Decision Documentation",
+                    "submissionValue": "IRB or IEC Decision"
+                },
+                {
+                    "conceptId": "C115695",
+                    "definition": "Documentation verifying investigator, sub-investigator, or other party of the clinical trial has not voted, if they are members of the Institutional Review Board or Independent Ethics Committee.",
+                    "preferredTerm": "Institutional Review Board Independent Ethics Committee Documentation of Non-Voting Status",
+                    "submissionValue": "IRB or IEC Documentation of Non-Voting Status"
+                },
+                {
+                    "conceptId": "C115699",
+                    "definition": "Documentation detailing the communications to the Institutional Review Board or Independent Ethics Committee of the termination or closure of the clinical trial.",
+                    "preferredTerm": "Institutional Review Board Independent Ethics Committee Notification of Trial Termination or Closure Documentation",
+                    "submissionValue": "IRB or IEC Notification of Trial Termination"
+                },
+                {
+                    "conceptId": "C126092",
+                    "definition": "Documentation containing regular reports of the clinical trial conduct, other than safety reports, submitted to the Institutional Review Board or Independent Ethics Committee.",
+                    "preferredTerm": "Institutional Review Board Independent Ethics Committee Progress Report Documentation",
+                    "submissionValue": "IRB or IEC Progress Report"
+                },
+                {
+                    "conceptId": "C115616",
+                    "definition": "Documentation submitted to an Institutional Review Board or Independent Ethics Committee for approval of the clinical trial, and any changes or updates made to that trial.",
+                    "preferredTerm": "Institutional Review Board Independent Ethics Committee Submission Documentation",
+                    "submissionValue": "IRB or IEC Submission"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C115698",
+                    "definition": "Documentation submitted to the Institutional Review Board or Independent Ethics Committee detailing the safety of subjects in the clinical trial.",
+                    "preferredTerm": "Institutional Review Board Independent Ethics Committee Notification of Safety Information Documentation",
+                    "submissionValue": "Notification to IRB or IEC of Safety Information"
+                },
+                {
+                    "conceptId": "C115736",
+                    "definition": "Documentation detailing the decisions made by other committee(s) of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Other Committees Decisions Documentation",
+                    "submissionValue": "Other Approvals"
+                },
+                {
+                    "conceptId": "C126093",
+                    "definition": "Documentation submitted to other committee(s) for approval of the clinical trial, and any changes or updates made to that trial.",
+                    "preferredTerm": "Clinical Trial Submission to Other Committees Documentation",
+                    "submissionValue": "Other Submissions"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208278",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Regulatory Zone.",
+            "name": "Regulatory Zone",
+            "preferredTerm": "CDISC TMF-RM Regulatory Zone Terminology",
+            "submissionValue": "Regulatory Zone",
+            "synonyms":
+            [
+                "Regulatory Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C115530",
+                    "definition": "Documentation authorizing the import or export of an investigational product, and/or clinical supplies into/out of its territory.",
+                    "preferredTerm": "Clinical Trial Import or Export Documentation",
+                    "submissionValue": "Import or Export Documentation"
+                },
+                {
+                    "conceptId": "C115466",
+                    "definition": "Documentation submitted to regulatory authorities requesting a license to import or export an investigational product, and/or clinical supplies.",
+                    "preferredTerm": "Clinical Trial Import-Export License Application Documentation",
+                    "submissionValue": "Import or Export License Application"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C115717",
+                    "definition": "Documentation of the unique identification number assigned by a regulatory authority used to identify the clinical trial.",
+                    "preferredTerm": "Clinical Trial Notification of Regulatory Identification Number Documentation",
+                    "submissionValue": "Notification of Regulatory Identification Number"
+                },
+                {
+                    "conceptId": "C115551",
+                    "definition": "Documentation submitted to the regulatory authorities pertaining to any events that may impact the safety of subjects or the conduct of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Notification of Safety or Other Trial Information Documentation",
+                    "submissionValue": "Notification of Safety or Trial Information"
+                },
+                {
+                    "conceptId": "C115734",
+                    "definition": "Documentation pertaining to the registration of the clinical trial in public registries.",
+                    "preferredTerm": "Clinical Trial Public Registration Documentation",
+                    "submissionValue": "Public Registration"
+                },
+                {
+                    "conceptId": "C79189",
+                    "definition": "Documentation detailing the decisions made by the regulatory authorities of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Regulatory Authority Decision Documentation",
+                    "submissionValue": "Regulatory Authority Decision"
+                },
+                {
+                    "conceptId": "C115662",
+                    "definition": "Documentation detailing the communications to regulatory authorities of the termination or closure of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Regulatory Notification of Termination or Closure Documentation",
+                    "submissionValue": "Regulatory Notification of Trial Termination"
+                },
+                {
+                    "conceptId": "C207181",
+                    "definition": "Documentation containing regular reports of the clinical trial conduct, other than safety reports, submitted to the regulatory authorities.",
+                    "preferredTerm": "Clinical Trial Regulatory Progress Report Documentation",
+                    "submissionValue": "Regulatory Progress Report"
+                },
+                {
+                    "conceptId": "C70885",
+                    "definition": "An assembly of one or more regulatory submission units supporting a specific regulatory purpose or decision. In most cases, the compilation of the submission units is utilized in the assessment of a regulated medical product quality, safety and/or effectiveness.",
+                    "preferredTerm": "Regulatory Submission",
+                    "submissionValue": "Regulatory Submission"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208282",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Safety Reporting Zone.",
+            "name": "Safety Reporting Zone",
+            "preferredTerm": "CDISC TMF-RM Safety Reporting Zone Terminology",
+            "submissionValue": "Safety Reporting Zone",
+            "synonyms":
+            [
+                "Safety Reporting Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115574",
+                    "definition": "Documentation describing unexpected serious adverse events experienced by the subject and other safety information in the clinical trial, which are submitted to regulatory authorities and Institutional Review Boards or Independent Ethics Committees.",
+                    "preferredTerm": "Clinical Trial Expedited Safety Report Documentation",
+                    "submissionValue": "Expedited Safety Report"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C115534",
+                    "definition": "Documentation containing the clinical trial data used for safety evaluations of investigational product(s).",
+                    "preferredTerm": "Clinical Trial Pharmacovigilance Data Line List Documentation",
+                    "submissionValue": "Pharmacovigilance Database Line Listing"
+                },
+                {
+                    "conceptId": "C115578",
+                    "definition": "Documentation pertaining to a pregnancy and its outcome as experienced by the female subject, or by the partner of the male subject during the clinical trial.",
+                    "preferredTerm": "Clinical Trial Pregnancy Report Documentation",
+                    "submissionValue": "Pregnancy Report"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C115587",
+                    "definition": "Documentation describing a serious adverse event experienced by the subject in the clinical trial, which is defined by the clinical study protocol.",
+                    "preferredTerm": "Clinical Trial Serious Adverse Event Report Documentation",
+                    "submissionValue": "SAE Report"
+                },
+                {
+                    "conceptId": "C115755",
+                    "definition": "Documentation describing the safety evaluation process of investigational product(s) during the clinical trial.",
+                    "preferredTerm": "Clinical Trial Safety Management Plan Documentation",
+                    "submissionValue": "Safety Management Plan"
+                },
+                {
+                    "conceptId": "C115558",
+                    "definition": "Documentation describing an event of special interest experienced by the subject in the clinical trial, which is defined by the clinical study protocol.",
+                    "preferredTerm": "Clinical Trial Special Events of Interest Documentation",
+                    "submissionValue": "Special Events of Interest"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208280",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Site Management Zone.",
+            "name": "Site Management Zone",
+            "preferredTerm": "CDISC TMF-RM Site Management Zone Terminology",
+            "submissionValue": "Site Management Zone",
+            "synonyms":
+            [
+                "Site Management Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115711",
+                    "definition": "Documentation confirming the receipt of the investigator brochure at the clinical trial site.",
+                    "preferredTerm": "Investigator Brochure Acceptance Documentation",
+                    "submissionValue": "Acceptance of Investigator Brochure"
+                },
+                {
+                    "conceptId": "C115737",
+                    "definition": "Documentation of additional clinical trial site monitoring activities.",
+                    "preferredTerm": "Clinical Trial Site Additional Monitoring Activity Documentation",
+                    "submissionValue": "Additional Monitoring Activity"
+                },
+                {
+                    "conceptId": "C60777",
+                    "definition": "Documentation detailing the agreement of the clinical trial requirements between the sponsor or representative of the sponsor and the investigator or institution.",
+                    "preferredTerm": "Clinical Trial Agreement Documentation",
+                    "submissionValue": "Clinical Trial Agreement"
+                },
+                {
+                    "conceptId": "C115476",
+                    "definition": "Documentation detailing the agreement between the sponsor or representative of the sponsor and the investigator or institution that contains the provisions governing the access and use of confidential information pertaining to the clinical trial.",
+                    "preferredTerm": "Clinical Trial Site Investigator Confidentiality Agreement Documentation",
+                    "submissionValue": "Confidentiality Agreement"
+                },
+                {
+                    "conceptId": "C125426",
+                    "definition": "Documentation pertaining to a coordinating investigator in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Coordinating Investigator Documentation",
+                    "submissionValue": "Coordinating Investigator Documentation"
+                },
+                {
+                    "conceptId": "C115474",
+                    "definition": "Documentation containing the provisions governing the use of, and access to, any and all data obtained from the clinical trial.",
+                    "preferredTerm": "Clinical Trial Data Privacy Agreement Documentation",
+                    "submissionValue": "Data Privacy Agreement"
+                },
+                {
+                    "conceptId": "C115668",
+                    "definition": "Documentation describing site feasibility for the clinical study protocol.",
+                    "preferredTerm": "Clinical Trial Site Feasibility Documentation",
+                    "submissionValue": "Feasibility Documentation"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C115581",
+                    "definition": "Documentation of the monitoring activities conducted to ensure that the clinical trial site meets requirements for closure.",
+                    "preferredTerm": "Final Clinical Trial Site Close Out Monitoring Report Documentation",
+                    "submissionValue": "Final Trial Close Out Monitoring Report"
+                },
+                {
+                    "conceptId": "C207185",
+                    "definition": "A document pertaining to the financial interests and arrangements of the investigator(s) for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigators Financial Disclosure Form",
+                    "submissionValue": "Financial Disclosure Form"
+                },
+                {
+                    "conceptId": "C115648",
+                    "definition": "Documentation containing information pertaining to the finances of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Financial Documentation",
+                    "submissionValue": "Financial Documentation"
+                },
+                {
+                    "conceptId": "C54623",
+                    "definition": "A federal form that is the statement of the investigator that he will abide by the federal guidelines set forth in the Code of Federal Regulations for the use of drugs in an investigational setting. [NCI]",
+                    "preferredTerm": "Form FDA 1572",
+                    "submissionValue": "Form FDA 1572"
+                },
+                {
+                    "conceptId": "C115649",
+                    "definition": "Documentation certifying legal protection in the event of any unforeseen adverse circumstance arising during the course of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Indemnity Documentation",
+                    "submissionValue": "Indemnity"
+                },
+                {
+                    "conceptId": "C115477",
+                    "definition": "Documentation containing the agreement by any/all investigators of the clinical trial that all trial activities will conform fully to all regulations as set forth by the law, or any other supervisory authority.",
+                    "preferredTerm": "Clinical Trial Investigator Regulatory Agreement Documentation",
+                    "submissionValue": "Investigator Regulatory Agreement"
+                },
+                {
+                    "conceptId": "C125432",
+                    "definition": "Documentation pertaining to the non-financial agreement for medical devices between the sponsor and the clinical trial investigator(s) documenting various responsibilities.",
+                    "preferredTerm": "Clinical Trial Medical Device Investigators Agreement Documentation",
+                    "submissionValue": "Investigators Agreement (Device)"
+                },
+                {
+                    "conceptId": "C115710",
+                    "definition": "Documentation approving the clinical trial site to receive a supply of investigational product(s).",
+                    "preferredTerm": "Investigational Product Clinical Trial Site Release Documentation",
+                    "submissionValue": "IP Site Release Documentation"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C125443",
+                    "definition": "Documentation pertaining to the follow-up of a monitoring visit of the clinical trial site.",
+                    "preferredTerm": "Clinical Trial Site Monitoring Visit Follow-up Documentation",
+                    "submissionValue": "Monitoring Visit Follow-up Documentation"
+                },
+                {
+                    "conceptId": "C115577",
+                    "definition": "Documentation of ongoing monitoring activities conducted for the evaluation of clinical trial conduct, and regulatory compliance of the clinical trial site.",
+                    "preferredTerm": "Clinical Trial Site Monitoring Visit Report Documentation",
+                    "submissionValue": "Monitoring Visit Report"
+                },
+                {
+                    "conceptId": "C115663",
+                    "definition": "Documentation verifying distribution and receipt of the communications related to the safety of the clinical trial to the investigators.",
+                    "preferredTerm": "Clinical Trial Notification to Investigators of Safety Information Documentation",
+                    "submissionValue": "Notification to Investigators of Safety Information"
+                },
+                {
+                    "conceptId": "C207183",
+                    "definition": "Documentation detailing the education, qualification and work experience of additional clinical trial site personnel (excluding principal and sub-investigators) involved in the conduct of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Site Other Personnel Curriculum Vitae Documentation",
+                    "submissionValue": "Other Curriculum Vitae"
+                },
+                {
+                    "conceptId": "C115475",
+                    "definition": "Documentation detailing the agreement of the clinical trial requirements between sponsor or representative of the sponsor and other parties (excluding the investigator and institution) involved in the conduct of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Financial Agreement Documentation",
+                    "submissionValue": "Other Financial Agreement"
+                },
+                {
+                    "conceptId": "C115586",
+                    "definition": "Documentation of monitoring activities conducted to evaluate whether a clinical trial site is qualified to participate in the clinical trial.",
+                    "preferredTerm": "Pre-Clinical Trial Site Evaluation Report Documentation",
+                    "submissionValue": "Pre Trial Monitoring Report"
+                },
+                {
+                    "conceptId": "C115487",
+                    "definition": "Documentation detailing the education, qualification and work experience of the principal investigator involved in the conduct of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Principal Investigator Curriculum Vitae Documentation",
+                    "submissionValue": "Principal Investigator Curriculum Vitae"
+                },
+                {
+                    "conceptId": "C115718",
+                    "definition": "Documentation signed by investigators confirming the agreement of the clinical trial site to follow the amendments to the clinical study protocol.",
+                    "preferredTerm": "Clinical Study Protocol Amendment Signature Page Documentation",
+                    "submissionValue": "Protocol Amendment Signature Page"
+                },
+                {
+                    "conceptId": "C115664",
+                    "definition": "Documentation detailing any non-compliance or deviations from the clinical study protocol.",
+                    "preferredTerm": "Clinical Study Protocol Deviation Documentation",
+                    "submissionValue": "Protocol Deviations"
+                },
+                {
+                    "conceptId": "C115719",
+                    "definition": "Documentation signed by investigators confirming the agreement of the clinical trial site to follow the clinical study protocol.",
+                    "preferredTerm": "Clinical Study Protocol Signature Page Documentation",
+                    "submissionValue": "Protocol Signature Page"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C115671",
+                    "definition": "Documentation detailing the contact information of the clinical trial site personnel.",
+                    "preferredTerm": "Clinical Trial Site Personnel Contact Detail Documentation",
+                    "submissionValue": "Site Contact Details"
+                },
+                {
+                    "conceptId": "C115674",
+                    "definition": "Documentation verifying the completion of training of the clinical trial site personnel.",
+                    "preferredTerm": "Clinical Trial Site Training Completion Documentation",
+                    "submissionValue": "Site Evidence of Training"
+                },
+                {
+                    "conceptId": "C115673",
+                    "definition": "Documentation tracking the task delegation made by the principal investigator to the site personnel conducting the clinical trial.",
+                    "preferredTerm": "Clinical Trial Site Task Assignment Documentation",
+                    "submissionValue": "Site Signature Sheet"
+                },
+                {
+                    "conceptId": "C207184",
+                    "definition": "Documentation detailing the additional education, training, qualification and work experience of the clinical trial site personnel (excluding curriculum vitae), involved in the conduct of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Site Staff Qualification Supporting Information Documentation",
+                    "submissionValue": "Site Staff Qualification Supporting Information"
+                },
+                {
+                    "conceptId": "C115604",
+                    "definition": "Documentation used to train site personnel involved in the conduct of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Site Training Material Documentation",
+                    "submissionValue": "Site Training Material"
+                },
+                {
+                    "conceptId": "C115739",
+                    "definition": "Documentation pertaining to potential clinical trial sites that were evaluated, but not selected, for the clinical trial.",
+                    "preferredTerm": "Unselected Clinical Trial Site Documentation",
+                    "submissionValue": "Sites Evaluated but not Selected"
+                },
+                {
+                    "conceptId": "C125433",
+                    "definition": "Documentation describing source data and associated verification activities for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Source Data Verification Documentation",
+                    "submissionValue": "Source Data Verification"
+                },
+                {
+                    "conceptId": "C125442",
+                    "definition": "Documentation pertaining to the source data collected from the clinical trial.",
+                    "preferredTerm": "Clinical Trial Source Data Documentation",
+                    "submissionValue": "Source Data"
+                },
+                {
+                    "conceptId": "C115488",
+                    "definition": "Documentation detailing the education, qualification and work experience of the sub-investigator(s) involved in the conduct of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Sub-Investigator Curriculum Vitae Documentation",
+                    "submissionValue": "Sub-Investigator Curriculum Vitae"
+                },
+                {
+                    "conceptId": "C125427",
+                    "definition": "Documentation verifying a subject is an appropriate candidate to participate in the clinical trial, as outlined by the clinical study protocol.",
+                    "preferredTerm": "Clinical Trial Subject Eligibility Verification Form and Worksheet Documentation",
+                    "submissionValue": "Subject Eligibility Verification Forms and Worksheets"
+                },
+                {
+                    "conceptId": "C125434",
+                    "definition": "Documentation identifying all the subjects screened, screen failed and enrolled for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Subject Identification Log Documentation",
+                    "submissionValue": "Subject Identification Log"
+                },
+                {
+                    "conceptId": "C207186",
+                    "definition": "Documentation anonymously listing all the subjects screened, screen failed and enrolled for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Subject Log Documentation",
+                    "submissionValue": "Subject Log"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                },
+                {
+                    "conceptId": "C115576",
+                    "definition": "Documentation of monitoring activities conducted to ensure the clinical trial site meets requirements to begin participation in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Site Initiation Monitoring Report Documentation",
+                    "submissionValue": "Trial Initiation Monitoring Report"
+                },
+                {
+                    "conceptId": "C115536",
+                    "definition": "Documentation listing all clinical trial site monitoring visit dates and attendees.",
+                    "preferredTerm": "Clinical Trial Site Visit Log Documentation",
+                    "submissionValue": "Visit Log"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208286",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Statistics Zone.",
+            "name": "Statistics Zone",
+            "preferredTerm": "CDISC TMF-RM Statistics Zone Terminology",
+            "submissionValue": "Statistics Zone",
+            "synonyms":
+            [
+                "Statistics Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C207217",
+                    "definition": "Documentation pertaining to the quality control (QC) procedures and programs, which are used to QC the tabulation dataset, analysis dataset and the Tables, Listings, and Figures, for the clinical trial. This also includes documentation of the output files generated from quality control.",
+                    "preferredTerm": "Clinical Trial Tabulation and Analysis Quality Control Documentation",
+                    "submissionValue": "Analysis QC Documentation"
+                },
+                {
+                    "conceptId": "C207216",
+                    "definition": "Documentation defining and describing the programming logic and derivation required to transform a raw dataset to tabulation and analysis datasets for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Data Definitions for Tabulation and Analysis Dataset Documentation",
+                    "submissionValue": "Data Definitions for Analysis Datasets"
+                },
+                {
+                    "conceptId": "C207215",
+                    "definition": "Documentation authorizing the release of randomization code to reveal subject(s) clinical trial group allocation data either during or at the end of the trial.",
+                    "preferredTerm": "Clinical Trial End of Trial or Interim Unblinding Documentation",
+                    "submissionValue": "End of Trial or Interim Unblinding"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C115492",
+                    "definition": "Dataset files generated from a final analysis for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Final Analysis Datasets Documentation",
+                    "submissionValue": "Final Analysis Datasets"
+                },
+                {
+                    "conceptId": "C115554",
+                    "definition": "Tables, listings, and figures output files generated from a final analysis for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Final Analysis Output Documentation",
+                    "submissionValue": "Final Analysis Output"
+                },
+                {
+                    "conceptId": "C115483",
+                    "definition": "Program files used to generate final analysis dataset and output as referenced by the statistical analysis plan of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Final Analysis Programs Documentation",
+                    "submissionValue": "Final Analysis Programs"
+                },
+                {
+                    "conceptId": "C207219",
+                    "definition": "Documentation pertaining to the raw data used for a final tabulation and analysis of results for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Raw Dataset for Final Tabulation and Analysis Documentation",
+                    "submissionValue": "Final Analysis Raw Datasets"
+                },
+                {
+                    "conceptId": "C115493",
+                    "definition": "Dataset files generated from an interim analysis for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Interim Analysis Datasets Documentation",
+                    "submissionValue": "Interim Analysis Datasets"
+                },
+                {
+                    "conceptId": "C115555",
+                    "definition": "Tables, listings, and figures output files generated from an interim analysis for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Interim Analysis Output Documentation",
+                    "submissionValue": "Interim Analysis Output"
+                },
+                {
+                    "conceptId": "C115484",
+                    "definition": "Program files used to generate interim analysis dataset and output as referenced by the statistical analysis plan of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Interim Analysis Programs Documentation",
+                    "submissionValue": "Interim Analysis Programs"
+                },
+                {
+                    "conceptId": "C207218",
+                    "definition": "Documentation pertaining to the raw data used for an interim tabulation and analysis of results for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Raw Dataset for Interim Tabulation and Analysis Documentation",
+                    "submissionValue": "Interim Analysis Raw Datasets"
+                },
+                {
+                    "conceptId": "C115585",
+                    "definition": "Documentation detailing the statistical aspects of an interim analysis for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Interim Statistical Report Documentation",
+                    "submissionValue": "Interim Statistical Report(s)"
+                },
+                {
+                    "conceptId": "C115533",
+                    "definition": "A document describing the assignment of subjects to the clinical study protocol-specified treatment groups in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Master Randomization List",
+                    "submissionValue": "Master Randomization List"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C115778",
+                    "definition": "Documentation describing the details of the randomization scheme for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Randomization Plan Documentation",
+                    "submissionValue": "Randomization Plan"
+                },
+                {
+                    "conceptId": "C116348",
+                    "definition": "Documentation describing how subjects are randomized in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Randomization Procedure Documentation",
+                    "submissionValue": "Randomization Procedure"
+                },
+                {
+                    "conceptId": "C115479",
+                    "definition": "Documentation about the computer code used to generate randomization numbers for treatment assignment in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Randomization Programming Documentation",
+                    "submissionValue": "Randomization Programming"
+                },
+                {
+                    "conceptId": "C115621",
+                    "definition": "Documentation verifying the correct randomization number and treatment assignment have been generated by the randomization program being used in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Randomization Validation Documentation",
+                    "submissionValue": "Randomization Sign Off"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C207214",
+                    "definition": "Documentation describing the statistical methods used to calculate the sample size for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Sample Size Calculation Documentation",
+                    "submissionValue": "Sample Size Calculation"
+                },
+                {
+                    "conceptId": "C115761",
+                    "definition": "Documentation describing the statistical aspects of the clinical trial design; the process of data selection for analyses; the detailed analyses of data items; the procedures and methods employed for analyzing the data; the planned presentation of results in formats such as tables, listings, and figures.",
+                    "preferredTerm": "Clinical Trial Statistical Analysis Plan Documentation",
+                    "submissionValue": "Statistical Analysis Plan"
+                },
+                {
+                    "conceptId": "C115582",
+                    "definition": "Documentation detailing the statistical aspects of a final analysis for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Final Statistical Report Documentation",
+                    "submissionValue": "Statistical Report"
+                },
+                {
+                    "conceptId": "C115735",
+                    "definition": "Documentation detailing the decisions that define the criteria used to evaluate and assign subjects to a population group, which are established by the statistical analysis plan of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Subject Evaluability Criteria and Subject Classification Documentation",
+                    "submissionValue": "Subject Evaluability Criteria and Subject Classification"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208284",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Third Parties Zone.",
+            "name": "Third Parties Zone",
+            "preferredTerm": "CDISC TMF-RM Vendor Zone Terminology",
+            "submissionValue": "Third Parties Zone",
+            "synonyms":
+            [
+                "Third Parties Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115465",
+                    "definition": "Documentation detailing the agreement between the sponsor or representative of the sponsor and the vendor that contains the provisions governing the access and use of confidential information pertaining to the clinical trial.",
+                    "preferredTerm": "Clinical Trial Vendor Confidentiality Agreement Documentation",
+                    "submissionValue": "Confidentiality Agreement"
+                },
+                {
+                    "conceptId": "C207201",
+                    "definition": "Documentation detailing the agreement between two parties defining the distribution of tasks and obligations for the clinical trial.",
+                    "preferredTerm": "Clincial Trial Contractual Agreement Documentation",
+                    "submissionValue": "Contractual Agreement"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C125428",
+                    "definition": "Documentation confirming that a vendor continues to meet all relevant criteria to fulfill a contractual obligation for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Ongoing Vendor Oversight Documentation",
+                    "submissionValue": "Ongoing Third Party Oversight"
+                },
+                {
+                    "conceptId": "C115690",
+                    "definition": "Documentation confirming that a vendor meets all criteria to fulfill a contractual obligation for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Vendor Qualification and Compliance Documentation",
+                    "submissionValue": "Qualification and Compliance"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C125440",
+                    "definition": "Documentation detailing the education, qualification and work experience of the vendor team members participating in the clinical trial.",
+                    "preferredTerm": "Clinical Trials Vendor Curriculum Vitae Documentation",
+                    "submissionValue": "Third Party Curriculum Vitae"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                },
+                {
+                    "conceptId": "C115747",
+                    "definition": "Documentation describing the identification and selection of a vendor for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Vendor Selection Documentation",
+                    "submissionValue": "Vendor Selection"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208287",
+            "definition": "The terminology codelist for the Sections associated with the Trial Master File Reference Model.",
+            "name": "TMF-RM Sections",
+            "preferredTerm": "CDISC TMF-RM Sections Terminology",
+            "submissionValue": "TMF-RM Sections",
+            "synonyms":
+            [
+                "TMF-RM Sections"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115632",
+                    "definition": "A collection of documents related to the statistical analysis of the clinical trial.",
+                    "preferredTerm": "TMF-RM Statistics Analysis Section",
+                    "submissionValue": "Analysis"
+                },
+                {
+                    "conceptId": "C115643",
+                    "definition": "A collection of documents related to data capture for the clinical trial.",
+                    "preferredTerm": "TMF-RM Data Capture Section",
+                    "submissionValue": "Data Capture"
+                },
+                {
+                    "conceptId": "C115683",
+                    "definition": "A collection of documents related to data management oversight for the clinical trial.",
+                    "preferredTerm": "TMF-RM Data Management Oversight Section",
+                    "submissionValue": "Data Management Oversight"
+                },
+                {
+                    "conceptId": "C115688",
+                    "definition": "A collection of documents related to the database used for the Electronic Data Capture system for the clinical trial.",
+                    "preferredTerm": "TMF-RM Database Section",
+                    "submissionValue": "Database"
+                },
+                {
+                    "conceptId": "C115689",
+                    "definition": "A collection of documents related to the management of the Electronic Data Capture system for the clinical trial.",
+                    "preferredTerm": "TMF-RM EDC Management Section",
+                    "submissionValue": "EDC Management"
+                },
+                {
+                    "conceptId": "C115645",
+                    "definition": "A collection of documents related to the testing facilities participating in the clinical trial.",
+                    "preferredTerm": "TMF-RM Facility Documentation Section",
+                    "submissionValue": "Facility Documentation"
+                },
+                {
+                    "conceptId": "C207156",
+                    "definition": "A collection of general documents for the clinical trial not elsewhere in the zone.",
+                    "preferredTerm": "TMF-RM General Section",
+                    "submissionValue": "General"
+                },
+                {
+                    "conceptId": "C115652",
+                    "definition": "A collection of documents related to the interactive response technology used for the clinical trial.",
+                    "preferredTerm": "TMF-RM Interactive Response Technology Section",
+                    "submissionValue": "Interactive Response Technology"
+                },
+                {
+                    "conceptId": "C115702",
+                    "definition": "A collection of documents related to the regulatory import and/or export of investigational medicinal product(s) for the clinical trial.",
+                    "preferredTerm": "TMF-RM Investigational Medicinal Product Section",
+                    "submissionValue": "Investigational Medicinal Product"
+                },
+                {
+                    "conceptId": "C207222",
+                    "definition": "A collection of documents related to the allocation of the investigational product(s) and trial supplies for the clinical trial.",
+                    "preferredTerm": "TMF-RM IP Allocation Documentation Section",
+                    "submissionValue": "IP Allocation Documentation"
+                },
+                {
+                    "conceptId": "C115705",
+                    "definition": "A collection of documents related to the management of investigational product(s) and trial supplies for the clinical trial.",
+                    "preferredTerm": "TMF-RM IP Documentation Section",
+                    "submissionValue": "IP Documentation"
+                },
+                {
+                    "conceptId": "C115709",
+                    "definition": "A collection of documents related to the release process of the investigational product(s) and trial supplies for the clinical trial.",
+                    "preferredTerm": "TMF-RM IP Release Process Documentation Section",
+                    "submissionValue": "IP Release Process Documentation"
+                },
+                {
+                    "conceptId": "C115696",
+                    "definition": "A collection of documents related to the Institutional Review Board or Independent Ethics Committee decisions for the clinical trial.",
+                    "preferredTerm": "TMF-RM IRB or IEC Trial Approval Section",
+                    "submissionValue": "IRB or IEC Trial Approval"
+                },
+                {
+                    "conceptId": "C207155",
+                    "definition": "A collection of documents related to trial management meetings for the clinical trial.",
+                    "preferredTerm": "TMF-RM Trial Management Meetings Section",
+                    "submissionValue": "Meetings"
+                },
+                {
+                    "conceptId": "C115660",
+                    "definition": "A collection of documents related to the management of non-investigational product(s) for the clinical trial.",
+                    "preferredTerm": "TMF-RM Non-IP Documentation Section",
+                    "submissionValue": "Non-IP Documentation"
+                },
+                {
+                    "conceptId": "C207161",
+                    "definition": "A collection of documents related to the other committees established for the clinical trial.",
+                    "preferredTerm": "TMF-RM Other Committees Section",
+                    "submissionValue": "Other Committees"
+                },
+                {
+                    "conceptId": "C207157",
+                    "definition": "A collection of documents related to the product and trial documentation for the clinical trial.",
+                    "preferredTerm": "TMF-RM Product and Trial Documentation Section",
+                    "submissionValue": "Product and Trial Documentation"
+                },
+                {
+                    "conceptId": "C115722",
+                    "definition": "A collection of documents related to the randomization scheme for the clinical trial.",
+                    "preferredTerm": "TMF-RM Randomization Section",
+                    "submissionValue": "Randomization"
+                },
+                {
+                    "conceptId": "C207224",
+                    "definition": "A collection of documents related to the statistical reports for the clinical trial.",
+                    "preferredTerm": "TMF-RM Statistics Reports Section",
+                    "submissionValue": "Report"
+                },
+                {
+                    "conceptId": "C207159",
+                    "definition": "A collection of documents related to results reporting for the clinical trial.",
+                    "preferredTerm": "TMF-RM Central Trial Reports Section",
+                    "submissionValue": "Reports"
+                },
+                {
+                    "conceptId": "C115630",
+                    "definition": "A collection of documents related to the safety management and reporting for the clinical trial.",
+                    "preferredTerm": "TMF-RM Safety Documentation Section",
+                    "submissionValue": "Safety Documentation"
+                },
+                {
+                    "conceptId": "C115655",
+                    "definition": "A collection of documents related to the management of the samples collected for the clinical trial.",
+                    "preferredTerm": "TMF-RM Sample Documentation Section",
+                    "submissionValue": "Sample Documentation"
+                },
+                {
+                    "conceptId": "C115669",
+                    "definition": "A collection of documents related to site initiation for the clinical trial.",
+                    "preferredTerm": "TMF-RM Site Initiation Section",
+                    "submissionValue": "Site Initiation"
+                },
+                {
+                    "conceptId": "C207221",
+                    "definition": "A collection of documents related to site management for the clinical trial.",
+                    "preferredTerm": "TMF-RM Site Management Section",
+                    "submissionValue": "Site Management"
+                },
+                {
+                    "conceptId": "C115672",
+                    "definition": "A collection of documents related to site selection for the clinical trial.",
+                    "preferredTerm": "TMF-RM Site Selection Section",
+                    "submissionValue": "Site Selection"
+                },
+                {
+                    "conceptId": "C207220",
+                    "definition": "A collection of documents related to site set-up for the clinical trial.",
+                    "preferredTerm": "TMF-RM Site Set-up Section",
+                    "submissionValue": "Site Set-up"
+                },
+                {
+                    "conceptId": "C115733",
+                    "definition": "A collection of documents related to the statistics oversight for the clinical trial.",
+                    "preferredTerm": "TMF-RM Statistics Oversight Section",
+                    "submissionValue": "Statistics Oversight"
+                },
+                {
+                    "conceptId": "C115677",
+                    "definition": "A collection of documents related to the storage of the investigational product(s) and trial supplies for the clinical trial.",
+                    "preferredTerm": "TMF-RM IP Storage Section",
+                    "submissionValue": "Storage"
+                },
+                {
+                    "conceptId": "C207158",
+                    "definition": "A collection of documents related to the subject documentation for the clinical trial.",
+                    "preferredTerm": "TMF-RM Subject Documentation Section",
+                    "submissionValue": "Subject Documentation"
+                },
+                {
+                    "conceptId": "C115744",
+                    "definition": "A collection of documents related to vendor oversight for the clinical trial.",
+                    "preferredTerm": "TMF-RM Vendor Oversight Section",
+                    "submissionValue": "Third Party Oversight"
+                },
+                {
+                    "conceptId": "C207223",
+                    "definition": "A collection of documents related to vendor set-up for the clinical trial.",
+                    "preferredTerm": "TMF-RM Vendor Set-up Section",
+                    "submissionValue": "Third Party Set-up"
+                },
+                {
+                    "conceptId": "C115665",
+                    "definition": "A collection of documents related to the regulatory trial approval for the clinical trial.",
+                    "preferredTerm": "TMF-RM Trial Regulatory Approval Section",
+                    "submissionValue": "Trial Approval"
+                },
+                {
+                    "conceptId": "C207154",
+                    "definition": "A collection of documents related to the trial committee for the clinical trial.",
+                    "preferredTerm": "TMF-RM Trial Committee Section",
+                    "submissionValue": "Trial Committee"
+                },
+                {
+                    "conceptId": "C207153",
+                    "definition": "A collection of documents related to trial oversight for the clinical trial.",
+                    "preferredTerm": "TMF-RM Trial Oversight Section",
+                    "submissionValue": "Trial Oversight"
+                },
+                {
+                    "conceptId": "C207160",
+                    "definition": "A collection of documents related to the reporting of trial status for the clinical trial.",
+                    "preferredTerm": "TMF-RM Trial Status Reporting Section",
+                    "submissionValue": "Trial Status Reporting"
+                },
+                {
+                    "conceptId": "C115617",
+                    "definition": "A collection of documents related to the trial team for the clinical trial.",
+                    "preferredTerm": "TMF-RM Trial Team Section",
+                    "submissionValue": "Trial Team"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208275",
+            "definition": "The terminology codelist for the Zones associated with the Trial Master File Reference Model.",
+            "name": "TMF-RM Zones",
+            "preferredTerm": "CDISC TMF-RM Zones Terminology",
+            "submissionValue": "TMF-RM Zones",
+            "synonyms":
+            [
+                "TMF-RM Zones"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115642",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the testing vendors and sample management, including central and local testing facilities for the clinical trial.",
+                    "preferredTerm": "TMF-RM Central and Local Testing Zone",
+                    "submissionValue": "Central and Local Testing"
+                },
+                {
+                    "conceptId": "C115636",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the clinical study protocol, investigator's brochure, key subject documentation and study reports for the clinical trial.",
+                    "preferredTerm": "TMF-RM Central Trial Documents Zone",
+                    "submissionValue": "Central Trial Documents"
+                },
+                {
+                    "conceptId": "C115682",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to data management activities for the clinical trial.",
+                    "preferredTerm": "TMF-RM Data Management Zone",
+                    "submissionValue": "Data Management"
+                },
+                {
+                    "conceptId": "C115703",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the management, shipping, storage, dispensing, and destruction of Investigational Product(s) and supplies for the clinical trial.",
+                    "preferredTerm": "TMF-RM Investigational Products and Trial Supplies Zone",
+                    "submissionValue": "IP and Trial Supplies"
+                },
+                {
+                    "conceptId": "C115691",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the interactions with the Institutional Review Board (IRB)/Independent Ethics Committee (IEC), including submissions, decisions, acknowledgments, and oversight information about the IRB/IEC for the clinical trial.",
+                    "preferredTerm": "TMF-RM Institutional Review Board or Independent Ethics Committee and Other Approvals Zone",
+                    "submissionValue": "IRB or IEC and Other Approvals"
+                },
+                {
+                    "conceptId": "C115723",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the interactions with regulatory authorities, including submissions, decisions, notifications, and registrations for the clinical trial.",
+                    "preferredTerm": "TMF-RM Regulatory Zone",
+                    "submissionValue": "Regulatory"
+                },
+                {
+                    "conceptId": "C115667",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the safety and pharmacovigilance management of the clinical trial.",
+                    "preferredTerm": "TMF-RM Safety Reporting Zone",
+                    "submissionValue": "Safety Reporting"
+                },
+                {
+                    "conceptId": "C115782",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the selection, setup, initiation and management of the investigational sites as well as multi-site records and communications for the clinical trial.",
+                    "preferredTerm": "TMF-RM Site Management Zone",
+                    "submissionValue": "Site Management"
+                },
+                {
+                    "conceptId": "C115732",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to biostatistics and statistical programming activities for the clinical trial.",
+                    "preferredTerm": "TMF-RM Statistics Zone",
+                    "submissionValue": "Statistics"
+                },
+                {
+                    "conceptId": "C115743",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the establishment, maintenance and oversight of relationships between sponsors and vendors for the clinical trial.",
+                    "preferredTerm": "TMF-RM Vendors Zone",
+                    "submissionValue": "Third Parties"
+                },
+                {
+                    "conceptId": "C115766",
+                    "definition": "The Trial Master File Reference Model zone that contains the collection of documents relating to the general design, management and oversight of the clinical trial.",
+                    "preferredTerm": "TMF-RM Trial Management Zone",
+                    "submissionValue": "Trial Management"
+                }
+            ]
+        },
+        {
+            "conceptId": "C208276",
+            "definition": "The terminology codelist for the Trial Master File Reference Model that contains the sections and artifacts relevant to the Trial Management Zone.",
+            "name": "Trial Management Zone",
+            "preferredTerm": "CDISC TMF-RM Trial Management Zone Terminology",
+            "submissionValue": "Trial Management Zone",
+            "synonyms":
+            [
+                "Trial Management Zone"
+            ],
+            "terms":
+            [
+                {
+                    "conceptId": "C115469",
+                    "definition": "Documentation that confirms an audit has been conducted.",
+                    "preferredTerm": "Audit Certificate Documentation",
+                    "submissionValue": "Audit Certificate"
+                },
+                {
+                    "conceptId": "C125424",
+                    "definition": "Documentation describing the provisions governing the nondisclosure requirements between a sponsor or vendor and a member from a committee established for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Committee Member Confidentiality Disclosure Agreement Documentation",
+                    "submissionValue": "Committee Member Confidentiality Disclosure Agreement"
+                },
+                {
+                    "conceptId": "C125423",
+                    "definition": "Documentation describing the contractual responsibilities between a sponsor or vendor and a member from a committee established for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Committee Member Contract Documentation",
+                    "submissionValue": "Committee Member Contract"
+                },
+                {
+                    "conceptId": "C207173",
+                    "definition": "Documentation detailing the education, qualification and work experience of a member from a committee established for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Committee Member Curriculum Vitae Documentation",
+                    "submissionValue": "Committee Member Curriculum Vitae"
+                },
+                {
+                    "conceptId": "C125422",
+                    "definition": "A document pertaining to the financial interests and arrangements of the committee members for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Committee Member Financial Disclosure Form Documentation",
+                    "submissionValue": "Committee Member Financial Disclosure Form"
+                },
+                {
+                    "conceptId": "C207171",
+                    "definition": "Documentation describing the current composition of a committee established for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Committee Member List Documentation",
+                    "submissionValue": "Committee Member List"
+                },
+                {
+                    "conceptId": "C207172",
+                    "definition": "Documentation describing and supporting any decision regarding the clinical trial conduct from a committee established for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Committee Output Documentation",
+                    "submissionValue": "Committee Output"
+                },
+                {
+                    "conceptId": "C207170",
+                    "definition": "Documentation describing the purpose and operational processes of a committee established for the clinical trial.",
+                    "preferredTerm": "Clinical Trial Committee Process Documentation",
+                    "submissionValue": "Committee Process"
+                },
+                {
+                    "conceptId": "C115783",
+                    "definition": "Documentation describing the communication strategy between stakeholders of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Stakeholder Communication Plan Documentation",
+                    "submissionValue": "Communication Plan"
+                },
+                {
+                    "conceptId": "C115593",
+                    "definition": "Documentation verifying that the applicant or any of its principals should be excluded from certain rights, privileges and practices due to debarment or other circumstances.",
+                    "preferredTerm": "Debarment Statement Documentation",
+                    "submissionValue": "Debarment Statement"
+                },
+                {
+                    "conceptId": "C115531",
+                    "definition": "Documentation providing a consolidated list or index of file notes generated during the clinical trial.",
+                    "preferredTerm": "Clinical Trial Filenotes Master List Documentation",
+                    "submissionValue": "Filenote Master List"
+                },
+                {
+                    "conceptId": "C207177",
+                    "definition": "Documentation pertaining to any decision or clarifying any information of the clinical trial, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Filenote Documentation",
+                    "submissionValue": "Filenote"
+                },
+                {
+                    "conceptId": "C115544",
+                    "definition": "Documentation that informs investigative staff of common implementation issues and the progress of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Investigator Newsletter Documentation",
+                    "submissionValue": "Investigator Newsletter"
+                },
+                {
+                    "conceptId": "C115599",
+                    "definition": "Documentation pertaining to the clinical trial investigator meeting.",
+                    "preferredTerm": "Clinical Trial Investigator Meeting Material Documentation",
+                    "submissionValue": "Investigators Meeting Material"
+                },
+                {
+                    "conceptId": "C115600",
+                    "definition": "Documentation pertaining to the clinical trial kick-off meeting.",
+                    "preferredTerm": "Clinical Trial Kick-off Meeting Material Documentation",
+                    "submissionValue": "Kick-off Meeting Material"
+                },
+                {
+                    "conceptId": "C115779",
+                    "definition": "Documentation describing the standard operating procedures used during the clinical trial.",
+                    "preferredTerm": "Clincial Trial Standard Operating Procedure List Documentation",
+                    "submissionValue": "List of SOPs Current During Trial"
+                },
+                {
+                    "conceptId": "C115752",
+                    "definition": "Documentation describing the medical surveillance of subjects during the clinical trial.",
+                    "preferredTerm": "Clinical Trial Medical Monitoring Plan Documentation",
+                    "submissionValue": "Medical Monitoring Plan"
+                },
+                {
+                    "conceptId": "C207176",
+                    "definition": "Documentation pertaining to meetings not otherwise listed in the Reference Model.",
+                    "preferredTerm": "Clinical Trial Meeting Material Documentation",
+                    "submissionValue": "Meeting Material"
+                },
+                {
+                    "conceptId": "C115753",
+                    "definition": "Documentation describing the strategy, methods, responsibilities, and requirements for monitoring the clinical trial.",
+                    "preferredTerm": "Clinical Trial Monitoring Plan Documentation",
+                    "submissionValue": "Monitoring Plan"
+                },
+                {
+                    "conceptId": "C125421",
+                    "definition": "Documentation describing clinical trial operations oversight by a sponsor.",
+                    "preferredTerm": "Clinical Trial Operational Oversight Documentation",
+                    "submissionValue": "Operational Oversight"
+                },
+                {
+                    "conceptId": "C115764",
+                    "definition": "Documentation describing clinical trial-related work processes.",
+                    "preferredTerm": "Clinical Trials Operational Procedure Manual Documentation",
+                    "submissionValue": "Operational Procedure Manual"
+                },
+                {
+                    "conceptId": "C115557",
+                    "definition": "Documentation describing the publication of clinical trial results.",
+                    "preferredTerm": "Clinical Trial Publication Policy Documentation",
+                    "submissionValue": "Publication Policy"
+                },
+                {
+                    "conceptId": "C115777",
+                    "definition": "Documentation describing the operational techniques and activities undertaken within the quality management system to verify that the requirements for quality of the clinical trial-related activities have been fulfilled.",
+                    "preferredTerm": "Clinical Trial Quality Assurance Plan Documentation",
+                    "submissionValue": "Quality Plan"
+                },
+                {
+                    "conceptId": "C115769",
+                    "definition": "Documentation describing the subject enrollment and recruitment goals during the clinical trial.",
+                    "preferredTerm": "Clinical Trial Recruitment Plan Documentation",
+                    "submissionValue": "Recruitment Plan"
+                },
+                {
+                    "conceptId": "C207174",
+                    "definition": "Documentation pertaining to agreements, significant discussions or relevant information, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Relevant Communications Documentation",
+                    "submissionValue": "Relevant Communications"
+                },
+                {
+                    "conceptId": "C207167",
+                    "definition": "Documentation describing the potential hazards associated with the clinical trial.",
+                    "preferredTerm": "Clinical Trial Risk Management Plans Documentation",
+                    "submissionValue": "Risk Management Plan"
+                },
+                {
+                    "conceptId": "C125429",
+                    "definition": "Documentation describing the range and distribution of tasks and responsibilities.",
+                    "preferredTerm": "Clinical Trial Roles and Responsibilities Matrix Documentation",
+                    "submissionValue": "Roles and Responsibility Matrix"
+                },
+                {
+                    "conceptId": "C207175",
+                    "definition": "Documentation pertaining to the tracking of clinical trial activities, but not specifically listed in this Reference Model.",
+                    "preferredTerm": "Clinical Trial Tracking Information Documentation",
+                    "submissionValue": "Tracking Information"
+                },
+                {
+                    "conceptId": "C207168",
+                    "definition": "Documentation describing the transfer of regulatory obligations of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Transfer of Regulatory Obligations Documentation",
+                    "submissionValue": "Transfer of Regulatory Obligations"
+                },
+                {
+                    "conceptId": "C115780",
+                    "definition": "Documentation describing the overall strategy for timelines, management and conduct of the clinical trial.",
+                    "preferredTerm": "Clinical Trial Management Plan Documentation",
+                    "submissionValue": "Trial Management Plan"
+                },
+                {
+                    "conceptId": "C115765",
+                    "definition": "Documentation describing how clinical trial records are managed and stored during and after the clinical trial.",
+                    "preferredTerm": "Clincial Trial Master File Plan Documentation",
+                    "submissionValue": "Trial Master File Plan"
+                },
+                {
+                    "conceptId": "C115580",
+                    "definition": "Documentation that contains routine trial status progress.",
+                    "preferredTerm": "Clinical Trial Status Report Documentation",
+                    "submissionValue": "Trial Status Report"
+                },
+                {
+                    "conceptId": "C207169",
+                    "definition": "Documentation detailing the education, qualification and work experience of a specific sponsor team member participating in the clinical trial.",
+                    "preferredTerm": "Clinical Trial Sponsor Team Member Curriculum Vitae Documentation",
+                    "submissionValue": "Trial Team Curriculum Vitae"
+                },
+                {
+                    "conceptId": "C115659",
+                    "definition": "Documentation defining the structure, roles and contact details of the clinical trial team (both sponsor and vendors).",
+                    "preferredTerm": "Clinical Trial Team Details Documentation",
+                    "submissionValue": "Trial Team Details"
+                },
+                {
+                    "conceptId": "C125425",
+                    "definition": "Documentation verifying clinical trial team training completion.",
+                    "preferredTerm": "Clinical Trial Team Evidence of Training Documentation",
+                    "submissionValue": "Trial Team Evidence of Training"
+                },
+                {
+                    "conceptId": "C115606",
+                    "definition": "Documentation pertaining to the training materials for the clinical trial team.",
+                    "preferredTerm": "Clinical Trial Team Training Material Documentation",
+                    "submissionValue": "Trial Team Training Material"
+                },
+                {
+                    "conceptId": "C126094",
+                    "definition": "Documentation describing the overall management strategy for vendors used to conduct clinical trial-related activities.",
+                    "preferredTerm": "Clinical Trial Vendor Management Plan Documentation",
+                    "submissionValue": "Vendor Management Plan"
+                }
+            ]
+        }
+    ],
+    "description": "CDISC Controlled Terminology for TMF is the set of CDISC-developed or CDISC-adopted standard expressions (values) used with data items within CDISC-defined TMF datasets.",
+    "effectiveDate": "2024-09-27",
+    "label": "TMF Controlled Terminology Package 58 Effective 2024-09-27",
+    "name": "TMF CT 2024-09-27",
+    "registrationStatus": "Final",
+    "source": "TMF Controlled Terminology developed by the CDISC Terminology Team in collaboration with the National Cancer Institute's Enterprise Vocabulary Services (EVS)",
+    "version": "2024-09-27"
+}
