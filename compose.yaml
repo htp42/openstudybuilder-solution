@@ -160,7 +160,7 @@ services:
   # PocketBase service
   pocketbase:
     build:
-      context: ./pocketbase-db
+      context: ./pocketbase
       dockerfile: Dockerfile
     container_name: pocketbase
     ports:
