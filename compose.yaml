@@ -16,6 +16,11 @@ services:
         UID: ${UID:-1000}
       context: ./
       dockerfile: database.Dockerfile
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+    image: ${DATABASE_IMAGE:-htp42/openstudybuilder:database-${VERSION:-latest}}
     environment:
       NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
       NEO4J_server_memory_heap_initial__size: "2G"
@@ -42,7 +47,11 @@ services:
       dockerfile: Dockerfile
       args:
         TARGET: ${BUILD_TARGET:-dev}
-    image: ${API_IMAGE:-}
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+    image: ${API_IMAGE:-htp42/openstudybuilder:api-${VERSION:-latest}}
     depends_on:
       database:
         condition: service_healthy
@@ -72,7 +81,11 @@ services:
       dockerfile: Dockerfile
       args:
         TARGET: ${BUILD_TARGET:-dev}
-    image: ${API_IMAGE:-}
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+    image: ${API_IMAGE:-htp42/openstudybuilder:consumerapi-${VERSION:-latest}}
     depends_on:
       database:
         condition: service_healthy
@@ -92,11 +105,15 @@ services:
   frontend:
     build:
       args:
-        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:alpine}
+        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:alpine-slim}
         NODE_IMAGE: ${NODE_IMAGE:-node:lts-alpine}
       context: ./studybuilder
       dockerfile: Dockerfile
-    image: ${FRONTEND_IMAGE:-}
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+    image: ${FRONTEND_IMAGE:-htp42/openstudybuilder:frontend-${VERSION:-latest}}
     depends_on:
       # Nginx reverse-proxy configuration requires downstream services to be ready at startup
       api:
@@ -121,21 +138,30 @@ services:
   documentation:
     build:
       args:
-        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:alpine}
+        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:alpine-slim}
         NODE_IMAGE: ${NODE_IMAGE:-node:lts-alpine}
       context: ./documentation-portal
       dockerfile: Dockerfile
-    image: ${DOCUMENTATION_IMAGE:-}
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+    image: ${DOCUMENTATION_IMAGE:-htp42/openstudybuilder:documentation-${VERSION:-latest}}
 
   # Neodash service used with defined parameters
   neodash:
-    image: ${NEODASH_IMAGE:-}
+    image: ${NEODASH_IMAGE:-htp42/openstudybuilder:neodash-${VERSION:-latest}}
     build:
       context: ./osb-neodash
       dockerfile: Dockerfile
       args:
         NODE_IMAGE: ${NODE_IMAGE:-node:lts-alpine}
-        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:alpine}
+        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:alpine-slim}
+        NEODASH_VERSION: ${NEODASH_VERSION:-main}
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
     depends_on:
       database:
         condition: service_healthy

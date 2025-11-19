@@ -130,12 +130,17 @@ RUN /neo4j/bin/neo4j-admin dbms set-initial-password "$NEO4J_MDR_AUTH_PASSWORD" 
     && pipenv run import_cdisc_ct_into_cdisc_db \
     && pipenv run import_ct_from_cdisc_db_into_mdr \
     && pipenv run bulk_import_data_models TESTUSER "" \
+    && echo "Standards import completed" \
     # update CT package stats
     ## && cd ../neo4j-mdr-db && pipenv run update_ct_stats \
+    # verify Neo4j is ready for authenticated connections to the mdrdb database before starting API
+    && /neo4j/bin/cypher-shell -u "$NEO4J_MDR_AUTH_USER" -p "$NEO4J_MDR_AUTH_PASSWORD" -a "bolt://localhost:$NEO4J_MDR_BOLT_PORT" -d "$NEO4J_MDR_DATABASE" "RETURN 1;" > /dev/null 2>&1 \
     # start API
+    && echo "Starting API" \
     && { cd ../clinical-mdr-api && pipenv run uvicorn --host 127.0.0.1 --port 8000 --log-level info clinical_mdr_api.main:app & api_pid=$! ;} \
     # wait until 8000/tcp is open
-    && while ! netstat -tna | grep 'LISTEN\>' | grep -q '8000\>'; do sleep 2; done \
+    && while ! netstat -tna | grep 'LISTEN\>' | grep -q '8000\>'; do sleep 2; echo "Waiting for API to start..."; done \
+    && echo "API started" \
     && set -x \
     # imports
     && sleep 10 && cd ../studybuilder-import && pipenv run import_all && pipenv run import_dummydata && pipenv run import_feature_flags \

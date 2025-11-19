@@ -2,7 +2,7 @@ ARG NGINX_IMAGE=nginx:alpine
 ARG NODE_IMAGE=node:lts-alpine
 
 ## Build stage
-FROM $NODE_IMAGE as build-stage
+FROM $NODE_IMAGE AS build-stage
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ RUN yarn run update-config /app/build.json
 RUN yarn docs:build
 
 ## Production stage
-FROM $NGINX_IMAGE as production-stage
+FROM $NGINX_IMAGE AS production-stage
 
 COPY --from=build-stage /app/docs/.vuepress/dist /usr/share/nginx/html
 COPY --from=build-stage /app/build.json /usr/share/nginx/html

@@ -2,7 +2,7 @@ ARG NGINX_IMAGE=nginx:alpine
 ARG NODE_IMAGE=node:lts-alpine
 
 ## Build stage
-FROM $NODE_IMAGE as build-stage
+FROM $NODE_IMAGE AS build-stage
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN yarn build
 RUN test ! -r /app/config/nginx/default.conf || rm -f /app/config/nginx/default.conf.template*
 
 ## Production stage
-FROM $NGINX_IMAGE as prod-stage
+FROM $NGINX_IMAGE AS prod-stage
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 COPY --from=build-stage /app/sbom.md /usr/share/nginx/html
