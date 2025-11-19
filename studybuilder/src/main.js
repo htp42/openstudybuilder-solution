@@ -15,7 +15,13 @@ import vuetify from '@/plugins/vuetify'
 // Filters
 import filters from '@/filters'
 
+// Auth Composable
+import { restoreAuth } from '@/composables/useAuth'
+
 let globalConfig
+
+// Restore authentication from localStorage (including custom JWT with roles)
+restoreAuth()
 
 /*
  * Convert some string values to more appropriate ones

@@ -595,6 +595,12 @@ export const useAppStore = defineStore('app', {
             url: { name: 'SystemAnnouncements' },
             icon: 'mdi-information-outline',
           },
+          {
+            title: 'User Management',
+            url: { name: 'UserManagement' },
+            icon: 'mdi-account-group',
+            requiresAdminRole: true, // Only show for role = 1
+          },
         ],
       },
       Help: {},

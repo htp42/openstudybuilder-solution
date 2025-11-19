@@ -164,10 +164,22 @@
           v-bind="props"
         >
           <v-icon right class="mx-2"> mdi-account-outline </v-icon>
-          {{ username }}
+         {{ getCurrentUser()?.name }}
         </v-btn>
       </template>
       <v-list density="compact">
+        <!-- Show PocketBase user info -->
+        <v-list-item v-if="isPocketBaseAuthenticated()">
+          <template #prepend>
+            <v-icon>mdi-account-circle</v-icon>
+          </template>
+          <v-list-item-title>Logged in as</v-list-item-title>
+          <v-list-item-subtitle>
+            {{ currentUser?.email }}
+          </v-list-item-subtitle>
+        </v-list-item>
+        
+        <!-- Show OAuth user info -->
         <v-list-item v-if="authStore.userInfo">
           <template #prepend>
             <v-icon>mdi-security</v-icon>
@@ -182,9 +194,24 @@
             {{ role }}
           </v-list-item-subtitle>
         </v-list-item>
-        <v-list-item :to="{ name: 'Logout' }" data-cy="topbar-logout">
+        
+        <v-divider class="my-2" />
+        
+        <!-- Profile button -->
+        <v-list-item 
+          data-cy="topbar-profile"
+          @click="handleProfileClick"
+        >
           <template #prepend>
-            <v-icon>mdi-export</v-icon>
+            <v-icon>mdi-account-cog</v-icon>
+          </template>
+          <v-list-item-title>Profile Settings</v-list-item-title>
+        </v-list-item>
+        
+        <!-- Logout button -->
+        <v-list-item @click="handleLogout" data-cy="topbar-logout">
+          <template #prepend>
+            <v-icon>mdi-logout</v-icon>
           </template>
           <v-list-item-title>{{ $t('_global.logout') }}</v-list-item-title>
         </v-list-item>
@@ -262,6 +289,7 @@ import ConfirmDialog from '@/components/tools/ConfirmDialog.vue'
 import SettingsDialog from './SettingsDialog.vue'
 import StudyQuickSelectForm from '@/components/studies/StudyQuickSelectForm.vue'
 import { getAppEnv } from '@/utils/generalUtils'
+import { pb, isAuthenticated as isPocketBaseAuthenticated, getCurrentUser, currentUser, logout as pocketBaseLogout } from '@/utils/pocketbase'
 
 const props = defineProps({
   hideAppBarNavIcon: {
@@ -310,6 +338,7 @@ const apps = [
     name: 'Administration',
     needsAuthentication: true,
     requiredRole: roles.ADMIN_WRITE,
+    requiresPocketBaseAdmin: true, // Only for PocketBase admin users (role = 1)
   },
 ]
 
@@ -322,18 +351,41 @@ const documentationPortalUrl = computed(() => {
   return $config.DOC_BASE_URL
 })
 const username = computed(() => {
+  // First check PocketBase auth
+  if (isPocketBaseAuthenticated()) {
+    const user = currentUser.value
+    return user?.email || user?.username || user?.name || 'User'
+  }
+  // Fallback to OAuth auth
   return authStore.userInfo ? authStore.userInfo.name : 'Anonymous'
 })
 const isAuthenticated = computed(() => {
-  return !$config.OAUTH_ENABLED || !!authStore.userInfo
+  // Check both PocketBase and OAuth authentication
+  return isPocketBaseAuthenticated() || !$config.OAUTH_ENABLED || !!authStore.userInfo
 })
 const availableApps = computed(() => {
-  return apps.filter(
-    (app) =>
-      !app.needsAuthentication ||
-      (isAuthenticated.value &&
-        (!app.requiredRole || checkPermission(app.requiredRole)))
-  )
+  return apps.filter((app) => {
+    // Check authentication requirement
+    if (app.needsAuthentication && !isAuthenticated.value) {
+      return false
+    }
+    
+    // Check if requires PocketBase admin (role = 1)
+    if (app.requiresPocketBaseAdmin) {
+      const isPBAdmin = isPocketBaseAuthenticated() && currentUser.value?.role === 1
+      if (!isPBAdmin) {
+        console.log(`${app.name} hidden - requires PocketBase admin (role=1), current role:`, currentUser.value?.role)
+      }
+      return isPBAdmin
+    }
+    
+    // Check OAuth role permissions
+    if (app.requiredRole) {
+      return checkPermission(app.requiredRole)
+    }
+    
+    return true
+  })
 })
 const currentStudyStatus = computed(() => {
   if (!selectedStudy.value) {
@@ -353,6 +405,51 @@ function openSettingsBox() {
 }
 function openSelectStudyDialog() {
   showSelectForm.value = true
+}
+function handleProfileClick() {
+  console.log('🔧 Profile Settings clicked')
+  console.log('Current route:', router.currentRoute.value.name)
+  console.log('Auth valid:', isPocketBaseAuthenticated())
+  console.log('Current user:', currentUser.value)
+  
+  // Navigate programmatically
+  console.log('Navigating to Profile page...')
+  router.push({ name: 'Profile' }).then(() => {
+    console.log('✅ Navigation to Profile successful')
+  }).catch((error) => {
+    console.error('❌ Navigation to Profile failed:', error)
+  })
+}
+function handleLogout() {
+  console.log('Logging out...')
+  
+  try {
+    // Logout from PocketBase if authenticated
+    if (isPocketBaseAuthenticated()) {
+      pocketBaseLogout()
+      console.log('PocketBase logout successful')
+    }
+    
+    // Also clear OAuth auth if present
+    if (authStore.userInfo) {
+      authStore.clear()
+    }
+    
+    // Clear all localStorage
+    localStorage.clear()
+    console.log('LocalStorage cleared')
+    
+    // Clear session storage as well
+    sessionStorage.clear()
+    console.log('SessionStorage cleared')
+    
+  } catch (error) {
+    console.error('Error during logout:', error)
+  } finally {
+    // Force a full page reload to login page - this will happen regardless
+    console.log('Navigating to login page...')
+    window.location.replace('/login')
+  }
 }
 function redirectToStudyTable() {
   confirm.value.cancel()

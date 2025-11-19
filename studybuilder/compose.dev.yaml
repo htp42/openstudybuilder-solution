@@ -9,8 +9,8 @@ services:
       ]
     environment:
       HOME: /tmp
-      API_BASE_URL: 'http://127.0.0.1:8000'
-      DOC_BASE_URL: 'http://127.0.0.1:8081'
+      API_BASE_URL: 'http://localhost:5005'
+      DOC_BASE_URL: 'http://localhost:5005'
 
     expose:
       - ${UI_PORT:-8080}

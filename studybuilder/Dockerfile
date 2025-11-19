@@ -56,7 +56,8 @@ ENV SB_UPDATE_CONFIG_AWK=/opt/update-config.awk \
     DOC_PORT=5006 \
     NEODASH_HOST=neodash \
     NEODASH_PATH=/neodash/ \
-    NEODASH_PORT=5007
+    NEODASH_PORT=5007 \
+    POCKETBASE_PATH=0.0.0.0:8090/api
 
 ## Runs healthcheck on the application root
 ## checks every `interval` seconds, fails if `timeout`,

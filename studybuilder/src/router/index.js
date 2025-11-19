@@ -8,8 +8,18 @@ import { useStudiesGeneralStore } from '@/stores/studies-general'
 import { useFeatureFlagsStore } from '@/stores/feature-flags'
 import roles from '@/constants/roles'
 import study from '@/api/study'
+import { isAuthenticated as isPocketBaseAuthenticated, currentUser } from '@/utils/pocketbase'
 
 const routes = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginPage.vue'),
+    meta: {
+      authRequired: false,
+      layoutTemplate: 'empty',
+    },
+  },
   {
     path: '/library',
     name: 'Library',
@@ -1041,23 +1051,22 @@ const routes = [
           requiredPermission: roles.ADMIN_READ,
         },
       },
+      {
+        path: 'users',
+        name: 'UserManagement',
+        component: () => import('../views/UserManagement.vue'),
+        meta: {
+          authRequired: true,
+          section: 'Administration',
+          requiredPermission: roles.ADMIN_WRITE,
+          requiresAdminRole: true, // PocketBase admin check (role = 1)
+        },
+      },
     ],
   },
   {
     path: '/',
-    name: 'Home',
-    component: () => import('../views/HomePage.vue'),
-    meta: {
-      layoutTemplate: 'empty',
-    },
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import('../views/LoginPage.vue'),
-    meta: {
-      authRequired: true,
-    },
+    redirect: { name: 'Login' },
   },
   {
     path: '/oauth-callback',
@@ -1065,6 +1074,15 @@ const routes = [
     component: () => import('../views/AuthCallback.vue'),
     meta: {
       layoutTemplate: 'error',
+    },
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/ProfilePage.vue'),
+    meta: {
+      authRequired: false, // PocketBase handles auth check in component
+      requiresPocketBaseAuth: true,
     },
   },
   {
@@ -1117,12 +1135,42 @@ async function saveStudyUid(studyUid) {
 }
 
 router.beforeEach(async (to, from, next) => {
+  console.log('🔀 Router Navigation: from', from.name, '→ to', to.name)
+  console.log('Route meta:', to.meta)
+  
+  // List of routes that don't require authentication
+  const publicRoutes = ['Login', 'AuthCallback', 'Logout']
+  const isPublicRoute = publicRoutes.includes(to.name) || to.path === '/login'
+  
+  // Check PocketBase authentication first
+  const isPocketBaseAuth = isPocketBaseAuthenticated()
+  console.log('PocketBase Auth Status:', isPocketBaseAuth)
+  
+  // If not a public route and user is not authenticated, redirect to login
+  if (!isPublicRoute && !isPocketBaseAuth) {
+    console.log('⛔ Authentication required. Redirecting to login...')
+    next({ name: 'Login' })
+    return
+  }
+  
+  // Allow access to login page without further checks
+  if (isPublicRoute) {
+    console.log('✅ Public route, allowing access')
+    next()
+    return
+  }
+  
   const $config = inject('$config')
   const studiesGeneralStore = useStudiesGeneralStore()
   const authStore = useAuthStore()
   const featureFlagsStore = useFeatureFlagsStore()
 
-  await featureFlagsStore.fetchFeatureFlags()
+  try {
+    await featureFlagsStore.fetchFeatureFlags()
+  } catch (error) {
+    console.error('Error fetching feature flags:', error)
+  }
+  
   if (
     to.meta.featureFlag &&
     featureFlagsStore.getFeatureFlag(to.meta.featureFlag) === false
@@ -1130,31 +1178,62 @@ router.beforeEach(async (to, from, next) => {
     next(false)
     return
   }
+  
+  // Check PocketBase admin role requirement
+  if (to.meta.requiresAdminRole && isPocketBaseAuth) {
+    const user = currentUser.value
+    if (!user || user.role !== 1) {
+      console.log('⛔ Admin access required. User role:', user?.role)
+      next({ name: 'Studies' })
+      return
+    }
+  }
 
   if (to.params.study_id && to.params.study_id !== '*') {
     await saveStudyUid(to.params.study_id)
+  }
+  
+  // Check if route requires PocketBase auth (skip OAuth check)
+  if (to.meta.requiresPocketBaseAuth) {
+    console.log('📋 Route requires PocketBase auth:', to.name)
+    if (isPocketBaseAuth) {
+      console.log('✅ PocketBase authenticated, allowing access to:', to.name)
+      next()
+      return
+    } else {
+      console.log('⛔ PocketBase auth required but not authenticated for:', to.name)
+      next({ name: 'Login' })
+      return
+    }
   }
 
   if ($config.OAUTH_ENABLED) {
     await authStore.initialize()
     if (to.matched.some((record) => record.meta.authRequired)) {
       auth.validateAccess(to, from, next)
+      return // Don't call next() again after validateAccess
     }
     if (to.matched.some((record) => record.meta.requiredPermission)) {
       if (!authStore.userInfo.roles.includes(to.meta.requiredPermission)) {
         next(false)
+        return
       }
     }
   }
 
   if (to.meta && to.meta.studyRequired && !studiesGeneralStore.selectedStudy) {
+    console.log('⛔ Study required but no study selected')
     if (from.name === 'AuthCallback') {
       // Special case for after-login process
       next({ name: 'SelectOrAddStudy' })
+      return
     } else {
       next(false)
+      return
     }
   }
+  
+  console.log('✅ All checks passed, allowing navigation to:', to.name)
   next()
 })
 
@@ -1170,6 +1249,14 @@ router.onError((error) => {
 
 router.beforeEach(async (to, from, next) => {
   const appStore = useAppStore()
+  
+  // Skip breadcrumb and section logic for login and other special pages
+  if (to.meta.layoutTemplate === 'empty' || to.meta.layoutTemplate === 'error' || to.name === 'Login' || to.name === 'Logout' || to.name === 'Profile') {
+    console.log('⏩ Skipping breadcrumb logic for:', to.name)
+    next()
+    return
+  }
+  
   if (to.matched.some((record) => record.meta.documentation)) {
     let urlPath = `${to.meta.documentation.page}`
     if (to.meta.documentation.anchor) {
