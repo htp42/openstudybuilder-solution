@@ -25,6 +25,13 @@ services:
       NEO4J_server_default__advertised__address: "localhost"
       NEO4J_server_bolt_advertised__address: "localhost:5002"
       NEO4J_server_http_advertised__address: "localhost:5001"
+      # OIDC/OAuth configuration for Neo4j Browser (basic auth remains enabled for API/consumer API)
+      NEO4J_dbms_security_oidc_provider_display__name: "${NEO4J_OIDC_DISPLAY_NAME:-HealthTech Partners 42 Authentication}"
+      NEO4J_dbms_security_oidc_provider_auth__flow: "pkce"
+      NEO4J_dbms_security_oidc_provider_well__known__discovery__uri: "${OAUTH_METADATA_URL:-}"
+      NEO4J_dbms_security_oidc_provider_client__id: "${OAUTH_NEO4J_APP_ID:-}"
+      NEO4J_dbms_security_oidc_provider_client__secret: "${OAUTH_NEO4J_APP_SECRET:-}"
+      NEO4J_dbms_security_auth__enabled: "true"
     ports:
       - "${BIND_ADDRESS:-0.0.0.0}:${NEO4J_BOLT_PORT:-5002}:7687"
       - "${BIND_ADDRESS:-0.0.0.0}:${NEO4J_HTTP_PORT:-5001}:7474"
